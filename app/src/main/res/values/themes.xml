@@ -1,0 +1,29 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.AndroidProject" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.AndroidProject" parent="Base.Theme.AndroidProject" />
+
+    <style name="Theme.Sampark" parent="Theme.MaterialComponents.Light.NoActionBar">
+
+        <!-- Disable auto dark -->
+        <item name="android:forceDarkAllowed">false</item>
+
+        <!-- Brand colors -->
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_primary</item>
+        <item name="colorOnPrimary">@color/card_white</item>
+
+        <!-- Surface & background -->
+        <item name="colorSurface">@color/card_white</item>
+        <item name="colorOnSurface">@color/text_dark</item>
+
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/card_white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+</resources>

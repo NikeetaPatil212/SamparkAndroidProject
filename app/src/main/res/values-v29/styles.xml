@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Sampark" parent="Theme.MaterialComponents.Light.NoActionBar">
+
+        <!-- Disable auto dark -->
+        <item name="android:forceDarkAllowed">false</item>
+
+        <!-- Brand colors -->
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_primary</item>
+        <item name="colorOnPrimary">@color/card_white</item>
+
+        <!-- Surface & background -->
+        <item name="colorSurface">@color/card_white</item>
+        <item name="colorOnSurface">@color/text_dark</item>
+
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/card_white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

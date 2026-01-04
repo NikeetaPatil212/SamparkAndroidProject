@@ -1,0 +1,83 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- MAIN MENU -->
+    <group
+        android:id="@+id/group_main"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_inquiry"
+            android:title="Inquiry"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_admissions"
+            android:title="Admissions"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_certificates"
+            android:title="Certificates"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_notifications"
+            android:title="Notifications"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_bulk"
+            android:title="Bulk Messenger"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_reports"
+            android:title="Reports"
+            android:icon="@drawable/baseline_account_circle_24"/>
+    </group>
+
+    <!-- SECTION TITLE -->
+    <item
+        android:title="Configuration"
+        android:enabled="false"/>
+
+    <!-- CONFIG MENU -->
+    <group>
+        <item
+            android:id="@+id/nav_dashboard"
+            android:title="Dashboard"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_templates"
+            android:title="Templates"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_institute"
+            android:title="Institute Details"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_data"
+            android:title="Data Settings"
+            android:icon="@drawable/baseline_account_circle_24"/>
+
+        <item
+            android:id="@+id/nav_batch"
+            android:title="Batch Timings"
+            android:icon="@drawable/baseline_account_circle_24"/>
+    </group>
+
+    <!-- SETTINGS -->
+    <item
+        android:id="@+id/nav_settings"
+        android:title="Settings"
+        android:icon="@drawable/baseline_lock_24"/>
+
+    <!-- LOGOUT -->
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Logout"
+        android:icon="@drawable/baseline_lock_24"/>
+</menu>

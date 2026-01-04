@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@drawable/bg_logo">
+
+    <androidx.core.widget.NestedScrollView android:layout_width="0dp" android:layout_height="0dp" android:fillViewport="true" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"> <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/screen_padding">
+
+            <!-- Logo -->
+            <ImageView
+                android:id="@+id/imgLogo"
+                android:layout_width="@dimen/logo_size"
+                android:layout_height="@dimen/logo_size"
+                android:layout_gravity="center"
+                android:contentDescription="Logo"
+                android:src="@drawable/logo"/>
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/txtTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sampark IM PRO"
+                android:textSize="@dimen/title_text"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Login Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/card_white"
+                app:cardCornerRadius="@dimen/card_radius"
+                app:cardElevation="@dimen/card_elevation">
+
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/card_padding">
+
+                    <EditText
+                        android:id="@+id/etEmail"
+                        style="@style/LoginEditText"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:hint="Email ID"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_attach_email_24"
+                        android:drawablePadding="10dp"
+                        android:inputType="textEmailAddress"/>
+
+                 <!--   <EditText
+                        android:id="@+id/etInstitute"
+                        style="@style/LoginEditText"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:hint="Select Institute / Department"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_add_home_work_24"
+                        android:drawableEnd="@drawable/outline_arrow_drop_down_24"
+                        android:drawablePadding="10dp"
+                        android:focusable="false"
+                        android:cursorVisible="false"/>-->
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/etInstitute"
+                    style="@style/LoginEditText"
+                    android:background="@drawable/bg_edittext_outline"
+                    android:hint="Select Institute / Department"
+                    android:textSize="14sp"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:drawableEnd="@drawable/outline_arrow_drop_down_24"
+                    android:gravity="center_vertical"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+android:inputType="none"
+                    android:drawableStart="@drawable/baseline_add_home_work_24"
+                    android:drawablePadding="10dp"
+                    android:focusable="true"
+                    android:clickable="true"/>
+
+
+
+
+                <EditText
+                        android:id="@+id/etUsername"
+                        style="@style/LoginEditText"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:hint="Username"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_account_circle_24"
+                        android:drawablePadding="10dp"
+                        android:inputType="textPersonName"/>
+
+                    <EditText
+                        android:id="@+id/etPassword"
+                        style="@style/LoginEditText"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:hint="Password"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_lock_24"
+                        android:drawableEnd="@drawable/baseline_remove_red_eye_24"
+                        android:drawablePadding="10dp"
+                        android:inputType="textPassword"/>
+
+
+                    <Button
+                        android:id="@+id/btnLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height"
+                        android:text="LOGIN"
+                        android:textColor="@android:color/white"
+                        android:background="@drawable/bg_button_green"
+                        app:backgroundTint="@null"
+                        android:layout_marginTop="@dimen/spacing_large"/>
+
+
+                    <TextView
+                        android:id="@+id/txtForgot"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Forgot password?"
+                        android:textColor="@color/link_blue"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/spacing_medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Need Help? Contact our team"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/spacing_large"/>
+
+                    <!--<TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+91 6359927200"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="4dp"/>-->
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="8dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/whatsapp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+91 6359927200"
+                            android:textColor="#2E7D32"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp"/>
+                    </LinearLayout>
+
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="© 2025 Sampark IT"
+                android:textSize="@dimen/footer_text"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/spacing_large"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

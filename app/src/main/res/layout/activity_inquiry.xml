@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_logo"
+    android:fitsSystemWindows="true">
+
+    <!-- ================= TOOLBAR ================= -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@drawable/bg_logo"
+        app:title="Add New Inquiry"
+        app:titleTextColor="@android:color/black"
+        app:navigationIcon="@drawable/outline_arrow_back_24"
+        app:navigationIconTint="@android:color/black"/>
+
+
+
+    <!-- ================= CONTENT ================= -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+
+        <!-- ============ PERSONAL DETAILS CARD ============ -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="6dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Personal Details"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/green_primary"
+                        android:layout_marginBottom="12dp"/>
+
+                    <EditText
+                        android:id="@+id/etFirstName"
+                        android:hint="First Name *"
+                        style="@style/LoginEditText"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_article_24"/>
+
+                    <EditText
+                        android:id="@+id/etMiddleName"
+                        android:hint="Middle Name"
+                        style="@style/LoginEditText"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_account_circle_24"/>
+
+                    <EditText
+                        android:id="@+id/etMobile"
+                        android:hint="Mobile No *"
+                        style="@style/LoginEditText"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:inputType="phone"
+                        android:drawableStart="@drawable/baseline_call_24"/>
+
+                    <EditText
+                        android:id="@+id/etAltMobile"
+                        android:hint="Alternate Mobile"
+                        style="@style/LoginEditText"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:inputType="phone"
+                        android:drawableStart="@drawable/baseline_add_ic_call_24"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ============ INQUIRY DETAILS CARD ============ -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="6dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Inquiry Details"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/green_primary"
+                        android:layout_marginBottom="12dp"/>
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/etInquiryAbout"
+                        style="@style/LoginEditText"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:hint="Inquiry About *"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:drawableStart="@drawable/outline_book_2_24"
+                        android:drawableEnd="@drawable/outline_arrow_drop_down_24"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawablePadding="10dp"
+                        android:inputType="none"
+                        android:cursorVisible="false"/>
+
+
+                    <EditText
+                        android:id="@+id/etReminderDate"
+                        style="@style/LoginEditText"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:hint="Reminder Date"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_calendar_today_24"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:cursorVisible="false"
+                        android:inputType="none"/>
+
+
+
+                    <EditText
+                        android:id="@+id/etSource"
+                        android:hint="Source Of Inquiry"
+                        style="@style/LoginEditText"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/baseline_content_paste_search_24"/>
+
+                    <EditText
+                        android:id="@+id/etSchoolName"
+                        android:hint="School Name"
+                        style="@style/LoginEditText"
+                        android:textSize="14sp"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:drawableStart="@drawable/outline_full_stacked_bar_chart_24"/>
+
+                    <!-- DOB SWITCH -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Add Date of Birth"
+                            android:textSize="14sp"
+                            android:textColor="@color/black"/>
+
+                        <Switch
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:thumbTint="@color/switch_thumb_color"
+                            android:trackTint="@color/green_dark"
+                            android:checked="true"/>
+                    </LinearLayout>
+                    <!-- ATTACH FILE -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAttachFile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@color/green_light_soft"
+                        app:backgroundTint="@null"
+                        android:text="Attach File"
+                        android:textColor="@color/green_text"
+                        app:icon="@drawable/baseline_attach_file_24"
+                        app:iconPadding="8dp"
+                        app:iconGravity="start"
+                        app:iconTint="@android:color/black"
+                        android:layout_marginTop="12dp"
+                        android:textSize="12sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Files uploaded will be saved to mobile memory."
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp"/>
+
+                    <!-- SAVE BUTTON -->
+                    <Button
+                        android:id="@+id/btnSave"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="SAVE INQUIRY"
+                        android:textColor="@android:color/white"
+                        android:background="@drawable/bg_button_green"
+                        android:layout_marginTop="20dp"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="© Sampark IT"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:textSize="12sp"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
+

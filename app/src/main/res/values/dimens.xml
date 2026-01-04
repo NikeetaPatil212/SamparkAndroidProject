@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_padding">16dp</dimen>
+    <dimen name="logo_size">160dp</dimen>
+    <dimen name="title_text">20sp</dimen>
+
+    <dimen name="card_margin">24dp</dimen>
+    <dimen name="card_radius">16dp</dimen>
+    <dimen name="card_elevation">8dp</dimen>
+    <dimen name="card_padding">20dp</dimen>
+
+    <dimen name="button_height">48dp</dimen>
+
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+
+    <dimen name="footer_text">12sp</dimen>
+
+
+</resources>
