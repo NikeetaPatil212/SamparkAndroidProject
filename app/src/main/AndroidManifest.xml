@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -15,18 +15,40 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Sampark">
+        android:theme="@style/Theme.Sampark"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".GetAdmissionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FeeReceiptActivity"
+            android:exported="false" />
+        <activity
+            android:name=".NewAdmissionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EditDeleteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ExtendActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdmissionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GetInquiryActivity"
+            android:exported="false" />
         <activity
             android:name=".InquiryActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".DashboardActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

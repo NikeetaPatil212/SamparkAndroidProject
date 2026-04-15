@@ -38,7 +38,7 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <!-- NAVIGATION DRAWER -->
-    <com.google.android.material.navigation.NavigationView
+  <!--  <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"
         android:layout_width="300dp"
         android:layout_height="match_parent"
@@ -48,7 +48,23 @@
         app:itemTextColor="@color/nav_item_text"
         app:itemBackground="@drawable/bg_nav_item_selector"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/nav_menu"/>
+        app:menu="@menu/nav_menu"/>-->
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        android:background="#FFFFFF"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/nav_menu"
+        app:itemBackground="@drawable/nav_item_selector"
+        app:itemIconTint="@color/nav_icon_color"
+        app:itemTextColor="@color/nav_item_text"
+        app:itemTextAppearance="@style/NavItemText"
+        app:itemIconSize="22dp"
+        app:itemHorizontalPadding="12dp" />
 
     <!--<com.google.android.material.navigation.NavigationView
         android:layout_width="300dp"

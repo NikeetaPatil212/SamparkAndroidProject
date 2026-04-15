@@ -47,10 +47,10 @@
                     android:padding="@dimen/card_padding">
 
                     <EditText
-                        android:id="@+id/etEmail"
+                        android:id="@+id/etPhoneNo"
                         style="@style/LoginEditText"
                         android:background="@drawable/bg_edittext_outline"
-                        android:hint="Email ID"
+                        android:hint="Phone No"
                         android:textSize="14sp"
                         android:maxLines="1"
                         android:singleLine="true"
@@ -60,7 +60,7 @@
                         android:paddingEnd="14dp"
                         android:drawableStart="@drawable/baseline_attach_email_24"
                         android:drawablePadding="10dp"
-                        android:inputType="textEmailAddress"/>
+                        android:inputType="number"/>
 
                  <!--   <EditText
                         android:id="@+id/etInstitute"
@@ -93,13 +93,30 @@
                     android:gravity="center_vertical"
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp"
-android:inputType="none"
+                    android:inputType="none"
                     android:drawableStart="@drawable/baseline_add_home_work_24"
                     android:drawablePadding="10dp"
                     android:focusable="true"
                     android:clickable="true"/>
 
+               <!-- <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Select Institute / Department"
+                    app:endIconMode="dropdown_menu">
 
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/etInstitute"
+                        android:drawableStart="@drawable/baseline_add_home_work_24"
+                        android:background="@drawable/bg_edittext_outline"
+                        android:paddingStart="14dp"
+                        style="@style/LoginEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textSize="14sp"
+                        android:singleLine="true"/>
+                </com.google.android.material.textfield.TextInputLayout>-->
 
 
                 <EditText
@@ -209,5 +226,21 @@ android:inputType="none"
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <FrameLayout
+        android:id="@+id/loaderLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:background="#80000000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

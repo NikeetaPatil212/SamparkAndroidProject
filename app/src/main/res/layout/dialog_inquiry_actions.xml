@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Action"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="#212121"
+        android:paddingBottom="12dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginBottom="10dp"/>
+
+    <TextView
+        android:id="@+id/tvSendMsg"
+        style="@style/ActionItem"
+        android:text="📩 Send Message" />
+
+    <TextView
+        android:id="@+id/tvAdmission"
+        style="@style/ActionItem"
+        android:text="🎓 Admission" />
+
+    <TextView
+        android:id="@+id/tvExtend"
+        style="@style/ActionItem"
+        android:text="⏳ Extend" />
+
+    <TextView
+        android:id="@+id/tvAbort"
+        style="@style/ActionItem"
+        android:text="❌ Abort" />
+
+    <TextView
+        android:id="@+id/tvEditDelete"
+        style="@style/ActionItem"
+        android:text="✏️ Edit / 🗑 Delete" />
+
+</LinearLayout>

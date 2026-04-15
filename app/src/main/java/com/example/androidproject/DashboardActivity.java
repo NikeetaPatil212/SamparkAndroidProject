@@ -1,8 +1,14 @@
 package com.example.androidproject;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -28,6 +34,9 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
     DrawerLayout drawerLayout;
     Toolbar toolbar;
+    NavigationView navigationView;
+    private boolean isInquiryExpanded = false;
+    private boolean isAdmissionExpanded = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +45,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.open, R.string.close);
@@ -44,37 +54,120 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         toggle.syncState();
 
 
-        NavigationView navigationView = findViewById(R.id.navigationView);
+        navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(DashboardActivity.this);
-       /* List<NavMenuItem> drawerList = new ArrayList<>();
-
-        drawerList.add(new NavMenuItem("Inquiry", R.drawable.baseline_call_24, true));
-        drawerList.add(new NavMenuItem("Admissions", R.drawable.baseline_article_24));
-        drawerList.add(new NavMenuItem("Certificates", R.drawable.baseline_account_circle_24));
-        drawerList.add(new NavMenuItem("Notifications", R.drawable.baseline_lock_24));
-
-        RecyclerView rvDrawer = findViewById(R.id.rvDrawer);
-        rvDrawer.setLayoutManager(new LinearLayoutManager(this));
-        rvDrawer.setAdapter(new DrawerAdapter(drawerList));*/
 
 
+        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                collapseAllMenus();
+            }
+        });
     }
+
+    private void collapseAllMenus() {
+        Menu menu = navigationView.getMenu();
+
+        if (isInquiryExpanded) {
+            isInquiryExpanded = false;
+            menu.findItem(R.id.nav_add_inquiry).setVisible(false);
+            menu.findItem(R.id.nav_get_inquiry).setVisible(false);
+            menu.findItem(R.id.nav_batch).setVisible(false);
+            menu.findItem(R.id.nav_inquiry).setTitle("Inquiry");
+        }
+
+        if (isAdmissionExpanded) {
+            isAdmissionExpanded = false;
+            menu.findItem(R.id.nav_add_admission).setVisible(false);
+            menu.findItem(R.id.nav_get_admission).setVisible(false);
+            menu.findItem(R.id.nav_admissions).setTitle("Admissions");
+        }
+    }
+
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
+        // ── INQUIRY expand/collapse ──────────────────────────────
         if (id == R.id.nav_inquiry) {
-            // Open InquiryActivity
-            Intent intent = new Intent(this, InquiryActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_admissions) {
-            // Handle other items
+            isInquiryExpanded = !isInquiryExpanded;
+
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_add_inquiry).setVisible(isInquiryExpanded);
+            menu.findItem(R.id.nav_get_inquiry).setVisible(isInquiryExpanded);
+            menu.findItem(R.id.nav_batch).setVisible(isInquiryExpanded);
+
+            item.setTitle(isInquiryExpanded ? "Inquiry  ▲" : "Inquiry  ▼");
+
+            styleSubItem(menu.findItem(R.id.nav_add_inquiry), "Add Inquiry");
+            styleSubItem(menu.findItem(R.id.nav_get_inquiry), "Get Inquiry");
+            styleSubItem(menu.findItem(R.id.nav_batch),       "Get Batch");
+            return true;
         }
 
+        // ── INQUIRY sub-items ────────────────────────────────────
+        if (id == R.id.nav_add_inquiry) {
+            startActivity(new Intent(this, InquiryActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        if (id == R.id.nav_get_inquiry) {
+            startActivity(new Intent(this, GetInquiryActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
 
-        DrawerLayout drawer = findViewById(R.id.drawerLayout);
-        drawer.closeDrawer(GravityCompat.START); // close drawer after click
+        // ── ADMISSIONS expand/collapse ───────────────────────────
+        if (id == R.id.nav_admissions) {
+            isAdmissionExpanded = !isAdmissionExpanded;
+
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_add_admission).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_get_admission).setVisible(isAdmissionExpanded);
+
+            item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
+
+            styleSubItem(menu.findItem(R.id.nav_add_admission), "New Admission");
+            styleSubItem(menu.findItem(R.id.nav_get_admission), "Fee Receipt");
+            return true;
+        }
+
+        // ── ADMISSIONS sub-items ─────────────────────────────────
+        if (id == R.id.nav_add_admission) {
+            startActivity(new Intent(this, NewAdmissionActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        if (id == R.id.nav_get_admission) {
+            startActivity(new Intent(this, GetAdmissionActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        // ── OTHER items ──────────────────────────────────────────
+        if (id == R.id.nav_certificates) {
+        } else if (id == R.id.nav_notifications) {
+        } else if (id == R.id.nav_bulk) {
+        } else if (id == R.id.nav_reports) {
+        } else if (id == R.id.nav_dashboard) {
+        } else if (id == R.id.nav_templates) {
+        } else if (id == R.id.nav_institute) {
+        } else if (id == R.id.nav_data) {
+        } else if (id == R.id.nav_settings) {
+        } else if (id == R.id.nav_logout) {
+        }
+
+        drawerLayout.closeDrawer(GravityCompat.START);
         return true;
-        }
+    }
+
+    // ── Sub-item: indented + smaller + grey — clearly different from main items
+    private void styleSubItem(MenuItem menuItem, String label) {
+        SpannableString s = new SpannableString("        ⤷  " + label);
+        s.setSpan(new ForegroundColorSpan(0xFF757575), 0, s.length(), 0);
+        s.setSpan(new RelativeSizeSpan(0.88f), 0, s.length(), 0);
+        menuItem.setTitle(s);
+    }
 }

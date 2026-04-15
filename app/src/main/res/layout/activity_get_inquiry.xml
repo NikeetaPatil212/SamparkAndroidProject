@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F2F5"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
+
+    <!-- ── TOOLBAR ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#2E7D32"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp"
+        android:elevation="6dp">
+
+        <ImageButton
+            android:id="@+id/toolbar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/outline_arrow_back_24"
+            android:tint="#FFFFFF"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingStart="4dp"
+            android:text="Get Inquiry"
+            android:textColor="#FFFFFF"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- ── SCROLL CONTENT ── -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="24dp">
+
+            <!-- ══ CARD 1: FILTER ══ -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Card Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:background="#2E7D32"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/baseline_content_paste_search_24"
+                            android:tint="#FFFFFF" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Search &amp; Filter"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <!-- From Date & To Date in one row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="10dp">
+
+                            <!-- From Date -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="From Date *"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="4dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="48dp"
+                                    android:background="@drawable/bg_edittext_outline"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:paddingHorizontal="10dp">
+
+                                    <EditText
+                                        android:id="@+id/etFromDate"
+                                        android:layout_width="0dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1"
+                                        android:background="@null"
+                                        android:hint="From"
+                                        android:focusable="false"
+                                        android:textColor="#1A1A1A"
+                                        android:textColorHint="#AAAAAA"
+                                        android:textSize="13sp"
+                                        android:maxLines="1" />
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/baseline_calendar_today_24"
+                                        android:tint="#2E7D32" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <!-- To Date -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="To Date *"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="4dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="48dp"
+                                    android:background="@drawable/bg_edittext_outline"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:paddingHorizontal="10dp">
+
+                                    <EditText
+                                        android:id="@+id/etToDate"
+                                        android:layout_width="0dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="1"
+                                        android:background="@null"
+                                        android:hint="To"
+                                        android:focusable="false"
+                                        android:textColor="#1A1A1A"
+                                        android:textColorHint="#AAAAAA"
+                                        android:textSize="13sp"
+                                        android:maxLines="1" />
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/baseline_calendar_today_24"
+                                        android:tint="#2E7D32" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Student Name search -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Student Name"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_person_foreground"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etStudentName"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Search by name..."
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:inputType="textPersonName" />
+                        </LinearLayout>
+
+                        <!-- Contact Number search -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Contact Number"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="12dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_call_24"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etContactNo"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Search by contact..."
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:inputType="phone"
+                                android:maxLength="10" />
+                        </LinearLayout>
+
+                        <!-- ✅ View Report button — always VISIBLE, not gone -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSearch"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:backgroundTint="#2E7D32"
+                            android:text="🔍  View Report"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            android:visibility="visible" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══ CARD 2: INQUIRY LIST TABLE ══ -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Card Header with result count -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:background="#2E7D32"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/baseline_article_24"
+                            android:tint="#FFFFFF" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="Inquiry List"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <!-- Live result count badge -->
+                        <TextView
+                            android:id="@+id/tvResultCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_status_pill"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="2dp"
+                            android:text="0 records"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <!-- TABLE HEADER — widths match row_inquiry.xml exactly -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="42dp"
+                                android:background="#E8F5E9"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="50dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="4dp"
+                                    android:text="#"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="140dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center_vertical"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Student Name"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="110dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Mobile"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="130dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Inquiry About"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="110dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Inq. Date"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="110dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Reminder"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="120dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Address"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="80dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Type"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="120dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Feedback"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC"/>
+
+                                <TextView
+                                    android:layout_width="80dp"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="Action"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Header/body divider -->
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#CCCCCC" />
+
+                            <!-- TABLE BODY -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvInquiry"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:nestedScrollingEnabled="false" />
+
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- ── LOADER OVERLAY ── -->
+    <FrameLayout
+        android:id="@+id/loaderLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center" />
+    </FrameLayout>
+
+</LinearLayout>

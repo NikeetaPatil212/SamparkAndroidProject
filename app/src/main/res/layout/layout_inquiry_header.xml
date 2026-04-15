@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:scrollbars="horizontal">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#E8F5E9">
+
+        <TextView style="@style/HeaderCell" android:text="Inquiry ID" />
+        <TextView style="@style/HeaderCell" android:text="Student Name" />
+        <TextView style="@style/HeaderCell" android:text="Mobile" />
+        <TextView style="@style/HeaderCell" android:text="Address"
+            android:layout_marginStart="20dp"/>
+        <TextView style="@style/HeaderCell" android:text="Type" />
+        <TextView style="@style/HeaderCell" android:text="Inquiry Date"
+            android:layout_marginStart="-20dp"/>
+        <TextView style="@style/HeaderCell" android:text="Courses"
+            android:layout_marginStart="20dp"/>
+        <TextView style="@style/HeaderCell" android:text="Follow Up"
+            android:layout_marginStart="20dp"/>
+        <TextView style="@style/HeaderCell" android:text="Feedback" />
+
+
+    </LinearLayout>
+</HorizontalScrollView>
