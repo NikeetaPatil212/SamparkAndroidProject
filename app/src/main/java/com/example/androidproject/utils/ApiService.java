@@ -23,9 +23,18 @@ import com.example.androidproject.model.LoginRequest;
 import com.example.androidproject.model.LoginResponse;
 import com.example.androidproject.model.MobileRequest;
 import com.example.androidproject.model.MobileResponse;
+import com.example.androidproject.model.StudentBasicRequest;
+import com.example.androidproject.model.StudentBasicResponse;
 import com.example.androidproject.model.SuggestReceiptRequest;
 import com.example.androidproject.model.SuggestReceiptResponse;
 import com.example.androidproject.model.UpdateStudentRequest;
+import com.example.androidproject.model.profile.EditProfileRequest;
+import com.example.androidproject.model.profile.EditProfileResponse;
+import com.example.androidproject.model.profile.ProfileDetailsRequest;
+import com.example.androidproject.model.profile.ProfileDetailsResponse;
+import com.example.androidproject.model.profile.StudentDetailsRequest;
+import com.example.androidproject.model.profile.StudentDetailsResponse;
+import com.example.androidproject.model.profile.TimingLessStudentResponse;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
@@ -84,4 +93,16 @@ public interface ApiService {
     @POST("Add_Receipt")
     Call<AddReceiptResponse> addReceipt(@Body AddReceiptRequest request);
 
+    @POST("Get_ProfileDetails")
+    Call<ProfileDetailsResponse> getProfileDetails(@Body ProfileDetailsRequest request);
+
+    @POST("get_TimingLess")
+    Call<TimingLessStudentResponse> getBatchAllotment(@Body StudentBasicRequest request);
+
+    @POST("Get_Student_Basic")
+    Call<StudentDetailsResponse> getStudentBasicDetails(@Body StudentDetailsRequest request);
+
+
+    @POST("edit_profile")
+    Call<EditProfileResponse> updateStudentProfile(@Body EditProfileRequest request);
 }

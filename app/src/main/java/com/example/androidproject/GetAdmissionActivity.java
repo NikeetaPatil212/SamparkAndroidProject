@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,8 +63,9 @@ public class GetAdmissionActivity extends AppCompatActivity {
     private String fromDateApi = "2025-01-10T00:00:00.000Z";
     private String toDateApi   = getTodayIso();
 
-    private final SimpleDateFormat isoFmt =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+
+
+    private final SimpleDateFormat isoFmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +90,8 @@ public class GetAdmissionActivity extends AppCompatActivity {
         layoutLoading  = findViewById(R.id.layoutLoading);
         layoutEmpty    = findViewById(R.id.layoutEmpty);
         layoutTable    = findViewById(R.id.layoutTable);
+
+
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(
@@ -236,23 +241,80 @@ public class GetAdmissionActivity extends AppCompatActivity {
         }
     }
 
-    // ── Row tap popup ─────────────────────────────────────────────
     private void showPopup(AdmissionDetails item) {
-        String name = item.getStudent_Name() != null ? item.getStudent_Name() : "Student";
-        new AlertDialog.Builder(this)
-                .setTitle(name)
-                .setMessage("Proceed to Fee Receipt?")
-                .setPositiveButton("Fee Receipt", (d, w) -> {
-                    Log.d("DATA_PASS", "StudentID=" + item.getStudID()
-                            + " AdmissionID=" + item.getAdm_id());
-                    Intent intent = new Intent(GetAdmissionActivity.this, FeeReceiptActivity.class);
-                    intent.putExtra("student_id",   item.getStudID());
-                    intent.putExtra("admission_id", item.getAdm_id());
-                    startActivity(intent);
-                })
-                .setNegativeButton("Cancel", (d, w) -> d.dismiss())
-                .setCancelable(true)
-                .show();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_admission_actions, null);
+
+        ImageView ivStudent = view.findViewById(R.id.ivStudent);
+        TextView tvName = view.findViewById(R.id.tvName);
+        TextView tvMobile = view.findViewById(R.id.tvMobile);
+        TextView tvAltMobile = view.findViewById(R.id.tvAltMobile);
+        TextView tvAddress = view.findViewById(R.id.tvAddress);
+        LinearLayout tvViewDetails = view.findViewById(R.id.tvViewDetails);
+
+
+// Set data
+        tvName.setText(item.getStudent_Name());
+        tvMobile.setText("Mobile: " + item.getMobile());
+       /* tvAltMobile.setText("Alt: " + item.getMobile());
+        tvAddress.setText("Address: " + item.getMobile());*/
+
+        Log.d("studeidd----", "showPopup: " + item.getStudID());
+
+
+        AlertDialog dialog = builder.setView(view).create();
+
+
+        tvViewDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // On ViewDetails TextView click:
+                Intent intent = new Intent(GetAdmissionActivity.this, StudentProfleActivity.class);
+                intent.putExtra("studentId", item.getStudID());
+                intent.putExtra("admissionId",item.getAdm_id());
+                startActivity(intent);
+            }
+        });
+
+        // Fee Receipt Click
+        view.findViewById(R.id.tvFeeReceipt).setOnClickListener(v -> {
+            dialog.dismiss();
+
+            Log.d("DATA_PASS", "StudentID=" + item.getStudID()
+                    + " AdmissionID=" + item.getAdm_id());
+
+            Intent intent = new Intent(GetAdmissionActivity.this, FeeReceiptActivity.class);
+            intent.putExtra("studentId", item.getStudID());
+            intent.putExtra("admissionId", item.getAdm_id());
+            startActivity(intent);
+        });
+
+        // Example: Student Details Activity
+        view.findViewById(R.id.tvNewAdmission).setOnClickListener(v -> {
+            dialog.dismiss();
+
+            Intent intent = new Intent(GetAdmissionActivity.this, NewAdmissionActivity.class);
+            intent.putExtra("studentId", item.getStudID());
+            intent.putExtra("student_name", item.getStudent_Name());
+            startActivity(intent);
+        });
+
+
+        view.findViewById(R.id.tvEditProfile).setOnClickListener(v -> {
+            dialog.dismiss();
+
+            Intent intent = new Intent(GetAdmissionActivity.this, EditStudentProfileActivity.class);
+            intent.putExtra("studentId", item.getStudID());
+            Log.d("GetSTudeID----", "showPopup: " + item.getStudID());
+            startActivity(intent);
+        });
+
+        // Cancel
+        view.findViewById(R.id.tvGoBack).setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     private static String getTodayIso() {

@@ -1,159 +1,583 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_logo"
+    android:background="#F0F2F5"
+    android:orientation="vertical"
     android:fitsSystemWindows="true">
 
-    <!-- ================= TOOLBAR ================= -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!-- ── TOOLBAR ── -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/bg_logo"
-        app:title="Edit Inquiry"
-        app:titleTextColor="@android:color/black"
-        app:navigationIcon="@drawable/outline_arrow_back_24"
-        app:navigationIconTint="@android:color/black"
-        app:layout_constraintTop_toTopOf="parent"/>
+        android:layout_height="60dp"
+        android:background="#2E7D32"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp"
+        android:elevation="6dp">
 
-    <!-- ================= CONTENT ================= -->
+        <!-- ── TOOLBAR ── change id from toolbar → btnBack ── -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/outline_arrow_back_24"
+            android:tint="#FFFFFF"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingStart="4dp"
+            android:text="Edit Inquiry"
+            android:textColor="#FFFFFF"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- ── SCROLL CONTENT ── -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="14dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="24dp">
 
-            <!-- First Name -->
-            <EditText
-                android:id="@+id/etFirstName"
+            <!-- ══ CARD 1: PERSONAL INFO ══ -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="First Name"
-                android:inputType="textPersonName"/>
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
 
-            <!-- Middle Name -->
-            <EditText
-                android:id="@+id/etMiddleName"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Card Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:background="#2E7D32"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_person_foreground"
+                            android:tint="#FFFFFF" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Personal Details"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Card Body -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <!-- First Name -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="First Name *"
+                            android:textColor="#2E7D32"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_article_24"
+                                android:tint="#2E7D32"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etFirstName"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter first name"
+                                android:inputType="textPersonName"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                        <!-- Middle Name -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Middle Name"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_account_circle_24"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etMiddleName"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter middle name"
+                                android:inputType="textPersonName"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                        <!-- Last Name -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last Name"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_account_circle_24"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etLastName"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter last name"
+                                android:inputType="textPersonName"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                        <!-- Full Name -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Full Name *"
+                            android:textColor="#2E7D32"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_article_24"
+                                android:tint="#2E7D32"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etFullName"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter full name"
+                                android:inputType="textPersonName"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══ CARD 2: CONTACT INFO ══ -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Middle Name"
-                android:layout_marginTop="8dp"
-                android:inputType="textPersonName"/>
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
 
-            <!-- Last Name -->
-            <EditText
-                android:id="@+id/etLastName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Last Name"
-                android:layout_marginTop="8dp"
-                android:inputType="textPersonName"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <!-- Full Name -->
-            <EditText
-                android:id="@+id/etFullName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Full Name"
-                android:layout_marginTop="8dp"
-                android:inputType="textPersonName"/>
+                    <!-- Card Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:background="#2E7D32"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp">
 
-            <!-- Mobile -->
-            <EditText
-                android:id="@+id/etMobile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Mobile Number"
-                android:inputType="phone"
-                android:maxLength="10"
-                android:layout_marginTop="8dp"/>
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/baseline_call_24"
+                            android:tint="#FFFFFF" />
 
-            <!-- Alternate Mobile -->
-            <EditText
-                android:id="@+id/etAlternateNo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Alternate Number"
-                android:inputType="phone"
-                android:maxLength="10"
-                android:layout_marginTop="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Contact &amp; Address"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-            <!-- Email -->
-            <EditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Email"
-                android:inputType="textEmailAddress"
-                android:layout_marginTop="8dp"/>
+                    <!-- Card Body -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-            <!-- Address -->
-            <EditText
-                android:id="@+id/etAddress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Address"
-                android:inputType="textMultiLine"
-                android:minLines="2"
-                android:layout_marginTop="8dp"/>
+                        <!-- Mobile -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mobile No *"
+                            android:textColor="#2E7D32"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="4dp" />
 
-            <!-- BUTTONS -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_call_24"
+                                android:tint="#2E7D32"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etMobile"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter mobile number"
+                                android:inputType="phone"
+                                android:maxLength="10"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                        <!-- Alternate Mobile -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Alternate Number"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_add_ic_call_24"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etAlternateNo"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter alternate number"
+                                android:inputType="phone"
+                                android:maxLength="10"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                        <!-- Email -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Email"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_add_ic_call_24"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <EditText
+                                android:id="@+id/etEmail"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter email address"
+                                android:inputType="textEmailAddress"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:singleLine="true" />
+                        </LinearLayout>
+
+                        <!-- Address -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Address"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="8dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_add_ic_call_24"
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp"
+                                android:layout_marginTop="10dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp"
+                                android:layout_marginTop="10dp" />
+
+                            <EditText
+                                android:id="@+id/etAddress"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Enter address"
+                                android:inputType="textMultiLine"
+                                android:minLines="2"
+                                android:gravity="top|start"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══ ACTION BUTTONS ══ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="24dp">
+                android:orientation="horizontal">
 
-                <!-- UPDATE -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSave"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="52dp"
                     android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:backgroundTint="#2E7D32"
                     android:text="Update"
-                    android:layout_marginEnd="8dp"/>
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textAllCaps="false"
+                    android:textStyle="bold" />
 
-                <!-- CANCEL -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancel"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="52dp"
                     android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:strokeColor="#2E7D32"
                     android:text="Cancel"
-                    android:layout_marginStart="8dp"/>
+                    android:textColor="#2E7D32"
+                    android:textSize="15sp"
+                    android:textAllCaps="false"
+                    android:textStyle="bold" />
+
             </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ================= LOADER ================= -->
+    <!-- ── LOADER OVERLAY ── -->
     <FrameLayout
         android:id="@+id/loaderLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:background="#80000000"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:visibility="gone">
 
         <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"/>
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center" />
     </FrameLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

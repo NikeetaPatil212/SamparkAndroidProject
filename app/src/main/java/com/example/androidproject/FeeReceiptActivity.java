@@ -102,8 +102,8 @@ public class FeeReceiptActivity extends AppCompatActivity {
     // ── Intent Data ───────────────────────────────────────────────
     private void getIntentData() {
         if (getIntent() != null) {
-            passedStudentId   = getIntent().getIntExtra("student_id",   -1);
-            passedAdmissionId = getIntent().getIntExtra("admission_id", -1);
+            passedStudentId   = getIntent().getIntExtra("studentId",   -1);
+            passedAdmissionId = getIntent().getIntExtra("admissionId", -1);
         }
         Log.d("INTENT", "Student: " + passedStudentId + " Admission: " + passedAdmissionId);
     }
@@ -170,7 +170,7 @@ public class FeeReceiptActivity extends AppCompatActivity {
                                            Response<FeeReceiptResponse> response) {
                         showLoading(false);
 
-                        if (response.isSuccessful() && response.body() != null) {
+                        if ( response.body() != null && response.isSuccessful()) {
                             FeeReceiptResponse res = response.body();
                             Log.d("FEE_RESPONSE", new Gson().toJson(res));
 

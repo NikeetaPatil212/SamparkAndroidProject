@@ -74,19 +74,20 @@ public class AdmissionActivity extends AppCompatActivity {
     private List<Integer> selectedCourseIDs = new ArrayList<>();
     private AutoCompleteTextView spCourse, spBatch;
 
-    // ✅ FIX: was TextView — changed to TextInputEditText to match XML widget type
     TextInputEditText tvStudentName;
-
     TextInputEditText etAdmissionDate, etTotalFee, etPaidFee, etRemainingFee, etReceiptNo, etReminderDate;
     TextInputEditText etSummaryTotalFee, etSummaryPaidFee, etSummaryRemainingFee, etSummaryReceiptNo;
 
     MaterialButton btnFinish, btnAdd, btnCamera;
-
     RecyclerView rvFeeDetails;
 
     private List<Batch> batchList = new ArrayList<>();
     private List<Course> courseList = new ArrayList<>();
     private List<CourseList> selectedCourses = new ArrayList<>();
+
+    // ── In-memory list of batch names added THIS session for THIS student ──────
+    // Used for duplicate check — avoids Room cross-student contamination
+    private List<String> addedBatchNamesThisSession = new ArrayList<>();
 
     private int selectedCourseId = -1;
     private int selectedBatchId = -1;
@@ -99,28 +100,37 @@ public class AdmissionActivity extends AppCompatActivity {
 
     private String capturedFileName;
     private TextView tvPhotoInfo;
-    String studentId;
+
+    // ── studentId parsed ONCE from intent, validated early ────────────────────
+    private int studentId = -1;
+    private String mobile;
 
     private AdmissionDetailAdapter adapter;
     private AppDatabase db;
 
     private int totalFeeSum = 0, paidFeeSum = 0, remainingFeeSum = 0;
-    private String uploadedImageUrl = "", receiptNo, mobile;
+    private String uploadedImageUrl = "", receiptNo;
 
-    // Batch dropdown visual state helpers
     private ImageView ivBatchArrow;
     private TextView tvBatchHelper;
-    private String admissionDateForApi = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // ✅ FIX: Removed EdgeToEdge.enable(this) — it caused the toolbar/status bar overlap
         setContentView(R.layout.activity_admission);
 
         mobile = getIntent().getStringExtra("mobile");
         String fullName = getIntent().getStringExtra("full_name");
-        Log.d("AdmissionActivity", "onCreate: mobile=" + mobile);
+
+        // ── Parse studentId from intent ONCE here ─────────────────────────────
+        studentId = getIntent().getIntExtra("studentId", -1);
+        Log.d("AdmissionActivity", "onCreate: studentId=" + studentId + ", mobile=" + mobile);
+
+        if (studentId == -1) {
+            Toast.makeText(this, "Invalid student. Please go back and try again.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         initViews();
         setupToolbar();
@@ -128,38 +138,12 @@ public class AdmissionActivity extends AppCompatActivity {
         setupFeeCalculation();
         fetchCourses();
 
-        // ✅ FIX: Do NOT pre-load old Room data here.
-        // Table must be empty on open — rows are added only when user clicks "+ Add Course"
-        // loadAdmissionDetails() removed intentionally.
-    }
+        // ── Clear stale Room records for THIS student from previous sessions ──
+        db.feeDetailDao().deleteForStudent(studentId);
 
-    private void uploadImage(File imageFile) {
-        RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), imageFile);
-        MultipartBody.Part body = MultipartBody.Part.createFormData("file", imageFile.getName(), requestFile);
-
-        RetrofitClient.getApiService().uploadImage(body).enqueue(new Callback<ImageUploadResponse>() {
-            @Override
-            public void onResponse(Call<ImageUploadResponse> call, Response<ImageUploadResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ImageUploadResponse res = response.body();
-                    Log.d("UPLOAD_RESPONSE", new Gson().toJson(res));
-                    if (res.isSuccess()) {
-                        uploadedImageUrl = res.getImageUrl();
-                        Toast.makeText(AdmissionActivity.this, "Image uploaded successfully", Toast.LENGTH_SHORT).show();
-                        Log.d("IMAGE_URL", uploadedImageUrl);
-                    } else {
-                        Toast.makeText(AdmissionActivity.this, "Upload failed", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(AdmissionActivity.this, "Server error", Toast.LENGTH_SHORT).show();
-                }
-            }
-            @Override
-            public void onFailure(Call<ImageUploadResponse> call, Throwable t) {
-                Toast.makeText(AdmissionActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                Log.e("UPLOAD_ERROR", t.getMessage());
-            }
-        });
+        // ── Clear in-memory session list ──────────────────────────────────────
+        addedBatchNamesThisSession.clear();
+        selectedCourses.clear();
     }
 
     private void initViews() {
@@ -189,30 +173,25 @@ public class AdmissionActivity extends AppCompatActivity {
         etSummaryRemainingFee = findViewById(R.id.etSummaryRemainingFee);
         etSummaryReceiptNo    = findViewById(R.id.etSummaryReceiptNo);
 
-        // ── Student name from intent ──
+        // ── Student name from intent ──────────────────────────────────────────
         String studentName = getIntent().getStringExtra("student_name");
-        int studId = getIntent().getIntExtra("studentId", -1);
-        studentId = String.valueOf(studId);
         tvStudentName.setText(studentName);
 
-        // ── Course: fetch if empty on click ──
+        // ── Adapter + Room DB ─────────────────────────────────────────────────
+        adapter = new AdmissionDetailAdapter();
+        rvFeeDetails.setAdapter(adapter);
+
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "admission-db")
+                .allowMainThreadQueries()
+                .build();
+
+        // ── Course dropdown ───────────────────────────────────────────────────
         spCourse.setOnClickListener(v -> {
             if (courseList == null || courseList.isEmpty()) fetchCourses();
         });
         spBatch.setEnabled(false);
 
-        // ── Fee TextWatcher ──
-        TextWatcher feeWatcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void afterTextChanged(Editable s) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                calculateRemainingFee();
-            }
-        };
-        etTotalFee.addTextChangedListener(feeWatcher);
-        etPaidFee.addTextChangedListener(feeWatcher);
-
-        // ── Camera button ──
+        // ── Camera button ─────────────────────────────────────────────────────
         btnCamera.setOnClickListener(v -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_capture_photo, null);
@@ -245,7 +224,7 @@ public class AdmissionActivity extends AppCompatActivity {
             dialog.show();
         });
 
-        // ── Reminder date default = today + 10 days ──
+        // ── Reminder date default = today + 10 days ───────────────────────────
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, 10);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
@@ -262,79 +241,65 @@ public class AdmissionActivity extends AppCompatActivity {
             ).show();
         });
 
-        // ── Adapter + Room DB ──
-        adapter = new AdmissionDetailAdapter();
-        rvFeeDetails.setAdapter(adapter);
-
-        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "admission-db")
-                .allowMainThreadQueries()
-                .build();
-
-        // ✅ FIX: Delete any stale records for this student before starting fresh
-        // This ensures the table is empty when the screen opens.
-        // Rows are added ONLY when the user clicks "+ Add Course".
-        if (studentId != null && !studentId.isEmpty()) {
-            try {
-                int sid = Integer.parseInt(studentId);
-                db.feeDetailDao().deleteForStudent(sid);   // ✅ UNCOMMENT THIS
-            } catch (NumberFormatException e) {
-                Log.e("AdmissionActivity", "Invalid studentId: " + studentId);
-            }
-        }
-
-        // ── Add Course button ──
+        // ── Add Course button ─────────────────────────────────────────────────
         btnAdd.setOnClickListener(v -> {
-            int sid;
-            try {
-                sid = Integer.parseInt(studentId);
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Invalid Student ID", Toast.LENGTH_SHORT).show();
-                return;
-            }
 
+            // Validate course & batch selected
             String courseName = spCourse.getText().toString().trim();
             String batchName  = spBatch.getText().toString().trim();
 
-            if (courseName.isEmpty() || batchName.isEmpty()) {
-                Toast.makeText(this, "Please select a course and batch", Toast.LENGTH_SHORT).show();
+            if (courseName.isEmpty()) {
+                Toast.makeText(this, "Please select a course", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (batchName.isEmpty()) {
+                Toast.makeText(this, "Please select a batch", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            // Validate fee fields
             String totalStr = etTotalFee.getText() != null ? etTotalFee.getText().toString().trim() : "";
             String paidStr  = etPaidFee.getText()  != null ? etPaidFee.getText().toString().trim()  : "";
 
-            if (totalStr.isEmpty() || paidStr.isEmpty()) {
-                Toast.makeText(this, "Please enter fee details", Toast.LENGTH_SHORT).show();
+            if (totalStr.isEmpty()) {
+                Toast.makeText(this, "Please enter total fee", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (paidStr.isEmpty()) {
+                Toast.makeText(this, "Please enter paid fee", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            int totalFee     = Integer.parseInt(totalStr);
-            int paidFee      = Integer.parseInt(paidStr);
-            int remainingFee = 0;
+            int totalFee, paidFee;
             try {
-                String remStr = etRemainingFee.getText() != null ? etRemainingFee.getText().toString().trim() : "0";
-                remainingFee = remStr.isEmpty() ? 0 : Integer.parseInt(remStr);
-            } catch (NumberFormatException ignored) {}
+                totalFee = Integer.parseInt(totalStr);
+                paidFee  = Integer.parseInt(paidStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Invalid fee amount", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            receiptNo = etSummaryReceiptNo.getText() != null ? etSummaryReceiptNo.getText().toString().trim() : "";
+            int remainingFee = Math.max(totalFee - paidFee, 0);
 
-            // Check duplicate batch
-            // ✅ Replace the Room DB duplicate check with this
-            for (CourseList existing : selectedCourses) {
-                if (existing.getBatchName() != null &&
-                        existing.getBatchName().equalsIgnoreCase(batchName)) {
+            // ── DUPLICATE CHECK: only against THIS session's added batches ────
+            // Uses in-memory list — completely isolated per student per screen open
+            for (String addedBatch : addedBatchNamesThisSession) {
+                if (addedBatch.equalsIgnoreCase(batchName)) {
                     new AlertDialog.Builder(this)
                             .setTitle("Duplicate Entry")
-                            .setMessage("Course already added! Same batch cannot be selected again.")
+                            .setMessage("This batch has already been added. Please select a different batch.")
                             .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                             .show();
                     return;
                 }
             }
 
-            // Save to Room
+            receiptNo = etSummaryReceiptNo.getText() != null
+                    ? etSummaryReceiptNo.getText().toString().trim() : "";
+
+            // ── Save to Room DB scoped to this studentId ──────────────────────
             AdmissionDetail detail = new AdmissionDetail();
-            detail.setStudentId(sid);
+            detail.setStudentId(studentId);          // uses the validated int field
             detail.setCourseName(courseName);
             detail.setCourseId(String.valueOf(selectedCourseId));
             detail.setBatchName(batchName);
@@ -344,11 +309,14 @@ public class AdmissionActivity extends AppCompatActivity {
             detail.setBatchId(String.valueOf(selectedBatchId));
             db.feeDetailDao().insert(detail);
 
-            // Reload and update table
-            List<AdmissionDetail> updatedList = db.feeDetailDao().getDetailsForStudent(sid);
+            // ── Track batch in session list to prevent duplicates ─────────────
+            addedBatchNamesThisSession.add(batchName);
+
+            // ── Reload table from Room for this studentId only ────────────────
+            List<AdmissionDetail> updatedList = db.feeDetailDao().getDetailsForStudent(studentId);
             adapter.setItems(updatedList);
 
-            // ✅ Recalculate totals from scratch to avoid double-counting
+            // ── Recalculate totals from scratch ───────────────────────────────
             totalFeeSum = 0; paidFeeSum = 0; remainingFeeSum = 0;
             for (AdmissionDetail d : updatedList) {
                 totalFeeSum     += d.getTotalFee();
@@ -356,13 +324,25 @@ public class AdmissionActivity extends AppCompatActivity {
                 remainingFeeSum += d.getRemainingFee();
             }
 
-            etSummaryReceiptNo.setText(receiptNo);
             etSummaryTotalFee.setText(String.valueOf(totalFeeSum));
             etSummaryPaidFee.setText(String.valueOf(paidFeeSum));
             etSummaryRemainingFee.setText(String.valueOf(remainingFeeSum));
+            etSummaryReceiptNo.setText(receiptNo);
             etReminderDate.setVisibility(VISIBLE);
 
-            // Clear input fields
+            // ── Add to API payload list ───────────────────────────────────────
+            CourseList courseObj = new CourseList(
+                    selectedCourseId, selectedCourseName, "Regular",
+                    selectedBatchId, selectedBatchName,
+                    totalFee, paidFee, remainingFee,
+                    remainingFee == 0 ? "Active" : "Pending",
+                    receiptNo,
+                    etReminderDate.getText().toString(),
+                    "2026-04-04T11:18:11", 0
+            );
+            selectedCourses.add(courseObj);
+
+            // ── Clear input fields for next course entry ──────────────────────
             spCourse.setText("");
             spBatch.setText("");
             spBatch.setEnabled(false);
@@ -378,21 +358,37 @@ public class AdmissionActivity extends AppCompatActivity {
             etRemainingFee.setText("");
             etReceiptNo.setText("");
 
-            // Build CourseList for API payload
-            CourseList courseObj = new CourseList(
-                    selectedCourseId, selectedCourseName, "Regular",
-                    selectedBatchId, selectedBatchName,
-                    totalFee, paidFee, remainingFee,
-                    remainingFee == 0 ? "Active" : "Pending",
-                    receiptNo,
-                    etReminderDate.getText().toString(),
-                    "2026-04-04T11:18:11", 0
-            );
-            selectedCourses.add(courseObj);
+            Toast.makeText(this, "Course added successfully!", Toast.LENGTH_SHORT).show();
         });
 
-        // ── Finish button ──
+        // ── Finish button ─────────────────────────────────────────────────────
         btnFinish.setOnClickListener(v -> callAddAdmissionApi());
+    }
+
+    private void uploadImage(File imageFile) {
+        RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), imageFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file", imageFile.getName(), requestFile);
+
+        RetrofitClient.getApiService().uploadImage(body).enqueue(new Callback<ImageUploadResponse>() {
+            @Override
+            public void onResponse(Call<ImageUploadResponse> call, Response<ImageUploadResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ImageUploadResponse res = response.body();
+                    if (res.isSuccess()) {
+                        uploadedImageUrl = res.getImageUrl();
+                        Toast.makeText(AdmissionActivity.this, "Image uploaded successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(AdmissionActivity.this, "Upload failed", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(AdmissionActivity.this, "Server error", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<ImageUploadResponse> call, Throwable t) {
+                Toast.makeText(AdmissionActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private File uriToFile(Uri uri) throws IOException {
@@ -409,22 +405,12 @@ public class AdmissionActivity extends AppCompatActivity {
         return file;
     }
 
-    private boolean whatsappOpened = false;
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (whatsappOpened) {
-            // User returned from WhatsApp, now go to Dashboard
-            whatsappOpened = false; // Reset flag
-            Intent dashIntent = new Intent(AdmissionActivity.this, DashboardActivity.class);
-            dashIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(dashIntent);
-            finish();
-        }
-    }
-
     private void callAddAdmissionApi() {
+        if (selectedCourses.isEmpty()) {
+            Toast.makeText(this, "Please add at least one course before finishing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
         String operatorId  = PrefManager.getInstance(this).getOperatorId();
@@ -434,9 +420,6 @@ public class AdmissionActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
         String reminderDate = sdf.format(calendar.getTime());
 
-        //String admissionDate = sdf.format(calendar.getTime());
-
-
         for (CourseList course : selectedCourses) {
             int remaining = course.getFee() - course.getPaid();
             course.setRemaining(remaining);
@@ -445,11 +428,9 @@ public class AdmissionActivity extends AppCompatActivity {
             course.setOperatorID(Integer.parseInt(operatorId));
         }
 
-        int studId = getIntent().getIntExtra("studentId", -1);
-
         AdmissionRequest request = new AdmissionRequest(
                 Integer.parseInt(userId), Integer.parseInt(instituteId),
-                studId, admissionDateForApi,
+                studentId, "2026-03-17T18:55:25.148Z",
                 uploadedImageUrl, paidFeeSum, selectedCourses
         );
 
@@ -462,7 +443,6 @@ public class AdmissionActivity extends AppCompatActivity {
                     if (response.body().isSuccess()) {
                         Toast.makeText(AdmissionActivity.this, response.body().getMessage(), Toast.LENGTH_SHORT).show();
                         String studentName = getIntent().getStringExtra("student_name");
-
                         if (mobile != null && !mobile.isEmpty()) {
                             String message = "Hello " + studentName + ", your admission is successfully completed. Welcome!";
                             try {
@@ -470,26 +450,16 @@ public class AdmissionActivity extends AppCompatActivity {
                                 intent.setData(Uri.parse("https://wa.me/" + mobile + "?text=" + Uri.encode(message)));
                                 startActivity(intent);
 
-                                // ✅ Set flag to navigate to Dashboard when user returns
-                                whatsappOpened = true;
-
-                            } catch (Exception e) {
-                                Toast.makeText(AdmissionActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
-                                // Navigate to Dashboard if WhatsApp fails
                                 Intent dashIntent = new Intent(AdmissionActivity.this, DashboardActivity.class);
                                 dashIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(dashIntent);
                                 finish();
+                            } catch (Exception e) {
+                                Toast.makeText(AdmissionActivity.this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(AdmissionActivity.this, "Mobile number not found", Toast.LENGTH_SHORT).show();
-                            // Navigate to Dashboard if no mobile number
-                            Intent dashIntent = new Intent(AdmissionActivity.this, DashboardActivity.class);
-                            dashIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(dashIntent);
-                            finish();
                         }
-
                     } else {
                         Toast.makeText(AdmissionActivity.this, response.body().getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -497,7 +467,6 @@ public class AdmissionActivity extends AppCompatActivity {
                     Toast.makeText(AdmissionActivity.this, "Server error", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(Call<AdmissionResponse> call, Throwable t) {
                 Toast.makeText(AdmissionActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
@@ -526,8 +495,6 @@ public class AdmissionActivity extends AppCompatActivity {
 
         ArrayAdapter<String> courseAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_dropdown_item_1line, courseNames);
-        spBatch.setEnabled(true);              // ✅ enable FIRST
-        spBatch.setThreshold(0);
         spCourse.setAdapter(courseAdapter);
         spCourse.setOnClickListener(v -> spCourse.showDropDown());
 
@@ -535,10 +502,7 @@ public class AdmissionActivity extends AppCompatActivity {
             Course selectedCourse = courseList.get(position);
             selectedCourseId   = selectedCourse.getCouseID();
             selectedCourseName = selectedCourse.getCouse_Name();
-            Log.d("COURSE_SELECTED", "CourseId = " + selectedCourseId);
-            PrefManager.getInstance(AdmissionActivity.this).setCourseId(selectedCourseId);
 
-            // Reset batch
             batchList.clear();
             selectedBatchId = -1;
             spBatch.setText("");
@@ -576,12 +540,9 @@ public class AdmissionActivity extends AppCompatActivity {
             Batch selectedBatch = batchList.get(position);
             selectedBatchId   = selectedBatch.getCourseID();
             selectedBatchName = selectedBatch.getBatchName();
-            PrefManager.getInstance(AdmissionActivity.this).setBatchId(selectedBatchId);
-            Log.d("BATCH_SELECTED", "BatchId = " + selectedBatchId);
         });
     }
 
-    // ✅ FIX: No MaterialToolbar in XML — uses ImageButton btnBack instead
     private void setupToolbar() {
         ImageButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
@@ -594,21 +555,12 @@ public class AdmissionActivity extends AppCompatActivity {
                     (view, year, month, day) -> {
                         Calendar selected = Calendar.getInstance();
                         selected.set(year, month, day);
-
-                        // UI
-                        SimpleDateFormat uiFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-                        etAdmissionDate.setText(uiFormat.format(selected.getTime()));
-
-                        // API
-                        SimpleDateFormat apiFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-                        admissionDateForApi = apiFormat.format(selected.getTime());
-
-                        Log.d("DATE_DEBUG", "Selected: " + admissionDateForApi); // ✅ debug
+                        etAdmissionDate.setText(new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                                .format(selected.getTime()));
                     },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
+                    calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
             );
+            dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
             dialog.show();
         });
     }
@@ -618,14 +570,7 @@ public class AdmissionActivity extends AppCompatActivity {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String total = etTotalFee.getText() != null ? etTotalFee.getText().toString() : "";
-                String paid  = etPaidFee.getText()  != null ? etPaidFee.getText().toString()  : "";
-                if (!total.isEmpty() && !paid.isEmpty()) {
-                    try {
-                        etRemainingFee.setText(String.valueOf(
-                                Math.max(Integer.parseInt(total) - Integer.parseInt(paid), 0)));
-                    } catch (NumberFormatException ignored) {}
-                }
+                calculateRemainingFee();
             }
         };
         etTotalFee.addTextChangedListener(feeWatcher);
@@ -659,7 +604,6 @@ public class AdmissionActivity extends AppCompatActivity {
         String instituteId = PrefManager.getInstance(this).getInstituteId();
         BatchRequest request = new BatchRequest(
                 Integer.parseInt(userId), Integer.parseInt(instituteId), courseId);
-        Log.d("REQUEST_JSON12--", new Gson().toJson(request));
         RetrofitClient.getApiService().getBatch(request).enqueue(new Callback<BatchResponse>() {
             @Override
             public void onResponse(Call<BatchResponse> call, Response<BatchResponse> response) {

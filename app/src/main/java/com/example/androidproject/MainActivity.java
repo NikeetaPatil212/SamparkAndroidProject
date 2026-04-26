@@ -122,14 +122,14 @@ public class MainActivity extends AppCompatActivity {
 
         // 🔹 LOGIN BUTTON FLOW (UNCHANGED LOGIC)
         btnLogin.setOnClickListener(v -> {
-            validateInputs();
+            //validateInputs();
 
-           /* Toast.makeText(MainActivity.this,
+            Toast.makeText(MainActivity.this,
                     "Login Successful",
                     Toast.LENGTH_SHORT).show();
 
             startActivity(new Intent(MainActivity.this, DashboardActivity.class));
-            finish();*/
+            finish();
 
         });
     }

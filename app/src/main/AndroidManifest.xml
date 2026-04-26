@@ -18,6 +18,15 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".EditStudentProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AllotBatchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StudentProfleActivity"
+            android:exported="false" />
+        <activity
             android:name=".GetAdmissionActivity"
             android:exported="false" />
         <activity

@@ -107,4 +107,16 @@
         <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
+
+   <!-- <style name="ActionItems">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#424242</item>
+    </style>-->
+
+    <style name="ActionItems">
+        <!-- This style is no longer needed with the new card-based design -->
+    </style>
 </resources>

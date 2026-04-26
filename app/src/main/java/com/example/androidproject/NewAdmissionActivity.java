@@ -113,7 +113,6 @@ public class NewAdmissionActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> callAddStudentApi());
     }*/
 
-
     private void setupListeners() {
 
         // Back button

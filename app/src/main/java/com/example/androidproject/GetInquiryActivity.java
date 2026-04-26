@@ -1,6 +1,7 @@
 package com.example.androidproject;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -65,7 +66,6 @@ public class GetInquiryActivity extends AppCompatActivity {
         etContactNo   = findViewById(R.id.etContactNo);
         loaderLayout  = findViewById(R.id.loaderLayout);
         tvResultCount = findViewById(R.id.tvResultCount);
-
         // ── Back button ────────────────────────────────────────────────────────
         ImageButton btnBack = findViewById(R.id.toolbar);
         btnBack.setOnClickListener(v -> onBackPressed());
@@ -108,6 +108,9 @@ public class GetInquiryActivity extends AppCompatActivity {
             }
             @Override public void afterTextChanged(Editable s) {}
         });
+
+
+
     }
 
     // ── Set default dates (today − 6 months → today) and auto-load ────────────

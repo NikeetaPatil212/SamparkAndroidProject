@@ -81,6 +81,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             isAdmissionExpanded = false;
             menu.findItem(R.id.nav_add_admission).setVisible(false);
             menu.findItem(R.id.nav_get_admission).setVisible(false);
+            menu.findItem(R.id.nav_get_timeAllot).setVisible(false);
             menu.findItem(R.id.nav_admissions).setTitle("Admissions");
         }
     }
@@ -126,11 +127,13 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             Menu menu = navigationView.getMenu();
             menu.findItem(R.id.nav_add_admission).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_get_admission).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_get_timeAllot).setVisible(isAdmissionExpanded);
 
             item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
 
             styleSubItem(menu.findItem(R.id.nav_add_admission), "New Admission");
             styleSubItem(menu.findItem(R.id.nav_get_admission), "Fee Receipt");
+            styleSubItem(menu.findItem(R.id.nav_get_timeAllot), "Allot Batch Timing");
             return true;
         }
 
@@ -142,6 +145,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         }
         if (id == R.id.nav_get_admission) {
             startActivity(new Intent(this, GetAdmissionActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_get_timeAllot) {
+            startActivity(new Intent(this, AllotBatchActivity.class));
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }

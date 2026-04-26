@@ -24,6 +24,28 @@
             android:textColor="#888888"
             android:textSize="12sp" />
 
+
+        <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE"/>
+
+        <!-- Action Button (btnStatus in adapter) -->
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingHorizontal="6dp">
+
+            <Button
+                android:id="@+id/btnStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:backgroundTint="#2E7D32"
+                android:text="Action"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textAllCaps="false"
+                android:paddingHorizontal="8dp" />
+
+        </LinearLayout>
         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE"/>
 
         <!-- Student Name -->
@@ -137,27 +159,7 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
-        <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE"/>
 
-        <!-- Action Button (btnStatus in adapter) -->
-        <LinearLayout
-            android:layout_width="80dp"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingHorizontal="6dp">
-
-            <Button
-                android:id="@+id/btnStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:backgroundTint="#2E7D32"
-                android:text="Action"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textAllCaps="false"
-                android:paddingHorizontal="8dp" />
-
-        </LinearLayout>
 
     </LinearLayout>
 
