@@ -18,6 +18,9 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".DistributeStudyMaterialActivity"
+            android:exported="false" />
+        <activity
             android:name=".EditStudentProfileActivity"
             android:exported="false" />
         <activity

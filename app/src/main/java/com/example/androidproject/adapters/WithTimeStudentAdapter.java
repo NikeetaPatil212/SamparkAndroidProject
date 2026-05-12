@@ -15,7 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.R;
 import com.example.androidproject.model.profile.BatchTimingResponse;
-import com.example.androidproject.model.profile.TimingLessStudentResponse;
+import com.example.androidproject.model.profile.WithTimeStudentResponse;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import org.json.JSONObject;
 
@@ -26,40 +29,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+public class WithTimeStudentAdapter
+        extends RecyclerView.Adapter<WithTimeStudentAdapter.ViewHolder> {
 
-public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStudentAdapter.ViewHolder> {
+    private static final String TAG        = "WithTimeAdapter";
+    // Reuse same timing fetch URL as TimingLessStudentAdapter
+    private static final String TIMING_URL = "http://160.25.62.225:8081/api/InstituteControllersV1/batch_time_test";
+    // Change timing URL — replace with your real endpoint
+    private static final String CHANGE_URL = "http://160.25.62.225:8081/api/InstituteControllersV1/change_time";
 
-    private static final String TAG         = "TimingLessAdapter";
-    private static final String TIMING_URL  = "http://160.25.62.225:8081/api/InstituteControllersV1/batch_time_test";
-
-    private static final String ALLOT_URL = "http://160.25.62.225:8081/api/InstituteControllersV1/allot_time";
-
-    // ── Passed in from Activity ────────────────────────────────────────────
     private final int userID;
     private final int instituteID;
 
-    // ── Callback so Activity can refresh tiles after allotment ─────────────
-    public interface OnTimingsFetchedListener {
-        void onTimingsFetched(List<BatchTimingResponse.BatchTimingItem> timings);
-    }
-    private OnTimingsFetchedListener timingsFetchedListener;
-
-    public void setOnTimingsFetchedListener(OnTimingsFetchedListener l) {
-        this.timingsFetchedListener = l;
-    }
-
-    // ── Data ───────────────────────────────────────────────────────────────
-    private List<TimingLessStudentResponse.StudentItem> studentList = new ArrayList<>();
+    private List<WithTimeStudentResponse.StudentItem> studentList = new ArrayList<>();
 
     // ── Constructor ────────────────────────────────────────────────────────
-    public TimingLessStudentAdapter(int userID, int instituteID) {
+    public WithTimeStudentAdapter(int userID, int instituteID) {
         this.userID      = userID;
         this.instituteID = instituteID;
     }
 
-    public void setData(List<TimingLessStudentResponse.StudentItem> list) {
+    public void setData(List<WithTimeStudentResponse.StudentItem> list) {
         this.studentList = list;
         notifyDataSetChanged();
     }
@@ -69,19 +59,20 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_allot_batch_row, parent, false);
+                .inflate(R.layout.item_with_time_student, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        TimingLessStudentResponse.StudentItem item = studentList.get(position);
+        WithTimeStudentResponse.StudentItem item = studentList.get(position);
 
         holder.tvAdmId.setText(String.valueOf(item.getAdmissionID()));
-        holder.tvStudentName.setText(item.getStudentName());
+        holder.tvFullName.setText(item.getStudentName());
+        holder.tvCurrentTiming.setText("⏰ " + item.getDescription()); // e.g. "Morning 7 AM"
 
-        // Row click → fetch timings → show dialog
-        holder.itemView.setOnClickListener(v ->
+        // "Change" button tap → fetch timings → show dialog
+        holder.btnChangeTiming.setOnClickListener(v ->
                 fetchTimingsAndShowDialog(holder.itemView.getContext(), item));
     }
 
@@ -89,11 +80,10 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
     public int getItemCount() { return studentList.size(); }
 
     // ──────────────────────────────────────────────────────────────────────
-    // STEP 1: Fetch batch timings from API, then open dialog
+    // STEP 1: Fetch available timings, then open dialog
     // ──────────────────────────────────────────────────────────────────────
-    private void fetchTimingsAndShowDialog(Context context, TimingLessStudentResponse.StudentItem item) {
+    private void fetchTimingsAndShowDialog(Context context, WithTimeStudentResponse.StudentItem item) {
 
-        // Show a small inline progress — we'll use a simple non-cancelable dialog
         AlertDialog loadingDialog = new AlertDialog.Builder(context)
                 .setMessage("Loading batch timings…")
                 .setCancelable(false)
@@ -102,7 +92,6 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
 
         new Thread(() -> {
             try {
-                // Build POST body
                 JSONObject body = new JSONObject();
                 body.put("userID",      userID);
                 body.put("instituteID", instituteID);
@@ -126,15 +115,10 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                 while (scanner.hasNextLine()) sb.append(scanner.nextLine());
                 scanner.close();
 
-                // Parse with Gson (already in your project)
                 com.google.gson.Gson gson = new com.google.gson.Gson();
                 BatchTimingResponse resp  = gson.fromJson(sb.toString(), BatchTimingResponse.class);
 
-                // Switch to main thread
-                android.os.Handler mainHandler =
-                        new android.os.Handler(android.os.Looper.getMainLooper());
-
-                mainHandler.post(() -> {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                     loadingDialog.dismiss();
 
                     if (resp == null || !resp.isSuccess()
@@ -142,21 +126,12 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                             || resp.getBatchList().isEmpty()) {
 
                         String msg = (resp != null && resp.getMessage() != null)
-                                ? resp.getMessage()
-                                : "No batch timings found";
+                                ? resp.getMessage() : "No batch timings found";
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    List<BatchTimingResponse.BatchTimingItem> timings = resp.getBatchList();
-
-                    // Notify Activity so it can refresh Card-3 tiles
-                    if (timingsFetchedListener != null) {
-                        timingsFetchedListener.onTimingsFetched(timings);
-                    }
-
-                    // Open the allot dialog
-                    showBatchTimingDialog(context, item, timings);
+                    showChangeTimingDialog(context, item, resp.getBatchList());
                 });
 
             } catch (Exception e) {
@@ -172,12 +147,14 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
     }
 
     // ──────────────────────────────────────────────────────────────────────
-    // STEP 2: Show dialog with LIVE timing data
+    // STEP 2: Show SAME dialog design as TimingLessStudentAdapter
+    //         but with "Change Timing" header + current slot shown
     // ──────────────────────────────────────────────────────────────────────
-    private void showBatchTimingDialog(Context context,
-                                       TimingLessStudentResponse.StudentItem item,
-                                       List<BatchTimingResponse.BatchTimingItem> timings) {
+    private void showChangeTimingDialog(Context context,
+                                        WithTimeStudentResponse.StudentItem item,
+                                        List<BatchTimingResponse.BatchTimingItem> timings) {
 
+        // ── Reuse exact same dialog layout ────────────────────────────────
         View view = LayoutInflater.from(context)
                 .inflate(R.layout.dialog_batch_timing, null);
 
@@ -188,11 +165,18 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
         MaterialButton               btnAllot      = view.findViewById(R.id.btnAllotTiming);
         MaterialButton               btnClose      = view.findViewById(R.id.btnClose);
 
-        tvStudentName.setText("👤  " + item.getStudentName());
-        tvCapacity.setText("—");
-        tvAvailable.setText("—");
+        // ── Customize for "Change" mode ───────────────────────────────────
+        tvStudentName.setText("👤  " + item.getStudentName()
+                + "\n⏰ Current: " + item.getDescription());
 
-        // Build dropdown labels from live API data
+        // Change button label
+        btnAllot.setText("Change Timing");
+        btnAllot.setTextSize(12);
+
+        // Pre-fill dropdownwith current slot hint
+        spBatchTiming.setHint("Current: " + item.getDescription());
+
+        // ── Build dropdown from live timings ──────────────────────────────
         List<String> labels = new ArrayList<>();
         for (BatchTimingResponse.BatchTimingItem t : timings) {
             labels.add(t.dropdownLabel());
@@ -200,7 +184,6 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
 
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                 context, android.R.layout.simple_dropdown_item_1line, labels);
-
         spBatchTiming.setThreshold(0);
         spBatchTiming.setAdapter(spinnerAdapter);
         spBatchTiming.setOnClickListener(v -> spBatchTiming.showDropDown());
@@ -209,175 +192,118 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                 .setView(view)
                 .create();
 
-        // Track which timing is selected
         final BatchTimingResponse.BatchTimingItem[] selected = {null};
 
         spBatchTiming.setOnItemClickListener((parent, v, pos, id) -> {
             selected[0] = timings.get(pos);
 
-            // ✅ Set LIVE capacity & available from API response
             tvCapacity.setText(String.valueOf(selected[0].getCapacity()));
+            Log.d("09876543we4r5t6yui", "showChangeTimingDialog: " + selected[0].getCapacity());
             tvAvailable.setText(String.valueOf(selected[0].getAvailableSeats()));
 
-            // Warn if full
             if (selected[0].getAvailableSeats() <= 0) {
-                tvAvailable.setTextColor(0xFFE53935); // red
+                tvAvailable.setTextColor(0xFFE53935);
                 Toast.makeText(context,
                         "⚠️ This timing slot is full!", Toast.LENGTH_SHORT).show();
             } else {
-                tvAvailable.setTextColor(0xFF2E7D32); // green
+                tvAvailable.setTextColor(0xFF2E7D32);
             }
         });
 
-       /* btnAllot.setOnClickListener(v -> {
-            if (selected[0] == null) {
-                Toast.makeText(context,
-                        "Please select a batch timing", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (selected[0].getAvailableSeats() <= 0) {
-                Toast.makeText(context,
-                        "This timing is full. Please choose another.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            dialog.dismiss();
-            // TODO: call your allot API here, passing:
-            //   item.getAdmissionID()  → admID
-            //   selected[0].getTimingID() → timingID
-            Toast.makeText(context,
-                    "✅ \"" + selected[0].getTimingDescription()
-                            + "\" allotted to " + item.getStudentName(),
-                    Toast.LENGTH_SHORT).show();
-        });*/
-
-
-        // ──────────────────────────────────────────────────────────────────────
-// REPLACE ONLY btnAllot.setOnClickListener BLOCK WITH THIS
-// ──────────────────────────────────────────────────────────────────────
+        // ── Confirm change ────────────────────────────────────────────────
         btnAllot.setOnClickListener(v -> {
 
             if (selected[0] == null) {
                 Toast.makeText(context,
-                        "Please select a batch timing", Toast.LENGTH_SHORT).show();
+                        "Please select a new timing", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (selected[0].getAvailableSeats() <= 0) {
                 Toast.makeText(context,
-                        "This timing is full. Please choose another.", Toast.LENGTH_SHORT).show();
+                        "This timing is full. Please choose another.",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Prevent same slot selection
+            if (selected[0].getTimingID() == item.getTimeID()) {
+                Toast.makeText(context,
+                        "Student is already in this slot!",
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Loading dialog during allot API
-            AlertDialog allotLoadingDialog = new AlertDialog.Builder(context)
-                    .setMessage("Allotting timing...")
+            AlertDialog changingDialog = new AlertDialog.Builder(context)
+                    .setMessage("Changing timing...")
                     .setCancelable(false)
                     .create();
-
-            allotLoadingDialog.show();
+            changingDialog.show();
 
             new Thread(() -> {
                 try {
-
-                    // ── REQUEST BODY ─────────────────────────────────────────────
                     JSONObject body = new JSONObject();
-                    body.put("timeID", selected[0].getTimingID());
-                    body.put("admissionID", item.getAdmissionID());
-                    body.put("userID", userID);
-                    body.put("instituteID", instituteID);
+                    body.put("timeID",       selected[0].getTimingID());
+                    body.put("admissionID",  item.getAdmissionID());
+                    body.put("userID",       userID);
+                    body.put("instituteID",  instituteID);
 
-                    Log.d(TAG, "ALLOT_REQUEST: " + body.toString());
+                    Log.d(TAG, "CHANGE_REQUEST: " + body);
 
-                    // ── API CONNECTION ──────────────────────────────────────────
-                    URL url = new URL(ALLOT_URL);
-                    HttpURLConnection conn =
-                            (HttpURLConnection) url.openConnection();
-
+                    URL url = new URL(CHANGE_URL);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Content-Type",
-                            "application/json; charset=UTF-8");
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                     conn.setDoOutput(true);
-                    conn.setConnectTimeout(15000);
-                    conn.setReadTimeout(15000);
+                    conn.setConnectTimeout(15_000);
+                    conn.setReadTimeout(15_000);
 
                     try (OutputStream os = conn.getOutputStream()) {
                         os.write(body.toString().getBytes("UTF-8"));
                     }
 
                     int responseCode = conn.getResponseCode();
-
                     Scanner scanner = new Scanner(
                             responseCode >= 200 && responseCode < 300
                                     ? conn.getInputStream()
-                                    : conn.getErrorStream(),
-                            "UTF-8"
-                    );
-
+                                    : conn.getErrorStream(), "UTF-8");
                     StringBuilder sb = new StringBuilder();
-                    while (scanner.hasNextLine()) {
-                        sb.append(scanner.nextLine());
-                    }
+                    while (scanner.hasNextLine()) sb.append(scanner.nextLine());
                     scanner.close();
 
                     String responseText = sb.toString();
-
-                    Log.d(TAG, "ALLOT_RESPONSE: " + responseText);
+                    Log.d(TAG, "CHANGE_RESPONSE: " + responseText);
 
                     JSONObject responseJson = new JSONObject(responseText);
+                    boolean isSuccess = responseJson.optBoolean("isSuccess", false);
+                    String message    = responseJson.optString("message", "Failed to change timing");
 
-                    boolean isSuccess =
-                            responseJson.optBoolean("isSuccess", false);
-
-                    String message =
-                            responseJson.optString("message",
-                                    "Failed to allot timing");
-
-                    // ── MAIN THREAD ─────────────────────────────────────────────
-                    new android.os.Handler(
-                            android.os.Looper.getMainLooper()
-                    ).post(() -> {
-
-                        allotLoadingDialog.dismiss();
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        changingDialog.dismiss();
 
                         if (isSuccess) {
-
                             dialog.dismiss();
 
+                            // Update row immediately without re-fetching
+                            item.setDescription(selected[0].getTimingDescription());
+                            item.setTimeID(selected[0].getTimingID());
+                            notifyDataSetChanged();
+
                             Toast.makeText(context,
-                                    "✅ " + message,
-                                    Toast.LENGTH_LONG).show();
-
-                            // Refresh timings after successful allotment
-                         //   fetchTimingsAndShowDialog(context, item);
-
+                                    "✅ " + message, Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(context,
-                                    message,
-                                    Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, message, Toast.LENGTH_LONG).show();
                         }
                     });
 
                 } catch (Exception e) {
-
-                    Log.e(TAG,
-                            "ALLOT_API_ERROR: " + e.getMessage(),
-                            e);
-
-                    new android.os.Handler(
-                            android.os.Looper.getMainLooper()
-                    ).post(() -> {
-
-                        allotLoadingDialog.dismiss();
-
+                    Log.e(TAG, "CHANGE_API_ERROR: " + e.getMessage(), e);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        changingDialog.dismiss();
                         Toast.makeText(context,
-                                "Failed to allot timing: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                                "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
                 }
             }).start();
         });
-
 
         btnClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
@@ -385,12 +311,14 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
 
     // ── ViewHolder ─────────────────────────────────────────────────────────
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvAdmId, tvStudentName;
+        TextView tvAdmId, tvFullName, tvCurrentTiming, btnChangeTiming;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvAdmId       = itemView.findViewById(R.id.tvAdmId);
-            tvStudentName = itemView.findViewById(R.id.tvFullName);
+            tvAdmId        = itemView.findViewById(R.id.tvAdmId);
+            tvFullName     = itemView.findViewById(R.id.tvFullName);
+            tvCurrentTiming= itemView.findViewById(R.id.tvCurrentTiming);
+            btnChangeTiming= itemView.findViewById(R.id.btnChangeTiming);
         }
     }
 }

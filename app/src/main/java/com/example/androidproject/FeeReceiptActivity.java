@@ -19,6 +19,7 @@ import com.example.androidproject.model.FeeReceiptResponse;
 import com.example.androidproject.model.PaymentHistory;
 import com.example.androidproject.model.SuggestReceiptRequest;
 import com.example.androidproject.model.SuggestReceiptResponse;
+import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.gson.Gson;
 
@@ -44,8 +45,8 @@ public class FeeReceiptActivity extends AppCompatActivity {
     private ProgressBar     progressBar;
 
     // ── Config ────────────────────────────────────────────────────
-    private final int USER_ID      = 2181;
-    private final int INSTITUTE_ID = 1;
+    /*private final int USER_ID      = 2181;
+    private final int INSTITUTE_ID = 1;*/
 
     // ── State ─────────────────────────────────────────────────────
     private int    passedStudentId   = -1;
@@ -156,8 +157,12 @@ public class FeeReceiptActivity extends AppCompatActivity {
 
     // ── Fetch Receipt Data ────────────────────────────────────────
     private void callApi() {
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+
         FeeReceiptRequest request = new FeeReceiptRequest(
-                USER_ID, INSTITUTE_ID, passedStudentId, passedAdmissionId);
+                Integer.parseInt(userId),
+                Integer.parseInt(instituteId), passedStudentId, passedAdmissionId);
 
         Log.d("FEE_REQUEST", new Gson().toJson(request));
         showLoading(true);
@@ -317,12 +322,17 @@ public class FeeReceiptActivity extends AppCompatActivity {
         }
 
         String isoDate = convertToISO(date);
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+        String operatorId  = PrefManager.getInstance(this).getOperatorId();
+
 
         AddReceiptRequest request = new AddReceiptRequest(
-                USER_ID, INSTITUTE_ID,
+                Integer.parseInt(userId),
+                Integer.parseInt(instituteId),
                 passedStudentId, passedAdmissionId,
                 amount, isoDate, receiptNo,
-                USER_ID, "Fee Received");
+                Integer.parseInt(operatorId), "Fee Received");
 
         Log.d("ADD_RECEIPT_REQ", new Gson().toJson(request));
         showLoading(true);
@@ -370,7 +380,11 @@ public class FeeReceiptActivity extends AppCompatActivity {
 
     // ── Suggested Receipt No ──────────────────────────────────────
     private void getSuggestedReceiptNo() {
-        SuggestReceiptRequest request = new SuggestReceiptRequest(USER_ID, INSTITUTE_ID);
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+
+        SuggestReceiptRequest request = new SuggestReceiptRequest(Integer.parseInt(userId),
+                Integer.parseInt(instituteId));
         Log.d("SUGGEST_REQ", new Gson().toJson(request));
 
         RetrofitClient.getApiService().getSuggestedReceipt(request)

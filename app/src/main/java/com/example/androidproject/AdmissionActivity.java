@@ -37,6 +37,8 @@ import com.example.androidproject.model.AdmissionRequest;
 import com.example.androidproject.model.AdmissionResponse;
 import com.example.androidproject.model.CourseList;
 import com.example.androidproject.model.ImageUploadResponse;
+import com.example.androidproject.model.SuggestReceiptRequest;
+import com.example.androidproject.model.SuggestReceiptResponse;
 import com.example.androidproject.room.AdmissionDetail;
 import com.example.androidproject.model.Batch;
 import com.example.androidproject.model.BatchRequest;
@@ -133,10 +135,12 @@ public class AdmissionActivity extends AppCompatActivity {
         }
 
         initViews();
+        getSuggestedReceiptNo();
         setupToolbar();
         setupDatePicker();
         setupFeeCalculation();
         fetchCourses();
+
 
         // ── Clear stale Room records for THIS student from previous sessions ──
         db.feeDetailDao().deleteForStudent(studentId);
@@ -363,6 +367,41 @@ public class AdmissionActivity extends AppCompatActivity {
 
         // ── Finish button ─────────────────────────────────────────────────────
         btnFinish.setOnClickListener(v -> callAddAdmissionApi());
+    }
+
+    private void getSuggestedReceiptNo() {
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+
+        SuggestReceiptRequest request = new SuggestReceiptRequest(Integer.parseInt(userId),
+                Integer.parseInt(instituteId));
+        Log.d("SUGGEST_REQ", new Gson().toJson(request));
+
+        RetrofitClient.getApiService().getSuggestedReceipt(request)
+                .enqueue(new Callback<SuggestReceiptResponse>() {
+
+                    @Override
+                    public void onResponse(Call<SuggestReceiptResponse> call,
+                                           Response<SuggestReceiptResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            SuggestReceiptResponse res = response.body();
+                            if (res.isSuccess()) {
+                                Log.d("SUGGEST_NO", res.getSuggestedReceiptNo());
+                                etReceiptNo.setText(res.getSuggestedReceiptNo());
+                            } else {
+                                Toast.makeText(AdmissionActivity.this,
+                                        res.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SuggestReceiptResponse> call, Throwable t) {
+                        Toast.makeText(AdmissionActivity.this,
+                                "Receipt No Failed: " + t.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void uploadImage(File imageFile) {
@@ -604,6 +643,10 @@ public class AdmissionActivity extends AppCompatActivity {
         String instituteId = PrefManager.getInstance(this).getInstituteId();
         BatchRequest request = new BatchRequest(
                 Integer.parseInt(userId), Integer.parseInt(instituteId), courseId);
+
+        Log.d("TIMING-Admis", new Gson().toJson(request));
+
+
         RetrofitClient.getApiService().getBatch(request).enqueue(new Callback<BatchResponse>() {
             @Override
             public void onResponse(Call<BatchResponse> call, Response<BatchResponse> response) {

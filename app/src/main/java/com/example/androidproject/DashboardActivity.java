@@ -82,6 +82,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_add_admission).setVisible(false);
             menu.findItem(R.id.nav_get_admission).setVisible(false);
             menu.findItem(R.id.nav_get_timeAllot).setVisible(false);
+            menu.findItem(R.id.nav_change_timeAllot).setVisible(false);
+            menu.findItem(R.id.nav_distribute_study_material).setVisible(false);
             menu.findItem(R.id.nav_admissions).setTitle("Admissions");
         }
     }
@@ -128,12 +130,16 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_add_admission).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_get_admission).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_get_timeAllot).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_change_timeAllot).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_distribute_study_material).setVisible(isAdmissionExpanded);
 
             item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
 
             styleSubItem(menu.findItem(R.id.nav_add_admission), "New Admission");
             styleSubItem(menu.findItem(R.id.nav_get_admission), "Fee Receipt");
             styleSubItem(menu.findItem(R.id.nav_get_timeAllot), "Allot Batch Timing");
+            styleSubItem(menu.findItem(R.id.nav_change_timeAllot), "Change Batch Timing");
+            styleSubItem(menu.findItem(R.id.nav_distribute_study_material), "Distribute Study Material");
             return true;
         }
 
@@ -149,11 +155,39 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             return true;
         }
 
+       /* if (id == R.id.nav_get_timeAllot) {
+            startActivity(new Intent(this, AllotBatchActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_change_timeAllot) {
+            startActivity(new Intent(this, AllotBatchActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }*/
+
         if (id == R.id.nav_get_timeAllot) {
             startActivity(new Intent(this, AllotBatchActivity.class));
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }
+
+        if (id == R.id.nav_change_timeAllot) {
+            Intent intent = new Intent(this, AllotBatchActivity.class);
+            intent.putExtra(AllotBatchActivity.EXTRA_MODE, AllotBatchActivity.MODE_CHANGE);
+            startActivity(intent);
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+
+        if (id == R.id.nav_distribute_study_material) {
+            startActivity(new Intent(this, DistributeStudyMaterialActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
 
         // ── OTHER items ──────────────────────────────────────────
         if (id == R.id.nav_certificates) {

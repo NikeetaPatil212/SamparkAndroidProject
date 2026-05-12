@@ -34,14 +34,20 @@ import com.example.androidproject.model.profile.ProfileDetailsRequest;
 import com.example.androidproject.model.profile.ProfileDetailsResponse;
 import com.example.androidproject.model.profile.StudentDetailsRequest;
 import com.example.androidproject.model.profile.StudentDetailsResponse;
+import com.example.androidproject.model.profile.StudyMaterialDistributionResponse;
+import com.example.androidproject.model.profile.StudyMaterialUpdateRequest;
+import com.example.androidproject.model.profile.StudyMaterialUpdateResponse;
 import com.example.androidproject.model.profile.TimingLessStudentResponse;
+import com.example.androidproject.model.profile.WithTimeStudentResponse;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Query;
 
 
 public interface ApiService {
@@ -102,7 +108,19 @@ public interface ApiService {
     @POST("Get_Student_Basic")
     Call<StudentDetailsResponse> getStudentBasicDetails(@Body StudentDetailsRequest request);
 
-
     @POST("edit_profile")
     Call<EditProfileResponse> updateStudentProfile(@Body EditProfileRequest request);
+
+    @POST("with_time")
+    Call<WithTimeStudentResponse> getStudentsWithTime(@Body StudentBasicRequest request);
+    @GET("list_of_distribution")
+    Call<StudyMaterialDistributionResponse> getDistributionList(
+            @Query("userID")     int userID,
+            @Query("instituteID") int instituteID,
+            @Query("CourseID")   int courseID,
+            @Query("batchID")    int batchID
+    );
+
+    @POST("Study_Material")
+    Call<StudyMaterialUpdateResponse> updateStudyMaterial(@Body StudyMaterialUpdateRequest request);
 }
