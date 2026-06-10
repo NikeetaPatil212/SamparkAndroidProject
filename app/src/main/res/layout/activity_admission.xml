@@ -248,7 +248,7 @@
                                 android:tint="#2E7D32" />
                         </LinearLayout>
 
-                        <!-- Batch Dropdown -->
+                        <!-- Batch Name Dropdown -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -298,7 +298,61 @@
                             android:text="  ℹ️ Select a course first to load batches"
                             android:textColor="#AAAAAA"
                             android:textSize="10sp"
-                            android:layout_marginTop="2dp" />
+                            android:layout_marginTop="2dp"
+                            android:layout_marginBottom="10dp" />
+
+                        <!-- Batch Timing Dropdown -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Batch Timing *"
+                            android:textColor="#2E7D32"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_edittext_outline"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="8dp"
+                            android:layout_marginBottom="4dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/baseline_calendar_today_24"
+                                android:tint="#2E7D32"
+                                android:layout_marginEnd="8dp" />
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="20dp"
+                                android:background="#DDDDDD"
+                                android:layout_marginEnd="8dp" />
+
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/spBatchTiming"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="Select batch timing"
+                                android:textColor="#1A1A1A"
+                                android:textColorHint="#AAAAAA"
+                                android:textSize="14sp"
+                                android:inputType="none"
+                                android:cursorVisible="false" />
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/outline_arrow_drop_down_24"
+                                android:tint="#2E7D32" />
+                        </LinearLayout>
 
                     </LinearLayout>
                 </LinearLayout>
@@ -569,7 +623,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Card Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
@@ -594,7 +647,6 @@
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Horizontally scrollable table -->
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -605,7 +657,6 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical">
 
-                            <!-- TABLE HEADER — widths must exactly match item_admission_detail.xml -->
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="42dp"
@@ -689,7 +740,6 @@
                                     android:textStyle="bold" />
                             </LinearLayout>
 
-                            <!-- TABLE BODY — RecyclerView rows -->
                             <androidx.recyclerview.widget.RecyclerView
                                 android:id="@+id/rvFeeDetails"
                                 android:layout_width="wrap_content"

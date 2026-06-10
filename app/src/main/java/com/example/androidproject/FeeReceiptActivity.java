@@ -1,9 +1,13 @@
 package com.example.androidproject;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -11,6 +15,7 @@ import android.view.View;
 import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.androidproject.model.AddReceiptRequest;
 import com.example.androidproject.model.AddReceiptResponse;
@@ -19,14 +24,19 @@ import com.example.androidproject.model.FeeReceiptResponse;
 import com.example.androidproject.model.PaymentHistory;
 import com.example.androidproject.model.SuggestReceiptRequest;
 import com.example.androidproject.model.SuggestReceiptResponse;
+import com.example.androidproject.model.template.TemplateEntity;
+import com.example.androidproject.model.template.TemplateRepository;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -43,6 +53,7 @@ public class FeeReceiptActivity extends AppCompatActivity {
     private TextView        tvCourseName, tvBatch, tvFee, tvPaidFee, tvRemainingFeeRight, tvRemainingFee;
     private LinearLayout    layoutResult, layoutPaymentHistory;
     private ProgressBar     progressBar;
+    private boolean admissionDone = false;
 
     // ── Config ────────────────────────────────────────────────────
     /*private final int USER_ID      = 2181;
@@ -52,6 +63,14 @@ public class FeeReceiptActivity extends AppCompatActivity {
     private int    passedStudentId   = -1;
     private int    passedAdmissionId = -1;
     private double remainingFeeAmount = 0.0;
+
+
+
+    // ← ADD THESE
+    private String studentCourseName = "";
+    private String studentBatchName  = "";
+    private String studentMobileNo   = "";
+    private String studentFullName   = "";
 
     // ─────────────────────────────────────────────────────────────
     @Override
@@ -205,9 +224,14 @@ public class FeeReceiptActivity extends AppCompatActivity {
         layoutResult.setVisibility(View.VISIBLE);
 
         FeeReceiptResponse.Summary s = data.getSummary();
-
-        // Store remaining for validation
         remainingFeeAmount = s.getRemaining();
+
+        // ← ADD THESE — save for use in template later
+        studentFullName   = s.getStudentName()  != null ? s.getStudentName()  : "";
+        studentMobileNo   = s.getMobile()       != null ? s.getMobile()       : "";
+        studentCourseName = s.getCourseName()   != null ? s.getCourseName()   : "";
+        studentBatchName  = s.getBatchName()    != null ? s.getBatchName()    : "";
+
 
         // Toolbar receipt no badge
         tvReceiptNo.setVisibility(View.VISIBLE);
@@ -352,13 +376,123 @@ public class FeeReceiptActivity extends AppCompatActivity {
                                         "Receipt Added Successfully",
                                         Toast.LENGTH_LONG).show();
 
+
+
+                                double enteredAmount  = Double.parseDouble(amountStr);
+                                double updatedRemaining = remainingFeeAmount - enteredAmount;
+                                String category = updatedRemaining <= 0
+                                        ? "Fee Receipt Total"       // template id 5
+                                        : "Fee Receipt outstanding"; // template id 12
+
+                                // Get student mobile from UI
+                                String studentMobile = tvPhone.getText().toString().trim();
+                                String studentName   = tvStudentName.getText().toString().trim();
+
+                                TemplateRepository.getInstance(FeeReceiptActivity.this)
+                                        .getTemplateByCategory(category,
+                                                new TemplateRepository.SingleTemplateCallback() {
+
+                                                    @Override
+                                                    public void onSuccess(TemplateEntity template) {
+                                                        if (!template.isActive) {
+                                                            Log.d("Template", "isActive=false, skipping message");
+                                                            Toast.makeText(
+                                                                    FeeReceiptActivity.this,
+                                                                    "WhatsApp notifications are currently disabled. Proceeding without sending the message.",
+                                                                    Toast.LENGTH_SHORT
+                                                            ).show();
+                                                            goToDashboard();
+                                                            return;
+                                                        }
+                                                        PrefManager pref = PrefManager.getInstance(FeeReceiptActivity.this);
+
+                                                        Map<String, String> data = new HashMap<>();
+
+// ← KEY FIX: match exact placeholder case from template
+                                                        data.put("StudentName", studentFullName);        // was "studentName" → {StudentName}
+                                                        data.put("course",      studentCourseName);      // ✅ correct
+                                                        data.put("batch",       studentBatchName);
+                                                        data.put("institute",   pref.getInstituteName()); // ✅ correct
+                                                        data.put("Authority",   pref.getStudentName());   // ✅ correct
+                                                        data.put("mobile1",     pref.getInstituteMobile1()); // ✅ correct
+                                                        data.put("mobile2",     pref.getInstituteMobile2()); // ✅ correct
+                                                        data.put("email",       pref.getInstituteEmail());   // ✅ correct
+                                                        data.put("address1",    pref.getInstituteAddress1()); // ✅ correct
+                                                        data.put("address2",    pref.getInstituteAddress2()); // ✅ correct
+                                                        data.put("amount",      amountStr);              // ✅ correct
+                                                      //  data.put("fees",        String.format(Locale.getDefault(), "%.2f", remainingFeeAmount + Double.parseDouble(amountStr))); // total fees
+                                                        data.put("fees",        tvFee.getText().toString().trim()); // total fees
+                                                      //  data.put("paid",        amountStr);              // amount just paid
+                                                        data.put("paid",        String.format(Locale.getDefault(), "%.2f", remainingFeeAmount + Double.parseDouble(amountStr)));              // amount just paid
+                                                        data.put("outstanding", String.format(Locale.getDefault(), "%.2f", Math.max(updatedRemaining, 0))); // was "remaining"
+                                                        data.put("DueDate",     date);                   // was "date" → {DueDate}
+                                                        data.put("receiptNo",   receiptNo);
+                                                        data.put("date",        date);
+
+
+                                                        // Pick language from settings
+                                                        String lang = pref.getLanguage();
+                                                        String templateText;
+                                                        switch (lang) {
+                                                            case "MR": templateText = template.wa_MR; break;
+                                                            case "HI": templateText = template.wa_HI; break;
+                                                            default:   templateText = template.wa_EN; break;
+                                                        }
+
+
+                                                        Log.d("LANG_DEBUG", "Read language from pref: '" + lang + "'");
+
+
+                                                        String message = TemplateRepository.fillTemplate(templateText, data);
+
+                                                        Log.d("TEMPLATE_DEBUG", "lang: '" + lang + "'");
+                                                        Log.d("TEMPLATE_DEBUG", "wa_EN: " + template.wa_EN);
+                                                        Log.d("TEMPLATE_DEBUG", "wa_MR: " + template.wa_MR);
+                                                        Log.d("TEMPLATE_DEBUG", "wa_HI: " + template.wa_HI);
+                                                        Log.d("TEMPLATE_DEBUG", "studentName: " + studentFullName);
+                                                        Log.d("TEMPLATE_DEBUG", "studentMobile: " + studentMobileNo);
+                                                        Log.d("TEMPLATE_DEBUG", "course: " + studentCourseName);
+                                                        Log.d("TEMPLATE_DEBUG", "institute: " + pref.getInstituteName());
+                                                        Log.d("TEMPLATE_DEBUG", "mobile1: " + pref.getInstituteMobile1());
+                                                        Log.d("TEMPLATE_DEBUG", "amount: " + amountStr);
+                                                        Log.d("TEMPLATE_DEBUG", "Total Fees " + tvFee.getText().toString().trim());
+                                                        Log.d("TEMPLATE_DEBUG", "Paid till now " + String.format(Locale.getDefault(), "%.2f", remainingFeeAmount + Double.parseDouble(amountStr)));
+                                                        Log.d("TEMPLATE_DEBUG", "receiptNo: " + receiptNo);
+                                                        Log.d("TEMPLATE_DEBUG", "date: " + date);
+                                                        Log.d("TEMPLATE_DEBUG", "message after fill: " + message);
+
+
+                                                        // Send SMS in background
+                                                        sendSmsInBackground(studentMobile, message);
+
+                                                        // Open WhatsApp
+                                                        openWhatsApp(studentMobile, message);
+                                                    }
+
+                                                    @Override
+                                                    public void onError(String error) {
+                                                        Log.w("FeeReceipt", "Template not found: " + error);
+                                                        // Go to dashboard directly if template missing
+                                                        goToDashboard();
+
+                                                        /*Intent intent = new Intent(
+                                                                FeeReceiptActivity.this, DashboardActivity.class);
+                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                                                                | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                        startActivity(intent);
+                                                        finish();*/
+                                                    }
+                                                });
+
+
+
                                 // Go back to Dashboard
-                                Intent intent = new Intent(
+                               /* Intent intent = new Intent(
                                         FeeReceiptActivity.this, DashboardActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                                         | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
-                                finish();
+                                finish();*/
                             } else {
                                 Toast.makeText(FeeReceiptActivity.this,
                                         res.getMessage(), Toast.LENGTH_SHORT).show();
@@ -376,6 +510,51 @@ public class FeeReceiptActivity extends AppCompatActivity {
                                 "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void sendSmsInBackground(String phoneNumber, String message) {
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Log.w("SMS", "Permission not granted");
+                return;
+            }
+            SmsManager smsManager = SmsManager.getDefault();
+            ArrayList<String> parts = smsManager.divideMessage(message);
+            smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+            Log.d("SMS", "SMS sent to " + phoneNumber);
+        } catch (Exception e) {
+            Log.e("SMS", "SMS failed: " + e.getMessage());
+        }
+    }
+
+    private void openWhatsApp(String phoneNumber, String message) {
+        admissionDone = true;
+
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+                    + "?text=" + Uri.encode(message)));
+            startActivity(intent);
+        //    goToDashboard();
+        } catch (Exception e) {
+            Toast.makeText(this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+            goToDashboard();
+        }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (admissionDone) {
+            admissionDone = false; // reset so it doesn't trigger again
+            goToDashboard();
+        }
+    }
+    private void goToDashboard() {
+        Intent intent = new Intent(FeeReceiptActivity.this, DashboardActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     // ── Suggested Receipt No ──────────────────────────────────────

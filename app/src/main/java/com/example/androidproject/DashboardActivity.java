@@ -136,7 +136,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
 
             styleSubItem(menu.findItem(R.id.nav_add_admission), "New Admission");
-            styleSubItem(menu.findItem(R.id.nav_get_admission), "Fee Receipt");
+            styleSubItem(menu.findItem(R.id.nav_get_admission), "Manage Admission");
             styleSubItem(menu.findItem(R.id.nav_get_timeAllot), "Allot Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_change_timeAllot), "Change Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_distribute_study_material), "Distribute Study Material");

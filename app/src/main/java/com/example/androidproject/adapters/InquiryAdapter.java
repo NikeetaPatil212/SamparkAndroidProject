@@ -1,16 +1,21 @@
 package com.example.androidproject.adapters;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.AdmissionActivity;
@@ -18,9 +23,17 @@ import com.example.androidproject.EditDeleteActivity;
 import com.example.androidproject.ExtendActivity;
 import com.example.androidproject.R;
 import com.example.androidproject.model.InquiryItem;
+import com.example.androidproject.model.template.TemplateEntity;
+import com.example.androidproject.model.template.TemplateRepository;
+import com.example.androidproject.utils.PrefManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHolder> {
 
@@ -150,13 +163,20 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
 
         AlertDialog dialog = builder.setView(view).create();
 
-        view.findViewById(R.id.tvSendMsg).setOnClickListener(v -> dialog.dismiss());
+    //    view.findViewById(R.id.tvSendMsg).setOnClickListener(v -> dialog.dismiss());
+
+        view.findViewById(R.id.tvSendMsg).setOnClickListener(v -> {
+            dialog.dismiss();
+            sendInquiryFollowUpMessage(item);
+        });
+
         view.findViewById(R.id.tvAbort).setOnClickListener(v -> dialog.dismiss());
 
         view.findViewById(R.id.tvExtend).setOnClickListener(v -> {
             dialog.dismiss();
             Intent intent = new Intent(context, ExtendActivity.class);
             intent.putExtra("studentId", item.getStudentId());
+            intent.putExtra("mobile",       item.getMobile());
             Log.d("InquiryAdapter", "Extend studentId: " + item.getStudentId());
             context.startActivity(intent);
         });
@@ -186,5 +206,119 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
         });
 
         dialog.show();
+    }
+
+    private void sendInquiryFollowUpMessage(InquiryItem item) {
+        String mobile = item.getMobile();
+        if (mobile == null || mobile.trim().isEmpty()) {
+            Toast.makeText(context, "Mobile number not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        TemplateRepository.getInstance(context)
+                .getTemplateByCategory("Inquiry Follow Up",
+                        new TemplateRepository.SingleTemplateCallback() {
+
+                            @Override
+                            public void onSuccess(TemplateEntity template) {
+
+                                // ── Respect isActive flag ─────────────────
+                                if (!template.isActive) {
+                                    Log.d("InquiryAdapter", "Template isActive=false, skipping");
+                                    Toast.makeText(context,
+                                            "WhatsApp notifications are currently disabled.",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                PrefManager pref = PrefManager.getInstance(context);
+
+                                // ── Build placeholder map ─────────────────
+                                // Derive first name from full name
+                                String fullName  = item.getStudentName() != null
+                                        ? item.getStudentName() : "";
+                                String firstName = fullName.contains(" ")
+                                        ? fullName.substring(0, fullName.indexOf(" "))
+                                        : fullName;
+
+                                // Today's date as inquiry date fallback
+                                String inquiryDate = item.getInquiry_date() != null
+                                        && !item.getInquiry_date().isEmpty()
+                                        ? item.getInquiry_date()
+                                        : new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                        .format(new Date());
+
+                                Map<String, String> data = new HashMap<>();
+                                data.put("FirstName",      firstName);
+                                data.put("StudentName",    fullName);
+                                data.put("InquiryDate",    inquiryDate);
+                                data.put("InquiryCourses", item.getAbout() != null
+                                        ? item.getAbout() : "");
+                                data.put("institute",      pref.getInstituteName());
+                                data.put("Authority",      pref.getStudentName());
+                                data.put("mobile1",        pref.getInstituteMobile1());
+                                data.put("mobile2",        pref.getInstituteMobile2());
+                                data.put("email",          pref.getInstituteEmail());
+                                data.put("address1",       pref.getInstituteAddress1());
+                                data.put("address2",       pref.getInstituteAddress2());
+
+                                // ── Pick language ─────────────────────────
+                                String lang = pref.getLanguage();
+                                String templateText;
+                                switch (lang) {
+                                    case "MR": templateText = template.wa_MR; break;
+                                    case "HI": templateText = template.wa_HI; break;
+                                    default:   templateText = template.wa_EN; break;
+                                }
+
+                                String message = TemplateRepository.fillTemplate(templateText, data);
+
+                                Log.d("InquiryAdapter", "lang=" + lang);
+                                Log.d("InquiryAdapter", "mobile=" + mobile);
+                                Log.d("InquiryAdapter", "message=" + message);
+
+                                // ── SMS (background, silent fail) ─────────
+                                sendSms(mobile, message);
+
+                                // ── WhatsApp ──────────────────────────────
+                                openWhatsApp(mobile, message);
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.w("InquiryAdapter", "Template not found: " + error);
+                                Toast.makeText(context,
+                                        "Message template not found", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+    }
+
+    // ── SMS helper ────────────────────────────────────────────────────────────
+    private void sendSms(String phoneNumber, String message) {
+        try {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Log.w("InquiryAdapter", "SMS permission not granted");
+                return;
+            }
+            android.telephony.SmsManager sms = android.telephony.SmsManager.getDefault();
+            ArrayList<String> parts = sms.divideMessage(message);
+            sms.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+            Log.d("InquiryAdapter", "SMS sent to " + phoneNumber);
+        } catch (Exception e) {
+            Log.e("InquiryAdapter", "SMS failed: " + e.getMessage());
+        }
+    }
+
+    // ── WhatsApp helper ───────────────────────────────────────────────────────
+    private void openWhatsApp(String phoneNumber, String message) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+                    + "?text=" + Uri.encode(message)));
+            context.startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(context, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+        }
     }
 }

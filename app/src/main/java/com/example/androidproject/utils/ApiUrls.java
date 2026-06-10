@@ -9,8 +9,8 @@ import retrofit2.Response;
 
 public class ApiUrls {
 
-    // Base URL
-    public static final String BASE_URL = "http://160.25.62.225:8081/api/InstituteControllersV1/";
+    // Base URLhttp://160.187.87.113:8081/
+    public static final String BASE_URL = "http://160.187.87.113:8081/api/InstituteControllersV1/";
 
 
         private Activity activity;

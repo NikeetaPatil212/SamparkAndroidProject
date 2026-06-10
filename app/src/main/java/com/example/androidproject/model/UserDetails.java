@@ -13,6 +13,8 @@ public class UserDetails {
     @SerializedName("userName")
     private String userName;
 
+    @SerializedName("instituteName")
+    private String instituteName;
     public String getUserRole() {
         return userRole;
     }
@@ -23,6 +25,10 @@ public class UserDetails {
 
     public String getUserName() {
         return userName;
+    }
+
+    public String getInstituteName() {
+        return instituteName;
     }
 }
 

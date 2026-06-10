@@ -251,6 +251,18 @@ public class NewAdmissionActivity extends AppCompatActivity {
                         hideLoader();
 
                         if (response.isSuccessful() && response.body() != null) {
+                            PrefManager prefManager =
+                                    PrefManager.getInstance(NewAdmissionActivity.this);
+
+                            prefManager.saveStudentName(etFullName.getText().toString().trim());
+
+                            prefManager.saveStudentMobile(mobile);
+
+                            /*prefManager.saveStudentEmail(
+                                    etEmail.getText().toString().trim()); // if email field exists*/
+
+                            prefManager.saveStudentAddress(etAddress.getText().toString().trim());
+
                             Toast.makeText(NewAdmissionActivity.this,
                                     response.body().getMessage(),
                                     Toast.LENGTH_SHORT).show();

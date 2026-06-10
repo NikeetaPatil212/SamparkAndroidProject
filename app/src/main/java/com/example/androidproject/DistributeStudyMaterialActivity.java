@@ -305,7 +305,7 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
                         ", courseID=" + selectedCourseId +
                         ", batchID=" + selectedBatchId);
 
-        String fullUrl = "http://160.25.62.225:8081/api/InstituteControllersV1/list_of_distribution"
+        String fullUrl = "http://160.187.87.113:8081/api/InstituteControllersV1/list_of_distribution"
                 + "?userID=" + userId
                 + "&instituteID=" + instituteId
                 + "&CourseID=" + selectedCourseId

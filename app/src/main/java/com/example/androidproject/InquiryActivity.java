@@ -1,12 +1,15 @@
 package com.example.androidproject;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
@@ -23,12 +26,15 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.androidproject.model.Course;
 import com.example.androidproject.model.GetCoursesRequest;
 import com.example.androidproject.model.GetCoursesResponse;
 import com.example.androidproject.model.InquiryRequest;
 import com.example.androidproject.model.InquiryResponse;
+import com.example.androidproject.model.template.TemplateEntity;
+import com.example.androidproject.model.template.TemplateRepository;
 import com.example.androidproject.utils.ApiService;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
@@ -39,8 +45,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -73,6 +81,7 @@ public class InquiryActivity extends AppCompatActivity {
     private boolean fullNameManuallyEdited = false;
     private boolean isFetchingCourses = false;
     private boolean isCourseDialogShowing = false;
+    private boolean whatsAppDone = false;
 
     // ── fullNameWatcher — class-level so it can be removed/added ──
     private final TextWatcher fullNameWatcher = new TextWatcher() {
@@ -499,9 +508,83 @@ public class InquiryActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     InquiryResponse res = response.body();
                     Toast.makeText(InquiryActivity.this, res.getMessage(), Toast.LENGTH_SHORT).show();
-                    if (res.isSuccess()) {
+                   /* if (res.isSuccess()) {
                         startActivity(new Intent(InquiryActivity.this, DashboardActivity.class));
                         finish();
+                    }*/
+
+                    if (res.isSuccess()) {
+                        Toast.makeText(InquiryActivity.this, res.getMessage(), Toast.LENGTH_SHORT).show();
+
+                        final String fName        = firstName;
+                        final String fMobile      = mobile;
+                        final String fCourses     = inquiryAbout;
+                        final String fInquiryDate = inquiryDate != null ? inquiryDate : "";
+
+                        TemplateRepository.getInstance(InquiryActivity.this)
+                                .getTemplateByCategory("New Inquiry",
+                                        new TemplateRepository.SingleTemplateCallback() {
+
+                                            @Override
+                                            public void onSuccess(TemplateEntity template) {
+
+                                                // ← isActive check
+                                                if (!template.isActive) {
+                                                    Log.d("Template", "isActive=false, skipping message");
+                                                    Toast.makeText(
+                                                            InquiryActivity.this,
+                                                            "WhatsApp notifications are currently disabled. Proceeding without sending the message.",
+                                                            Toast.LENGTH_SHORT
+                                                    ).show();
+                                                    goToDashboard();
+                                                    return;
+                                                }
+
+                                                PrefManager pref = PrefManager.getInstance(InquiryActivity.this);
+
+                                                Map<String, String> data = new HashMap<>();
+                                                data.put("FirstName",      fName);
+                                                data.put("InquiryCourses", fCourses);
+                                                data.put("InquiryDate",    fInquiryDate);
+                                                data.put("institute",      pref.getInstituteName());
+                                                data.put("Authority",      pref.getStudentName());
+                                                data.put("mobile1",        pref.getInstituteMobile1());
+                                                data.put("mobile2",        pref.getInstituteMobile2());
+                                                data.put("email",          pref.getInstituteEmail());
+                                                data.put("address1",       pref.getInstituteAddress1());
+                                                data.put("address2",       pref.getInstituteAddress2());
+
+                                                String lang = pref.getLanguage();
+
+                                                // WhatsApp — wa_EN / wa_MR / wa_HI
+                                                String waTemplate;
+                                                switch (lang) {
+                                                    case "MR": waTemplate = template.wa_MR; break;
+                                                    case "HI": waTemplate = template.wa_HI; break;
+                                                    default:   waTemplate = template.wa_EN; break;
+                                                }
+
+                                                // SMS — sms_EN / sms_MR / sms_HI
+                                                String smsTemplate;
+                                                switch (lang) {
+                                                    case "MR": smsTemplate = template.sms_MR; break;
+                                                    case "HI": smsTemplate = template.sms_HI; break;
+                                                    default:   smsTemplate = template.sms_EN; break;
+                                                }
+
+                                                String waMessage  = TemplateRepository.fillTemplate(waTemplate,  data);
+                                                String smsMessage = TemplateRepository.fillTemplate(smsTemplate, data);
+
+                                                sendSmsInBackground(fMobile, smsMessage);
+                                                openWhatsApp(fMobile, waMessage);
+                                            }
+
+                                            @Override
+                                            public void onError(String error) {
+                                                Log.w("Inquiry", "Template not found: " + error);
+                                                goToDashboard();
+                                            }
+                                        });
                     }
                 } else {
                     Toast.makeText(InquiryActivity.this, "Server error", Toast.LENGTH_SHORT).show();
@@ -518,5 +601,49 @@ public class InquiryActivity extends AppCompatActivity {
 
     private String getCurrentDateTime() {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(new Date());
+    }
+
+
+    private void sendSmsInBackground(String phoneNumber, String message) {
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Log.w("SMS", "Permission not granted");
+                return;
+            }
+            SmsManager smsManager = SmsManager.getDefault();
+            ArrayList<String> parts = smsManager.divideMessage(message);
+            smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+            Log.d("SMS", "SMS sent to " + phoneNumber);
+        } catch (Exception e) {
+            Log.e("SMS", "SMS failed: " + e.getMessage());
+        }
+    }
+
+    private void openWhatsApp(String phoneNumber, String message) {
+        whatsAppDone = true;
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+                    + "?text=" + Uri.encode(message)));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+            goToDashboard();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (whatsAppDone) {
+            whatsAppDone = false;
+            goToDashboard();
+        }
+    }
+
+    private void goToDashboard() {
+        startActivity(new Intent(InquiryActivity.this, DashboardActivity.class));
+        finish();
     }
 }

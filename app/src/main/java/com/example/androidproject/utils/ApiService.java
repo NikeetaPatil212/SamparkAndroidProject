@@ -39,6 +39,11 @@ import com.example.androidproject.model.profile.StudyMaterialUpdateRequest;
 import com.example.androidproject.model.profile.StudyMaterialUpdateResponse;
 import com.example.androidproject.model.profile.TimingLessStudentResponse;
 import com.example.androidproject.model.profile.WithTimeStudentResponse;
+import com.example.androidproject.model.template.InstituteProfileResponse;
+import com.example.androidproject.model.template.InstituteRequest;
+import com.example.androidproject.model.template.SettingsResponse;
+import com.example.androidproject.model.template.TemplateRequest;
+import com.example.androidproject.model.template.TemplateResponse;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
@@ -123,4 +128,13 @@ public interface ApiService {
 
     @POST("Study_Material")
     Call<StudyMaterialUpdateResponse> updateStudyMaterial(@Body StudyMaterialUpdateRequest request);
+
+    @POST("templates")
+    Call<TemplateResponse> getTemplates(@Body TemplateRequest request);
+
+    @POST("InstituteProfile")
+    Call<InstituteProfileResponse> getInstituteProfile(@Body InstituteRequest request);
+
+    @POST("get_Settings")
+    Call<SettingsResponse> getSettings(@Body InstituteRequest request);
 }

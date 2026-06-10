@@ -1,6 +1,8 @@
 package com.example.androidproject;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,8 +17,11 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -27,6 +32,12 @@ import com.example.androidproject.model.LoginResponse;
 import com.example.androidproject.model.MobileRequest;
 import com.example.androidproject.model.MobileResponse;
 import com.example.androidproject.model.UserDetails;
+import com.example.androidproject.model.template.InstituteProfileResponse;
+import com.example.androidproject.model.template.InstituteRequest;
+import com.example.androidproject.model.template.SettingsResponse;
+import com.example.androidproject.model.template.TemplateEntity;
+import com.example.androidproject.model.template.TemplateRepository;
+import com.example.androidproject.room.InstituteProfileRepository;
 import com.example.androidproject.utils.ApiService;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
@@ -50,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ApiService apiService;
     private boolean isApiCalled = false;
     private String selectedInstituteId = "";
+    private static final int SMS_PERMISSION_CODE = 101;
 
     FrameLayout loaderLayout;
 
@@ -60,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
+        checkSmsPermission();
 
         // INIT VIEWS
         etPhoneNo = findViewById(R.id.etPhoneNo);
@@ -122,19 +136,39 @@ public class MainActivity extends AppCompatActivity {
 
         // 🔹 LOGIN BUTTON FLOW (UNCHANGED LOGIC)
         btnLogin.setOnClickListener(v -> {
-            //validateInputs();
+            validateInputs();
 
-            Toast.makeText(MainActivity.this,
+            /*Toast.makeText(MainActivity.this,
                     "Login Successful",
                     Toast.LENGTH_SHORT).show();
 
             startActivity(new Intent(MainActivity.this, DashboardActivity.class));
-            finish();
+            finish();*/
 
         });
     }
 
+    private void checkSmsPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.SEND_SMS},
+                    SMS_PERMISSION_CODE);
+        }
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == SMS_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("SMS", "✅ SMS permission granted");
+            } else {
+                Log.w("SMS", "❌ SMS permission denied");
+            }
+        }
+    }
 
     private void callMobileApi(String phone) {
 
@@ -214,8 +248,13 @@ public class MainActivity extends AppCompatActivity {
                 etInstitute.setText(selectedInstitute.getName(), false);
 
                 // Save selected instituteID
-                PrefManager.getInstance(this)
-                        .saveInstituteId(selectedInstitute.getId());
+         //  PrefManager.getInstance(this).saveInstituteId(selectedInstitute.getId());
+                PrefManager pref = PrefManager.getInstance(this);
+                pref.saveInstituteId(selectedInstitute.getId());
+                pref.saveInstituteName(selectedInstitute.getName());
+
+                Log.d("SAVE_TEST", "InstituteId = " + pref.getInstituteId());
+                Log.d("SAVE_TEST", "InstituteName = " + pref.getInstituteName());
             }
         });
     }
@@ -258,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
         callLoginApi(username, password);
     }
 
-    private void callLoginApi(String username, String password) {
+   /* private void callLoginApi(String username, String password) {
 
         String userId = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
@@ -297,10 +336,47 @@ public class MainActivity extends AppCompatActivity {
                     pref.saveUserRole(user.getUserRole());
                     pref.saveOperatorId(user.getOperatorID());
                     pref.saveUserName(user.getUserName());
+                  //  pref.saveInstituteName(user.getInstituteName());
+
 
                     Toast.makeText(MainActivity.this,
                             loginResponse.getMessage(),
                             Toast.LENGTH_SHORT).show();
+
+                    TemplateRepository.getInstance(MainActivity.this).fetchAndCache(
+                            new TemplateRepository.TemplateCallback() {
+                                @Override
+                                public void onSuccess(List<TemplateEntity> templates) {
+                                    // Templates saved to Room DB — all screens ready to use them
+                                    // No UI change needed here
+                                    Toast.makeText(MainActivity.this,
+                                            "Template saved to DB",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                                @Override
+                                public void onError(String error) {
+                                    // Non-critical — other screens have fallback message
+                                    // Optionally log: Log.w("Login", "Template cache failed: " + error);
+                                }
+                            }
+                    );
+
+                    int userID      = Integer.parseInt(PrefManager.getInstance(MainActivity.this).getUserId());      // however you store it
+                    int instituteID = Integer.parseInt(PrefManager.getInstance(MainActivity.this).getInstituteId()); // however you store it
+
+                    InstituteProfileRepository.fetchAndSave(MainActivity.this, userID, instituteID,
+                            new InstituteProfileRepository.InstituteProfileCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d("Login", "Institute profile cached");
+                                }
+                                @Override
+                                public void onError(String error) {
+                                    Log.w("Login", "Institute profile fetch failed: " + error);
+                                    // Non-critical — WhatsApp message will just have empty fields
+                                }
+                            }
+                    );
 
                     startActivity(new Intent(
                             MainActivity.this,
@@ -312,6 +388,146 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this,
                             "Server error",
                             Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                Toast.makeText(MainActivity.this,
+                        "Something went wrong: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }*/
+
+
+    private void callLoginApi(String username, String password) {
+
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+
+        LoginRequest request = new LoginRequest(
+                username,
+                password,
+                Integer.parseInt(userId),
+                Integer.parseInt(instituteId)
+        );
+
+        Log.d("LoginRequest--", request.toString());
+
+        apiService.loginUser(request).enqueue(new Callback<LoginResponse>() {
+
+            @Override
+            public void onResponse(Call<LoginResponse> call,
+                                   Response<LoginResponse> response) {
+
+                if (response.isSuccessful() && response.body() != null) {
+
+                    LoginResponse loginResponse = response.body();
+
+                    if (loginResponse.getUserDetails() == null) {
+                        Toast.makeText(MainActivity.this,
+                                loginResponse.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Save login details
+                    UserDetails user = loginResponse.getUserDetails();
+                    PrefManager pref = PrefManager.getInstance(MainActivity.this);
+                    pref.saveUserRole(user.getUserRole());
+                    pref.saveOperatorId(user.getOperatorID());
+                    pref.saveUserName(user.getUserName());
+
+                    Toast.makeText(MainActivity.this,
+                            loginResponse.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+
+                    int userID      = Integer.parseInt(pref.getUserId());
+                    int instituteID = Integer.parseInt(pref.getInstituteId());
+
+                    InstituteRequest instituteRequest = new InstituteRequest(userID, instituteID);
+
+                    // 1. Fetch templates
+                    TemplateRepository.getInstance(MainActivity.this).fetchAndCache(
+                            new TemplateRepository.TemplateCallback() {
+                                @Override
+                                public void onSuccess(List<TemplateEntity> templates) {
+                                    Toast.makeText(MainActivity.this,
+                                            "Template saved to DB",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                                @Override
+                                public void onError(String error) {
+                                    Log.w("Login", "Template cache failed: " + error);
+                                }
+                            }
+                    );
+
+                    // 2. Fetch institute profile
+                    apiService.getInstituteProfile(instituteRequest)
+                            .enqueue(new Callback<InstituteProfileResponse>() {
+                                @Override
+                                public void onResponse(Call<InstituteProfileResponse> call,
+                                                       Response<InstituteProfileResponse> response) {
+                                    if (response.isSuccessful() && response.body() != null
+                                            && response.body().isSuccess) {
+
+                                        InstituteProfileResponse.InstituteDetails d =
+                                                response.body().instituteDetails;
+
+                                        PrefManager.getInstance(MainActivity.this).saveInstituteProfile(
+                                                d.instituteName, d.mobile, d.alternate,
+                                                d.email, d.address1, d.address2
+                                        );
+                                        Log.d("Login", "✅ Institute profile saved: " + d.instituteName);
+
+                                    }
+                                }
+                                @Override
+                                public void onFailure(Call<InstituteProfileResponse> call, Throwable t) {
+                                    Log.w("Login", "Institute profile failed: " + t.getMessage());
+                                }
+                            });
+
+                    // 3. Fetch settings (language)
+                    apiService.getSettings(instituteRequest)
+                            .enqueue(new Callback<SettingsResponse>() {
+                                @Override
+                                public void onResponse(Call<SettingsResponse> call,
+                                                       Response<SettingsResponse> response) {
+                                    if (response.isSuccessful() && response.body() != null
+                                            && response.body().isSuccess) {
+
+                                        for (SettingsResponse.SettingItem item
+                                                : response.body().settingsList) {
+                                            if ("3".equals(item.settingID)) {
+                                                String language;
+                                                switch (item.value) {
+                                                    case "1": language = "MR"; break;
+                                                    case "2": language = "HI"; break;
+                                                    default:  language = "EN"; break;
+                                                }
+
+                                                PrefManager.getInstance(MainActivity.this).saveLanguage(language);
+                                                Log.d("LANG_DEBUG", "Saved language: " + language);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                @Override
+                                public void onFailure(Call<SettingsResponse> call, Throwable t) {
+                                    Log.w("Login", "Settings fetch failed: " + t.getMessage());
+                                }
+                            });
+
+                    // Navigate to Dashboard
+                    startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                    finish();
+
+                } else {
+                    Toast.makeText(MainActivity.this, "Server error", Toast.LENGTH_SHORT).show();
                 }
             }
 

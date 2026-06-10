@@ -182,6 +182,9 @@ public class AllotBatchActivity extends AppCompatActivity {
             Course selected    = courseList.get(position);
             selectedCourseId   = selected.getCouseID();
 
+            // Add this inside spCourse.setOnItemClickListener:
+            if (adapterChange != null) adapterChange.setCourseName(selected.getCouse_Name());
+
             resetBatchDropdown();
             hideStudentList();
             fetchBatches(selectedCourseId);
@@ -249,6 +252,8 @@ public class AllotBatchActivity extends AppCompatActivity {
             selectedBatchId = selected.getBatchID();
 
             tvHint.setVisibility(View.VISIBLE);
+
+            if (adapterChange != null) adapterChange.setCourseName(selected.getBatchName());
 
             // ── KEY BRANCH: which API to call depends on mode ─────────────────
             if (screenMode == MODE_CHANGE) {

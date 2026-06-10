@@ -13,8 +13,11 @@ public class PrefManager {
     private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_COURSE_ID = "course_id";
     private static final String KEY_BATCH_ID  = "batch_id";
-    private static final String KEY_MOBILE_ID  = "mobile_id";
-
+    private static final String KEY_INSTITUTE_NAME  = "institute_name";
+    private static final String KEY_STUDENT_NAME = "student_name";
+    private static final String KEY_STUDENT_MOBILE = "student_mobile";
+    private static final String KEY_STUDENT_EMAIL = "student_email";
+    private static final String KEY_STUDENT_ADDRESS = "student_address";
 
     private static PrefManager instance;
     private SharedPreferences prefs;
@@ -62,9 +65,15 @@ public class PrefManager {
         prefs.edit().putString(KEY_USER_NAME, userName).apply();
     }
 
+
     public String getUserRole() {
         return prefs.getString(KEY_USER_ROLE, "");
     }
+
+    public void saveInstituteName(String instituteName) {
+        prefs.edit().putString(KEY_INSTITUTE_NAME, instituteName).apply();
+    }
+
 
     public String getOperatorId() {
         return prefs.getString(KEY_OPERATOR_ID, "");
@@ -73,6 +82,9 @@ public class PrefManager {
     public String getUserName() {
         return prefs.getString(KEY_USER_NAME, "");
     }
+   /* public String getInstituteName() {
+        return prefs.getString(KEY_INSTITUTE_NAME, "");
+    }*/
 
     public void setCourseId(int courseId) {
         prefs.edit().putInt(KEY_COURSE_ID, courseId).apply();
@@ -100,14 +112,67 @@ public class PrefManager {
     }*/
 
 
-    public void setMobile(String mobile) {
-        prefs.edit().putString("mobile", mobile);
-        prefs.edit().apply();
+    public void saveStudentName(String studentName) {
+        prefs.edit().putString(KEY_STUDENT_NAME, studentName).apply();
     }
 
-    public String getMobile() {
-        return prefs.getString("mobile", "");
+    public void saveStudentMobile(String mobile) {
+        prefs.edit().putString(KEY_STUDENT_MOBILE, mobile).apply();
     }
 
+    public void saveStudentEmail(String email) {
+        prefs.edit().putString(KEY_STUDENT_EMAIL, email).apply();
+    }
+
+    public void saveStudentAddress(String address) {
+        prefs.edit().putString(KEY_STUDENT_ADDRESS, address).apply();
+    }
+
+    public String getStudentName() {
+        return prefs.getString(KEY_STUDENT_NAME, "");
+    }
+
+    public String getStudentMobile() {
+        return prefs.getString(KEY_STUDENT_MOBILE, "");
+    }
+
+    public String getStudentEmail() {
+        return prefs.getString(KEY_STUDENT_EMAIL, "");
+    }
+
+    public String getStudentAddress() {
+        return prefs.getString(KEY_STUDENT_ADDRESS, "");
+    }
+
+    public void saveLanguage(String language) {
+        prefs.edit().putString("app_language", language).apply();
+    }
+
+    public String getLanguage() {
+        return prefs.getString("app_language", "EN"); // default English
+    }
+
+
+
+    // Save institute profile
+    public void saveInstituteProfile(String name, String mobile1, String mobile2,
+                                     String email, String address1, String address2) {
+        prefs.edit()
+                .putString("institute_name",     name)
+                .putString("institute_mobile1",  mobile1)
+                .putString("institute_mobile2",  mobile2)
+                .putString("institute_email",    email)
+                .putString("institute_address1", address1)
+                .putString("institute_address2", address2)
+                .apply();  // ← single apply on the SAME editor chain
+    }
+
+    // Getters
+    public String getInstituteName()     { return prefs.getString("institute_name",     ""); }
+    public String getInstituteMobile1()  { return prefs.getString("institute_mobile1",  ""); }
+    public String getInstituteMobile2()  { return prefs.getString("institute_mobile2",  ""); }
+    public String getInstituteEmail()    { return prefs.getString("institute_email",     ""); }
+    public String getInstituteAddress1() { return prefs.getString("institute_address1", ""); }
+    public String getInstituteAddress2() { return prefs.getString("institute_address2", ""); }
 }
 
