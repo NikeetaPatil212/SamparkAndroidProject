@@ -936,13 +936,13 @@
                             android:layout_marginTop="4dp"
                             android:textSize="12sp" />
 
-                        <TextView
+                     <!--   <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Files uploaded will be saved to mobile memory."
                             android:textSize="11sp"
                             android:textColor="#888888"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="4dp" />-->
 
                     </LinearLayout>
                 </LinearLayout>

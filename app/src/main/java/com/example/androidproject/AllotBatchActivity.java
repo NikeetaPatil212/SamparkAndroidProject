@@ -184,6 +184,7 @@ public class AllotBatchActivity extends AppCompatActivity {
 
             // Add this inside spCourse.setOnItemClickListener:
             if (adapterChange != null) adapterChange.setCourseName(selected.getCouse_Name());
+            if (adapterAllot != null) adapterAllot.setCourseNameTimingLess(selected.getCouse_Name());
 
             resetBatchDropdown();
             hideStudentList();
@@ -253,7 +254,9 @@ public class AllotBatchActivity extends AppCompatActivity {
 
             tvHint.setVisibility(View.VISIBLE);
 
-            if (adapterChange != null) adapterChange.setCourseName(selected.getBatchName());
+            if (adapterChange != null) adapterChange.setBatchName(selected.getBatchName());
+            if (adapterAllot != null) adapterAllot.setBatchNameTimingLess(selected.getBatchName());
+            Log.d("BatchName---", selected.getBatchName());
 
             // ── KEY BRANCH: which API to call depends on mode ─────────────────
             if (screenMode == MODE_CHANGE) {
@@ -290,8 +293,8 @@ public class AllotBatchActivity extends AppCompatActivity {
                     Integer.parseInt(userId),
                     Integer.parseInt(instituteId),
                     selectedCourseId,   // ← use real IDs (was hardcoded to 1,1)
-                    //selectedBatchId
-                    1
+                    selectedBatchId
+
             );
 
             Log.d("TIMING_LESS_REQUEST", new Gson().toJson(request));

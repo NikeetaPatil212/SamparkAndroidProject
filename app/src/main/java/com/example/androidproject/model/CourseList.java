@@ -14,6 +14,7 @@ public class CourseList {
     private String recieptNo;
     private String reminderDate;
     private String cycleDate;
+    private int timingID;
     private int operatorID;
 
     public CourseList(int courseID,
@@ -28,6 +29,7 @@ public class CourseList {
                          String recieptNo,
                          String reminderDate,
                          String cycleDate,
+                         int timingID,
                          int operatorID) {
 
         this.courseID = courseID;
@@ -42,6 +44,7 @@ public class CourseList {
         this.recieptNo = recieptNo;
         this.reminderDate = reminderDate;
         this.cycleDate = cycleDate;
+        this.timingID  = timingID;
         this.operatorID = operatorID;
     }
 
@@ -147,5 +150,13 @@ public class CourseList {
 
     public void setOperatorID(int operatorID) {
         this.operatorID = operatorID;
+    }
+
+    public int getTimingID() {
+        return timingID;
+    }
+
+    public void setTimingID(int timingID) {
+        this.timingID = timingID;
     }
 }

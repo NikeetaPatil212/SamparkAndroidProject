@@ -141,6 +141,7 @@ public class AdmissionActivity extends AppCompatActivity {
     private MaterialAutoCompleteTextView spBatchTiming;
     private int selectedTimingId = -1;
     private String selectedTimingName = "";
+    private String admissionDateForApi = "";
     private static final String TIMING_URL = "http://160.187.87.113:8081/api/InstituteControllersV1/batch_time_test";
 
     @Override
@@ -171,12 +172,11 @@ public class AdmissionActivity extends AppCompatActivity {
         }
 
         initViews();
-        getSuggestedReceiptNo();
         setupToolbar();
         setupDatePicker();
         setupFeeCalculation();
         fetchCourses();
-
+        getSuggestedReceiptNo();
 
         // ── Clear stale Room records for THIS student from previous sessions ──
         db.feeDetailDao().deleteForStudent(studentId);
@@ -505,12 +505,33 @@ public class AdmissionActivity extends AppCompatActivity {
             String courseName = spCourse.getText().toString().trim();
             String batchName  = spBatch.getText().toString().trim();
 
+            String admissionDateRaw = etAdmissionDate.getText() != null
+                    ? etAdmissionDate.getText().toString().trim() : "";
+            if (admissionDateRaw.isEmpty()) {
+                Toast.makeText(this, "Please select an admission date", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                SimpleDateFormat inputFmt  = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+                SimpleDateFormat outputFmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+                admissionDateForApi = outputFmt.format(inputFmt.parse(admissionDateRaw));
+            } catch (Exception e) {
+                admissionDateForApi = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                        .format(Calendar.getInstance().getTime()); // fallback = now
+            }
+
             if (courseName.isEmpty()) {
                 Toast.makeText(this, "Please select a course", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (batchName.isEmpty()) {
                 Toast.makeText(this, "Please select a batch", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (selectedTimingId == -1) {
+                Toast.makeText(this, "Please select a batch timing", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -551,8 +572,11 @@ public class AdmissionActivity extends AppCompatActivity {
                 }
             }
 
-            receiptNo = etSummaryReceiptNo.getText() != null
-                    ? etSummaryReceiptNo.getText().toString().trim() : "";
+           /* receiptNo = etSummaryReceiptNo.getText() != null
+                    ? etSummaryReceiptNo.getText().toString().trim() : "";*/
+
+            receiptNo = etReceiptNo.getText() != null
+                    ? etReceiptNo.getText().toString().trim() : "";
 
             // ── Save to Room DB scoped to this studentId ──────────────────────
             AdmissionDetail detail = new AdmissionDetail();
@@ -595,12 +619,17 @@ public class AdmissionActivity extends AppCompatActivity {
                     remainingFee == 0 ? "Active" : "Pending",
                     receiptNo,
                     etReminderDate.getText().toString(),
-                    "2026-04-04T11:18:11", 0
+                    "2026-04-04T11:18:11", selectedTimingId,0
             );
             selectedCourses.add(courseObj);
 
             // ── Clear input fields for next course entry ──────────────────────
             spCourse.setText("");
+            // After the existing spCourse/spBatch reset block:
+            spBatchTiming.setText("");
+            selectedTimingId   = -1;
+            selectedTimingName = "";
+
             spBatch.setText("");
             spBatch.setEnabled(false);
             if (ivBatchArrow != null) ivBatchArrow.setColorFilter(
@@ -613,7 +642,7 @@ public class AdmissionActivity extends AppCompatActivity {
             etTotalFee.setText("");
             etPaidFee.setText("");
             etRemainingFee.setText("");
-            etReceiptNo.setText("");
+        //    etReceiptNo.setText("");
 
             Toast.makeText(this, "Course added successfully!", Toast.LENGTH_SHORT).show();
         });
@@ -775,6 +804,7 @@ public class AdmissionActivity extends AppCompatActivity {
             return;
         }
 
+
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
         String operatorId  = PrefManager.getInstance(this).getOperatorId();
@@ -790,11 +820,19 @@ public class AdmissionActivity extends AppCompatActivity {
             course.setStatus(remaining <= 0 ? "Active" : "Pending");
             course.setReminderDate(reminderDate);
             course.setOperatorID(Integer.parseInt(operatorId));
+
+            if (course.getRecieptNo() == null || course.getRecieptNo().isEmpty()) {
+                course.setRecieptNo(receiptNo);
+            }
         }
+
+
+
+
 
         AdmissionRequest request = new AdmissionRequest(
                 Integer.parseInt(userId), Integer.parseInt(instituteId),
-                studentId, "2026-03-17T18:55:25.148Z",
+                studentId, admissionDateForApi,
                 uploadedImageUrl, paidFeeSum, selectedCourses
         );
 
@@ -870,12 +908,14 @@ public class AdmissionActivity extends AppCompatActivity {
                                     feeData.put("course",       getCourseNamesString());
                                     feeData.put("batch",        getBatchNamesString());
                                     feeData.put("institute",    pref.getInstituteName());
-                                    feeData.put("Authority",    pref.getStudentName());
+                                    feeData.put("Authority",    pref.getOwnerName());
                                     feeData.put("mobile1",      pref.getInstituteMobile1());
                                     feeData.put("mobile2",      pref.getInstituteMobile2());
                                     feeData.put("email",        pref.getInstituteEmail());
                                     feeData.put("address1",     pref.getInstituteAddress1());
                                     feeData.put("address2",     pref.getInstituteAddress2());
+                                    feeData.put("ownerName",       pref.getOwnerName());
+
                                     feeData.put("amount",       String.valueOf(paidFeeSum));
                                     feeData.put("fees",         String.valueOf(totalFeeSum));
                                     feeData.put("paid",         String.valueOf(paidFeeSum));
@@ -957,7 +997,7 @@ public class AdmissionActivity extends AppCompatActivity {
 
                                 data.put("institute",  PrefManager.getInstance(AdmissionActivity.this).getInstituteName());
                                 Log.d("INSTITUTE", instituteName);
-                                data.put("Authority",  PrefManager.getInstance(AdmissionActivity.this).getStudentName());
+                                data.put("Authority",  PrefManager.getInstance(AdmissionActivity.this).getOwnerName());
                                 data.put("mobile1",    PrefManager.getInstance(AdmissionActivity.this).getStudentMobile());
                                 data.put("mobile2",    "");
                                 data.put("email",      "");
@@ -970,7 +1010,7 @@ public class AdmissionActivity extends AppCompatActivity {
                                 PrefManager pref = PrefManager.getInstance(AdmissionActivity.this);
 
                                 data.put("institute", pref.getInstituteName());
-                                data.put("Authority", pref.getStudentName());    // your existing authority field
+                                data.put("Authority", pref.getOwnerName());    // your existing authority field
                                 data.put("mobile1",   pref.getInstituteMobile1());
                                 data.put("mobile2",   pref.getInstituteMobile2());
                                 data.put("email",     pref.getInstituteEmail());
@@ -1054,12 +1094,14 @@ public class AdmissionActivity extends AppCompatActivity {
                                 data.put("studentName", studentName != null ? studentName : "");
                                 data.put("course",      courseNames.toString());
                                 data.put("institute",   pref.getInstituteName());
-                                data.put("Authority",   pref.getStudentName());
+                                data.put("Authority",   pref.getOwnerName());
                                 data.put("mobile1",     pref.getInstituteMobile1());
                                 data.put("mobile2",     pref.getInstituteMobile2());
                                 data.put("email",       pref.getInstituteEmail());
                                 data.put("address1",    pref.getInstituteAddress1());
                                 data.put("address2",    pref.getInstituteAddress2());
+                                data.put("ownerName",       pref.getOwnerName());
+
 
                                 // Pick language from settings — same as FeeReceiptActivity
                                 String lang = pref.getLanguage();

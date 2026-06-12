@@ -156,7 +156,7 @@ public class PrefManager {
 
     // Save institute profile
     public void saveInstituteProfile(String name, String mobile1, String mobile2,
-                                     String email, String address1, String address2) {
+                                     String email, String address1, String address2, String ownerName) {
         prefs.edit()
                 .putString("institute_name",     name)
                 .putString("institute_mobile1",  mobile1)
@@ -164,6 +164,7 @@ public class PrefManager {
                 .putString("institute_email",    email)
                 .putString("institute_address1", address1)
                 .putString("institute_address2", address2)
+                .putString("institute_ownerName", ownerName)
                 .apply();  // ← single apply on the SAME editor chain
     }
 
@@ -174,5 +175,6 @@ public class PrefManager {
     public String getInstituteEmail()    { return prefs.getString("institute_email",     ""); }
     public String getInstituteAddress1() { return prefs.getString("institute_address1", ""); }
     public String getInstituteAddress2() { return prefs.getString("institute_address2", ""); }
+    public String getOwnerName() { return prefs.getString("institute_ownerName", ""); }
 }
 

@@ -273,6 +273,7 @@ public class NewAdmissionActivity extends AppCompatActivity {
                             intent.putExtra("student_name",
                                     etFullName.getText().toString().trim());
                             intent.putExtra("mobile", mobile);
+                        //    intent.putExtra("studentId", response.getu());
                             startActivity(intent);
                         } else {
                             Toast.makeText(NewAdmissionActivity.this,

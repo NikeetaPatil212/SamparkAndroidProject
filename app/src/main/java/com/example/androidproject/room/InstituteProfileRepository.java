@@ -85,7 +85,8 @@ public class InstituteProfileRepository {
                             details.optString("alternate",     ""),
                             details.optString("email",         ""),
                             details.optString("address1",      ""),
-                            details.optString("address2",      "")
+                            details.optString("address2",      ""),
+                            details.optString("ownerName",      "")
                     );
 
                     callback.onSuccess();

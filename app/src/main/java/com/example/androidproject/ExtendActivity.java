@@ -63,8 +63,8 @@ public class ExtendActivity extends AppCompatActivity {
 
         // ── Read intent extras ────────────────────────────────────
         studentId     = getIntent().getIntExtra("studentId",    0);
-        studentName   = getIntent().getStringExtra("student_name") != null
-                ? getIntent().getStringExtra("student_name") : "";
+        studentName   = getIntent().getStringExtra("studentName") != null
+                ? getIntent().getStringExtra("studentName") : "";
         studentMobile = getIntent().getStringExtra("mobile") != null
                 ? getIntent().getStringExtra("mobile") : "";
         studentCourses= getIntent().getStringExtra("about") != null
@@ -191,12 +191,13 @@ public class ExtendActivity extends AppCompatActivity {
                                 data.put("InquiryDate",    displayDate);
                                 data.put("InquiryCourses", studentCourses);
                                 data.put("institute",      pref.getInstituteName());
-                                data.put("Authority",      pref.getStudentName());
+                                data.put("Authority",      pref.getOwnerName());
                                 data.put("mobile1",        pref.getInstituteMobile1());
                                 data.put("mobile2",        pref.getInstituteMobile2());
                                 data.put("email",          pref.getInstituteEmail());
                                 data.put("address1",       pref.getInstituteAddress1());
                                 data.put("address2",       pref.getInstituteAddress2());
+                                data.put("ownerName",       pref.getOwnerName());
 
                                 // ── Pick language ─────────────────────────
                                 String lang = pref.getLanguage();
@@ -212,6 +213,7 @@ public class ExtendActivity extends AppCompatActivity {
                                 Log.d("ExtendActivity", "lang=" + lang);
                                 Log.d("ExtendActivity", "mobile=" + studentMobile);
                                 Log.d("ExtendActivity", "message=" + message);
+                                Log.d("ExtendActivity", "message11=" + firstName + "--" + studentName);
 
 
                                 // ── SMS ───────────────────────────────────

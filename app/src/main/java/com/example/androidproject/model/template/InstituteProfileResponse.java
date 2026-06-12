@@ -14,5 +14,6 @@ public class InstituteProfileResponse {
         @SerializedName("email")         public String email;
         @SerializedName("address1")      public String address1;
         @SerializedName("address2")      public String address2;
+        @SerializedName("ownerName")      public String ownerName;
     }
 }

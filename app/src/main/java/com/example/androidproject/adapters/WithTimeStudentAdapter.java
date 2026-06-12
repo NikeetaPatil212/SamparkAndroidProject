@@ -445,12 +445,13 @@ public class WithTimeStudentAdapter
                                 data.put("BatchName",   batchName);         // if you have a separate batch name field, use it; fallback to timing description
                                 data.put("BatchTime", batchTime);                                data.put("BatchTime",   batchTime);
                                 data.put("institute",   pref.getInstituteName());
-                                data.put("Authority",   pref.getStudentName());
+                                data.put("Authority",   pref.getOwnerName());
                                 data.put("mobile1",     pref.getInstituteMobile1());
                                 data.put("mobile2",     pref.getInstituteMobile2());
                                 data.put("email",       pref.getInstituteEmail());
                                 data.put("address1",    pref.getInstituteAddress1());
                                 data.put("address2",    pref.getInstituteAddress2());
+                                data.put("ownerName",       pref.getOwnerName());
 
                                 // ── Pick language ──────────────────────────────────────
                                 String lang = pref.getLanguage();

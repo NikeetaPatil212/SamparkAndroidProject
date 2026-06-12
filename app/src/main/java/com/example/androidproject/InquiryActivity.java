@@ -427,6 +427,8 @@ public class InquiryActivity extends AppCompatActivity {
         String schoolName   = etSchoolName.getText().toString().trim();
         String feedback     = etFeedback.getText().toString().trim();
         String gender       = etGender.getText().toString().trim();
+        String dob    = etBirthDate.getText().toString().trim();
+
 
         if (firstName.isEmpty()) {
             etFirstName.setError("First name is required");
@@ -466,6 +468,16 @@ public class InquiryActivity extends AppCompatActivity {
             etSchoolName.setError("School name is required");
             etSchoolName.requestFocus(); return;
         }
+
+        if (dob.isEmpty()) {
+            etBirthDate.setError("Please select Date of Birth");
+            etBirthDate.requestFocus();
+            Toast.makeText(this,
+                    "Please select Date of Birth",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         callAddInquiryApi(firstName, middleName, lastName, fullName,
                 mobile, altMobile, email, address,
@@ -547,12 +559,13 @@ public class InquiryActivity extends AppCompatActivity {
                                                 data.put("InquiryCourses", fCourses);
                                                 data.put("InquiryDate",    fInquiryDate);
                                                 data.put("institute",      pref.getInstituteName());
-                                                data.put("Authority",      pref.getStudentName());
+                                                data.put("Authority",      pref.getOwnerName());
                                                 data.put("mobile1",        pref.getInstituteMobile1());
                                                 data.put("mobile2",        pref.getInstituteMobile2());
                                                 data.put("email",          pref.getInstituteEmail());
                                                 data.put("address1",       pref.getInstituteAddress1());
                                                 data.put("address2",       pref.getInstituteAddress2());
+                                                data.put("ownerName",       pref.getOwnerName());
 
                                                 String lang = pref.getLanguage();
 

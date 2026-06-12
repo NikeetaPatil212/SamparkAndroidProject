@@ -408,26 +408,45 @@ public class FeeReceiptActivity extends AppCompatActivity {
 
                                                         Map<String, String> data = new HashMap<>();
 
+                                                        // Parse previously paid amount from UI, add current payment
+                                                        double previouslyPaid = 0;
+                                                        try {
+                                                            String paidText = tvPaidFee.getText().toString()
+                                                                    .replace("₹", "").trim();
+                                                            previouslyPaid = Double.parseDouble(paidText);
+                                                        } catch (Exception e) {
+                                                            previouslyPaid = 0;
+                                                        }
+                                                        double totalPaidNow = previouslyPaid + Double.parseDouble(amountStr);
+
+
 // ← KEY FIX: match exact placeholder case from template
                                                         data.put("StudentName", studentFullName);        // was "studentName" → {StudentName}
                                                         data.put("course",      studentCourseName);      // ✅ correct
                                                         data.put("batch",       studentBatchName);
                                                         data.put("institute",   pref.getInstituteName()); // ✅ correct
-                                                        data.put("Authority",   pref.getStudentName());   // ✅ correct
+                                                        data.put("Authority",   pref.getOwnerName());   // ✅ correct
                                                         data.put("mobile1",     pref.getInstituteMobile1()); // ✅ correct
                                                         data.put("mobile2",     pref.getInstituteMobile2()); // ✅ correct
                                                         data.put("email",       pref.getInstituteEmail());   // ✅ correct
                                                         data.put("address1",    pref.getInstituteAddress1()); // ✅ correct
                                                         data.put("address2",    pref.getInstituteAddress2()); // ✅ correct
+                                                        data.put("ownerName",       pref.getOwnerName());
                                                         data.put("amount",      amountStr);              // ✅ correct
                                                       //  data.put("fees",        String.format(Locale.getDefault(), "%.2f", remainingFeeAmount + Double.parseDouble(amountStr))); // total fees
                                                         data.put("fees",        tvFee.getText().toString().trim()); // total fees
                                                       //  data.put("paid",        amountStr);              // amount just paid
-                                                        data.put("paid",        String.format(Locale.getDefault(), "%.2f", remainingFeeAmount + Double.parseDouble(amountStr)));              // amount just paid
+                                                    //    data.put("paid",        String.format(Locale.getDefault(), "%.2f", remainingFeeAmount + Double.parseDouble(amountStr)));              // amount just paid
+                                                        data.put("paid", String.format(Locale.getDefault(), "%.2f", totalPaidNow));
                                                         data.put("outstanding", String.format(Locale.getDefault(), "%.2f", Math.max(updatedRemaining, 0))); // was "remaining"
                                                         data.put("DueDate",     date);                   // was "date" → {DueDate}
                                                         data.put("receiptNo",   receiptNo);
                                                         data.put("date",        date);
+
+
+
+                                                        Log.d("TEMPLATE_DEBUG", "Paid till now = " +
+                                                                String.format(Locale.getDefault(), "%.2f", totalPaidNow));
 
 
                                                         // Pick language from settings

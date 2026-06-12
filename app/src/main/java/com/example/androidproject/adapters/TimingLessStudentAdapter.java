@@ -51,10 +51,11 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
     // ── Optional: course name passed from Activity ─────────────────────────
     private String courseName = "";
     private String batchName = "";
-    public void setCourseName(String courseName) {
+
+    public void setCourseNameTimingLess(String courseName) {
         this.courseName = courseName != null ? courseName : "";
     }
-    public void setBatchName(String batchName) {
+    public void setBatchNameTimingLess(String batchName) {
         this.batchName = batchName != null ? batchName : "";
     }
 
@@ -353,12 +354,13 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                                 data.put("BatchName",   batchName);           // same as course here; override if you have a separate batch name
                                 data.put("BatchTime",   batchTime);
                                 data.put("institute",   pref.getInstituteName());
-                                data.put("Authority",   pref.getStudentName());
+                                data.put("Authority",   pref.getOwnerName());
                                 data.put("mobile1",     pref.getInstituteMobile1());
                                 data.put("mobile2",     pref.getInstituteMobile2());
                                 data.put("email",       pref.getInstituteEmail());
                                 data.put("address1",    pref.getInstituteAddress1());
                                 data.put("address2",    pref.getInstituteAddress2());
+                                data.put("ownerName",       pref.getOwnerName());
 
                                 // ── WhatsApp message ───────────────────────────────────
                                 String lang = pref.getLanguage();
@@ -385,6 +387,7 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                                 Log.d(TAG, "Mobile: " + studentMobile);
                                 Log.d(TAG, "Course: " + courseName);
                                 Log.d(TAG, "BatchTime: " + batchTime);
+                                Log.d(TAG, "BatchName: " + batchName);
                                 Log.d(TAG, "WA message: " + waMessage);
                                 Log.d(TAG, "SMS message: " + smsMessage);
 

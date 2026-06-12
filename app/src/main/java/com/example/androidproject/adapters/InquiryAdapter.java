@@ -177,6 +177,7 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
             Intent intent = new Intent(context, ExtendActivity.class);
             intent.putExtra("studentId", item.getStudentId());
             intent.putExtra("mobile",       item.getMobile());
+            intent.putExtra("studentName",       item.getStudentName());
             Log.d("InquiryAdapter", "Extend studentId: " + item.getStudentId());
             context.startActivity(intent);
         });
@@ -255,12 +256,13 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
                                 data.put("InquiryCourses", item.getAbout() != null
                                         ? item.getAbout() : "");
                                 data.put("institute",      pref.getInstituteName());
-                                data.put("Authority",      pref.getStudentName());
+                                data.put("Authority",      pref.getOwnerName());
                                 data.put("mobile1",        pref.getInstituteMobile1());
                                 data.put("mobile2",        pref.getInstituteMobile2());
                                 data.put("email",          pref.getInstituteEmail());
                                 data.put("address1",       pref.getInstituteAddress1());
                                 data.put("address2",       pref.getInstituteAddress2());
+                                data.put("ownerName",       pref.getOwnerName());
 
                                 // ── Pick language ─────────────────────────
                                 String lang = pref.getLanguage();
@@ -276,6 +278,7 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
                                 Log.d("InquiryAdapter", "lang=" + lang);
                                 Log.d("InquiryAdapter", "mobile=" + mobile);
                                 Log.d("InquiryAdapter", "message=" + message);
+                                Log.d("InquiryAdapter", "ownerName=" + pref.getOwnerName());
 
                                 // ── SMS (background, silent fail) ─────────
                                 sendSms(mobile, message);
