@@ -253,7 +253,13 @@ public class ExtendActivity extends AppCompatActivity {
             }
             SmsManager sms = SmsManager.getDefault();
             ArrayList<String> parts = sms.divideMessage(message);
-            sms.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+        //    sms.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber
+                    : phoneNumber.startsWith("91") ? "+" + phoneNumber
+                    : "+91" + phoneNumber;
+            sms.sendMultipartTextMessage(formattedNumber, null, parts, null, null);
+
             Log.d("ExtendActivity", "SMS sent to " + phoneNumber);
         } catch (Exception e) {
             Log.e("ExtendActivity", "SMS failed: " + e.getMessage());
@@ -265,7 +271,12 @@ public class ExtendActivity extends AppCompatActivity {
         whatsAppOpened = true;
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+         /*   intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+                    + "?text=" + Uri.encode(message)));*/
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber.substring(1)
+                    : phoneNumber.startsWith("91") ? phoneNumber
+                    : "91" + phoneNumber;
+            intent.setData(Uri.parse("https://wa.me/" + formattedNumber
                     + "?text=" + Uri.encode(message)));
             startActivity(intent);
         } catch (Exception e) {

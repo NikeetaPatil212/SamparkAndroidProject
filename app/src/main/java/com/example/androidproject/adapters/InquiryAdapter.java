@@ -306,7 +306,12 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
             }
             android.telephony.SmsManager sms = android.telephony.SmsManager.getDefault();
             ArrayList<String> parts = sms.divideMessage(message);
-            sms.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+         //   sms.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber
+                    : phoneNumber.startsWith("91") ? "+" + phoneNumber
+                    : "+91" + phoneNumber;
+            sms.sendMultipartTextMessage(formattedNumber, null, parts, null, null);
             Log.d("InquiryAdapter", "SMS sent to " + phoneNumber);
         } catch (Exception e) {
             Log.e("InquiryAdapter", "SMS failed: " + e.getMessage());
@@ -317,8 +322,14 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
     private void openWhatsApp(String phoneNumber, String message) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+            /*intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+                    + "?text=" + Uri.encode(message)));*/
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber.substring(1)
+                    : phoneNumber.startsWith("91") ? phoneNumber
+                    : "91" + phoneNumber;
+            intent.setData(Uri.parse("https://wa.me/" + formattedNumber
                     + "?text=" + Uri.encode(message)));
+
             context.startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(context, "WhatsApp not installed", Toast.LENGTH_SHORT).show();

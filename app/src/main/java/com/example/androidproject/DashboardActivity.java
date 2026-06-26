@@ -84,6 +84,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_get_timeAllot).setVisible(false);
             menu.findItem(R.id.nav_change_timeAllot).setVisible(false);
             menu.findItem(R.id.nav_distribute_study_material).setVisible(false);
+            menu.findItem(R.id.nav_certificate_handover).setVisible(false);
+            menu.findItem(R.id.nav_birthdate).setVisible(false);
             menu.findItem(R.id.nav_admissions).setTitle("Admissions");
         }
     }
@@ -132,6 +134,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_get_timeAllot).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_change_timeAllot).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_distribute_study_material).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_certificate_handover).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_birthdate).setVisible(isAdmissionExpanded);
 
             item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
 
@@ -140,6 +144,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             styleSubItem(menu.findItem(R.id.nav_get_timeAllot), "Allot Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_change_timeAllot), "Change Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_distribute_study_material), "Distribute Study Material");
+            styleSubItem(menu.findItem(R.id.nav_certificate_handover), "Certificate Handover");
+            styleSubItem(menu.findItem(R.id.nav_birthdate), "Birthdate Reminder");
             return true;
         }
 
@@ -189,9 +195,23 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         }
 
 
+        if (id == R.id.nav_certificate_handover) {
+            startActivity(new Intent(this, CertificateHandOverActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_birthdate) {
+            startActivity(new Intent(this, BirthdayReminderActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+
         // ── OTHER items ──────────────────────────────────────────
-        if (id == R.id.nav_certificates) {
-        } else if (id == R.id.nav_notifications) {
+      /*  if (id == R.id.nav_certificates) {
+        } else*/
+        if (id == R.id.nav_notifications) {
         } else if (id == R.id.nav_bulk) {
         } else if (id == R.id.nav_reports) {
         } else if (id == R.id.nav_dashboard) {

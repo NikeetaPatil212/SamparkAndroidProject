@@ -28,6 +28,13 @@ import com.example.androidproject.model.StudentBasicResponse;
 import com.example.androidproject.model.SuggestReceiptRequest;
 import com.example.androidproject.model.SuggestReceiptResponse;
 import com.example.androidproject.model.UpdateStudentRequest;
+import com.example.androidproject.model.certificate.BirthdayRequest;
+import com.example.androidproject.model.certificate.BirthdayResponse;
+import com.example.androidproject.model.certificate.CertificateRequest;
+import com.example.androidproject.model.certificate.CertificateResponse;
+import com.example.androidproject.model.certificate.UpdateCertificateRequest;
+import com.example.androidproject.model.certificate.UpdateCertificateResponse;
+import com.example.androidproject.model.certificate.UploadImageResponse;
 import com.example.androidproject.model.profile.EditProfileRequest;
 import com.example.androidproject.model.profile.EditProfileResponse;
 import com.example.androidproject.model.profile.ProfileDetailsRequest;
@@ -39,6 +46,10 @@ import com.example.androidproject.model.profile.StudyMaterialUpdateRequest;
 import com.example.androidproject.model.profile.StudyMaterialUpdateResponse;
 import com.example.androidproject.model.profile.TimingLessStudentResponse;
 import com.example.androidproject.model.profile.WithTimeStudentResponse;
+import com.example.androidproject.model.queue.SmsQueueRequest;
+import com.example.androidproject.model.queue.SmsQueueResponse;
+import com.example.androidproject.model.queue.WhatsAppQueueRequest;
+import com.example.androidproject.model.queue.WhatsAppQueueResponse;
 import com.example.androidproject.model.template.InstituteProfileResponse;
 import com.example.androidproject.model.template.InstituteRequest;
 import com.example.androidproject.model.template.SettingsResponse;
@@ -137,4 +148,23 @@ public interface ApiService {
 
     @POST("get_Settings")
     Call<SettingsResponse> getSettings(@Body InstituteRequest request);
+
+    @POST("WhatsApp_que_bulk")
+    Call<WhatsAppQueueResponse> sendWhatsAppQueue(@Body WhatsAppQueueRequest request);
+
+    @POST("Sms_que_bulk")
+    Call<SmsQueueResponse> sendSmsQueue(@Body SmsQueueRequest request);
+
+    @POST("Get_Certificate_Students")
+    Call<CertificateResponse> getCertificateStudents(@Body CertificateRequest request);
+
+    @POST("UpdateCertificate")
+    Call<UpdateCertificateResponse> updateCertificate(@Body UpdateCertificateRequest request);
+
+    @Multipart
+    @POST("Upload_Certificate_Image")
+    Call<UploadImageResponse> uploadCertificateImage(@Part MultipartBody.Part file);
+
+    @POST("BirthDayList")
+    Call<BirthdayResponse> getBirthdayList(@Body BirthdayRequest request);
 }

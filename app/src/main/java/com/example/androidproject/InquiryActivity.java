@@ -29,13 +29,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.androidproject.model.Course;
-import com.example.androidproject.model.GetCoursesRequest;
-import com.example.androidproject.model.GetCoursesResponse;
 import com.example.androidproject.model.InquiryRequest;
 import com.example.androidproject.model.InquiryResponse;
 import com.example.androidproject.model.template.TemplateEntity;
 import com.example.androidproject.model.template.TemplateRepository;
-import com.example.androidproject.utils.ApiService;
+import com.example.androidproject.room.CourseBatchRepository;
+import com.example.androidproject.room.CourseEntity;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
@@ -71,7 +70,7 @@ public class InquiryActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_FILE = 100;
     private Uri selectedFileUri;
 
-    private List<Course> courseList = new ArrayList<>();
+    private List<Course> courseList  = new ArrayList<>();
     private List<Integer> selectedCourseIDs = new ArrayList<>();
 
     // Date values for API
@@ -79,17 +78,15 @@ public class InquiryActivity extends AppCompatActivity {
 
     // State flags
     private boolean fullNameManuallyEdited = false;
-    private boolean isFetchingCourses = false;
-    private boolean isCourseDialogShowing = false;
-    private boolean whatsAppDone = false;
+    private boolean isCourseDialogShowing  = false;
+    private boolean whatsAppDone           = false;
 
-    // ── fullNameWatcher — class-level so it can be removed/added ──
+    // ── fullNameWatcher ───────────────────────────────────────────
     private final TextWatcher fullNameWatcher = new TextWatcher() {
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override public void afterTextChanged(Editable s) {}
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            // Only flag as manual edit if at least one name field has content
             if (!etFirstName.getText().toString().trim().isEmpty()
                     || !etMiddleName.getText().toString().trim().isEmpty()
                     || !etLastName.getText().toString().trim().isEmpty()) {
@@ -112,6 +109,22 @@ public class InquiryActivity extends AppCompatActivity {
         setupDatePickers();
         setupDobToggle();
         setupButtons();
+
+        // ── Load courses ONCE from Room on startup — no repeat on click ───────
+        loadCoursesFromRoom();
+    }
+
+    // ── Load courses from Room (cached at login by MainActivity) ──────────────
+    private void loadCoursesFromRoom() {
+        CourseBatchRepository.getInstance(this).getCourses(courses -> {
+            courseList.clear();
+            if (courses != null) {
+                for (CourseEntity e : courses) {
+                    courseList.add(new Course(e.courseId, e.courseName, "", "", 0, 0));
+                }
+            }
+            Log.d("InquiryActivity", "Courses loaded from Room: " + courseList.size());
+        });
     }
 
     // ── Init ──────────────────────────────────────────────────────
@@ -137,9 +150,22 @@ public class InquiryActivity extends AppCompatActivity {
         btnSaveInquiry  = findViewById(R.id.btnSave);
         btnAttachFile   = findViewById(R.id.btnAttachFile);
 
-        // Mobile input filters
         etMobile.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
         etAltMobile.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
+
+        // Default dates
+        SimpleDateFormat displayFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat apiFmt     = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+
+        Calendar today    = Calendar.getInstance();
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+
+        etInquiryDate.setText(displayFmt.format(today.getTime()));
+        inquiryDateForApi = apiFmt.format(today.getTime());
+
+        etReminderDate.setText(displayFmt.format(tomorrow.getTime()));
+        reminderDateForApi = apiFmt.format(tomorrow.getTime());
     }
 
     // ── Toolbar back button ───────────────────────────────────────
@@ -147,7 +173,7 @@ public class InquiryActivity extends AppCompatActivity {
         findViewById(R.id.toolbar).setOnClickListener(v -> finish());
     }
 
-    // ── Auto-fill Full Name from F + M + L ───────────────────────
+    // ── Auto-fill Full Name ───────────────────────────────────────
     private void setupNameAutoFill() {
         TextWatcher nameWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -155,16 +181,10 @@ public class InquiryActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (fullNameManuallyEdited) return;
-
                 String f = etFirstName.getText().toString().trim();
                 String m = etMiddleName.getText().toString().trim();
                 String l = etLastName.getText().toString().trim();
-
-                String full = !m.isEmpty()
-                        ? f + " " + m + " " + l
-                        : (f + " " + l).trim();
-
-                // Remove watcher temporarily to avoid triggering manual-edit flag
+                String full = !m.isEmpty() ? f + " " + m + " " + l : (f + " " + l).trim();
                 etFullName.removeTextChangedListener(fullNameWatcher);
                 etFullName.setText(full);
                 etFullName.setSelection(full.length());
@@ -175,6 +195,39 @@ public class InquiryActivity extends AppCompatActivity {
         etFirstName.addTextChangedListener(nameWatcher);
         etMiddleName.addTextChangedListener(nameWatcher);
         etLastName.addTextChangedListener(nameWatcher);
+
+        etFirstName.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) etFirstName.setError(null);
+            }
+        });
+
+        etLastName.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) etLastName.setError(null);
+            }
+        });
+
+        etMobile.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) etMobile.setError(null);
+            }
+        });
+
+        etInquiryAbout.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) etInquiryAbout.setError(null);
+            }
+        });
+
         etFullName.addTextChangedListener(fullNameWatcher);
     }
 
@@ -192,77 +245,69 @@ public class InquiryActivity extends AppCompatActivity {
         });
     }
 
-    // ── Inquiry About (course multi-select) ───────────────────────
+    // ── Inquiry About — tap shows multi-select checkbox dialog ────
+    // No fetch here — courseList is already populated from loadCoursesFromRoom()
+   /* private void setupInquiryAbout() {
+        etInquiryAbout.setOnClickListener(v -> showCourseSelectionDialog());
+    }*/
+
     private void setupInquiryAbout() {
-        etInquiryAbout.setOnClickListener(v -> fetchCourses());
+        // Handle both click and touch to ensure single tap works
+        etInquiryAbout.setOnClickListener(v -> showCourseSelectionDialog());
+        etInquiryAbout.setOnTouchListener((v, event) -> {
+            showCourseSelectionDialog();
+            return true;
+        });
     }
 
     // ── All Date Pickers ──────────────────────────────────────────
     private void setupDatePickers() {
 
-        // Reminder Date — future dates only (min = tomorrow)
         etReminderDate.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_MONTH, 1);
-
             DatePickerDialog dialog = new DatePickerDialog(this,
                     (view, year, month, day) -> {
                         Calendar sel = Calendar.getInstance();
                         sel.set(year, month, day);
-
                         etReminderDate.setText(
-                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                        .format(sel.getTime()));
+                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(sel.getTime()));
                         reminderDateForApi =
-                                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                                        .format(sel.getTime());
+                                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(sel.getTime());
                         etReminderDate.setError(null);
                     },
                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-
             dialog.getDatePicker().setMinDate(cal.getTimeInMillis());
             dialog.show();
         });
 
-        // Inquiry Date — any date
         etInquiryDate.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
-
             new DatePickerDialog(this,
                     (view, year, month, day) -> {
                         Calendar sel = Calendar.getInstance();
                         sel.set(year, month, day);
-
                         etInquiryDate.setText(
-                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                        .format(sel.getTime()));
+                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(sel.getTime()));
                         inquiryDateForApi =
-                                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                                        .format(sel.getTime());
+                                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(sel.getTime());
                         etInquiryDate.setError(null);
                     },
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH))
-                    .show();
+                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
         });
 
-        // Birth Date — past dates only (max = today)
         etBirthDate.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
-
             DatePickerDialog dialog = new DatePickerDialog(this,
                     (view, year, month, day) -> {
                         Calendar sel = Calendar.getInstance();
                         sel.set(year, month, day);
-
                         etBirthDate.setText(
-                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                        .format(sel.getTime()));
+                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(sel.getTime()));
                         dobForApi =
-                                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                                        .format(sel.getTime());
+                                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(sel.getTime());
                     },
                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-
             dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
             dialog.show();
         });
@@ -271,7 +316,6 @@ public class InquiryActivity extends AppCompatActivity {
     // ── DOB Toggle Switch ─────────────────────────────────────────
     private void setupDobToggle() {
         Switch switchDob = findViewById(R.id.switchDob);
-        // ✅ Toggle the wrapper layout, NOT etBirthDate directly
         switchDob.setOnCheckedChangeListener((btn, isChecked) ->
                 layoutBirthDate.setVisibility(isChecked ? View.VISIBLE : View.GONE));
     }
@@ -282,78 +326,42 @@ public class InquiryActivity extends AppCompatActivity {
         btnSaveInquiry.setOnClickListener(v -> validateInquiry());
     }
 
-    // ── Fetch Courses (with loading state + duplicate-call guard) ─
-    private void fetchCourses() {
-        if (isFetchingCourses) return;
+    // ── Course Selection Dialog ───────────────────────────────────
+    // Uses in-memory courseList — no API call, no Room call here
+    private void showCourseSelectionDialog() {
+        if (isCourseDialogShowing) return;
 
-        // Already loaded — show dialog directly, no API call
-        if (!courseList.isEmpty()) {
-            showCourseSelectionDialog();
+        // If Room hasn't delivered yet (very rare), reload and retry
+        if (courseList.isEmpty()) {
+            Toast.makeText(this, "Loading courses, please try again...", Toast.LENGTH_SHORT).show();
+            loadCoursesFromRoom();
             return;
         }
 
-        isFetchingCourses = true;
-
-        // ✅ Show loading state on the field
-        etInquiryAbout.setText("Fetching courses...");
-        etInquiryAbout.setEnabled(false);
-        etInquiryAbout.setTextColor(getResources().getColor(android.R.color.darker_gray, getTheme()));
-
-        String userId      = PrefManager.getInstance(this).getUserId();
-        String instituteId = PrefManager.getInstance(this).getInstituteId();
-
-        GetCoursesRequest request = new GetCoursesRequest(
-                Integer.parseInt(userId), Integer.parseInt(instituteId));
-
-        RetrofitClient.getApiService().getCourses(request).enqueue(new Callback<GetCoursesResponse>() {
-            @Override
-            public void onResponse(Call<GetCoursesResponse> call, Response<GetCoursesResponse> response) {
-                isFetchingCourses = false;
-                restoreInquiryAboutField();
-
-                if (response.isSuccessful() && response.body() != null) {
-                    courseList = response.body().getCouseList();
-                    showCourseSelectionDialog();
-                } else {
-                    Toast.makeText(InquiryActivity.this, "Failed to fetch courses", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<GetCoursesResponse> call, Throwable t) {
-                isFetchingCourses = false;
-                restoreInquiryAboutField();
-                Toast.makeText(InquiryActivity.this, "API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    // Restores etInquiryAbout after loading
-    private void restoreInquiryAboutField() {
-        etInquiryAbout.setText("");
-        etInquiryAbout.setEnabled(true);
-        etInquiryAbout.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
-    }
-
-    // ── Course Selection Dialog ───────────────────────────────────
-    private void showCourseSelectionDialog() {
-        if (courseList.isEmpty() || isCourseDialogShowing) return;
-
         isCourseDialogShowing = true;
 
-        String[] courseNames  = new String[courseList.size()];
-        boolean[] checkedItems = new boolean[courseList.size()];
+        int size = courseList.size();
+        String[]  courseNames   = new String[size];
+        boolean[] checkedItems  = new boolean[size];
         List<Integer> selectedIndices = new ArrayList<>();
 
-        for (int i = 0; i < courseList.size(); i++)
-            courseNames[i] = courseList.get(i).getCouse_Name();
+        for (int i = 0; i < size; i++) {
+            courseNames[i]  = courseList.get(i).getCouse_Name();
+            // Pre-tick previously selected courses
+            checkedItems[i] = selectedCourseIDs.contains(courseList.get(i).getCouseID());
+            if (checkedItems[i]) selectedIndices.add(i);
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select Courses");
         builder.setMultiChoiceItems(courseNames, checkedItems, (dialog, which, isChecked) -> {
-            if (isChecked) selectedIndices.add(which);
-            else selectedIndices.remove(Integer.valueOf(which));
+            if (isChecked) {
+                if (!selectedIndices.contains(which)) selectedIndices.add(which);
+            } else {
+                selectedIndices.remove(Integer.valueOf(which));
+            }
         });
+
         builder.setPositiveButton("OK", (dialog, which) -> {
             StringBuilder selectedNames = new StringBuilder();
             selectedCourseIDs.clear();
@@ -363,11 +371,12 @@ public class InquiryActivity extends AppCompatActivity {
                 selectedCourseIDs.add(courseList.get(index).getCouseID());
             }
             if (selectedNames.length() > 0)
-                selectedNames.setLength(selectedNames.length() - 2);
+                selectedNames.setLength(selectedNames.length() - 2); // remove trailing ", "
 
             etInquiryAbout.setText(selectedNames.toString());
             Log.d("SelectedCourseIDs", selectedCourseIDs.toString());
         });
+
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
@@ -427,12 +436,15 @@ public class InquiryActivity extends AppCompatActivity {
         String schoolName   = etSchoolName.getText().toString().trim();
         String feedback     = etFeedback.getText().toString().trim();
         String gender       = etGender.getText().toString().trim();
-        String dob    = etBirthDate.getText().toString().trim();
-
+        String dob          = etBirthDate.getText().toString().trim();
 
         if (firstName.isEmpty()) {
             etFirstName.setError("First name is required");
             etFirstName.requestFocus(); return;
+        }
+        if (lastName.isEmpty()) {
+            etLastName.setError("Last name is required");
+            etLastName.requestFocus(); return;
         }
         if (mobile.length() != 10) {
             etMobile.setError("Mobile number must be 10 digits");
@@ -460,24 +472,6 @@ public class InquiryActivity extends AppCompatActivity {
             etReminderDate.setError("Reminder date is required");
             etReminderDate.requestFocus(); return;
         }
-        if (source.isEmpty()) {
-            etSource.setError("Source of inquiry is required");
-            etSource.requestFocus(); return;
-        }
-        if (schoolName.isEmpty()) {
-            etSchoolName.setError("School name is required");
-            etSchoolName.requestFocus(); return;
-        }
-
-        if (dob.isEmpty()) {
-            etBirthDate.setError("Please select Date of Birth");
-            etBirthDate.requestFocus();
-            Toast.makeText(this,
-                    "Please select Date of Birth",
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
 
         callAddInquiryApi(firstName, middleName, lastName, fullName,
                 mobile, altMobile, email, address,
@@ -517,21 +511,16 @@ public class InquiryActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<InquiryResponse> call, Response<InquiryResponse> response) {
                 loaderLayout.setVisibility(View.GONE);
+
                 if (response.isSuccessful() && response.body() != null) {
                     InquiryResponse res = response.body();
                     Toast.makeText(InquiryActivity.this, res.getMessage(), Toast.LENGTH_SHORT).show();
-                   /* if (res.isSuccess()) {
-                        startActivity(new Intent(InquiryActivity.this, DashboardActivity.class));
-                        finish();
-                    }*/
 
                     if (res.isSuccess()) {
-                        Toast.makeText(InquiryActivity.this, res.getMessage(), Toast.LENGTH_SHORT).show();
-
-                        final String fName        = firstName;
                         final String fMobile      = mobile;
                         final String fCourses     = inquiryAbout;
                         final String fInquiryDate = inquiryDate != null ? inquiryDate : "";
+                        final String fFirstName   = firstName;
 
                         TemplateRepository.getInstance(InquiryActivity.this)
                                 .getTemplateByCategory("New Inquiry",
@@ -539,15 +528,11 @@ public class InquiryActivity extends AppCompatActivity {
 
                                             @Override
                                             public void onSuccess(TemplateEntity template) {
-
-                                                // ← isActive check
                                                 if (!template.isActive) {
                                                     Log.d("Template", "isActive=false, skipping message");
-                                                    Toast.makeText(
-                                                            InquiryActivity.this,
-                                                            "WhatsApp notifications are currently disabled. Proceeding without sending the message.",
-                                                            Toast.LENGTH_SHORT
-                                                    ).show();
+                                                    Toast.makeText(InquiryActivity.this,
+                                                            "WhatsApp notifications are currently disabled.",
+                                                            Toast.LENGTH_SHORT).show();
                                                     goToDashboard();
                                                     return;
                                                 }
@@ -555,7 +540,7 @@ public class InquiryActivity extends AppCompatActivity {
                                                 PrefManager pref = PrefManager.getInstance(InquiryActivity.this);
 
                                                 Map<String, String> data = new HashMap<>();
-                                                data.put("FirstName",      fName);
+                                                data.put("FirstName",      fFirstName);
                                                 data.put("InquiryCourses", fCourses);
                                                 data.put("InquiryDate",    fInquiryDate);
                                                 data.put("institute",      pref.getInstituteName());
@@ -565,11 +550,10 @@ public class InquiryActivity extends AppCompatActivity {
                                                 data.put("email",          pref.getInstituteEmail());
                                                 data.put("address1",       pref.getInstituteAddress1());
                                                 data.put("address2",       pref.getInstituteAddress2());
-                                                data.put("ownerName",       pref.getOwnerName());
+                                                data.put("ownerName",      pref.getOwnerName());
 
                                                 String lang = pref.getLanguage();
 
-                                                // WhatsApp — wa_EN / wa_MR / wa_HI
                                                 String waTemplate;
                                                 switch (lang) {
                                                     case "MR": waTemplate = template.wa_MR; break;
@@ -577,7 +561,6 @@ public class InquiryActivity extends AppCompatActivity {
                                                     default:   waTemplate = template.wa_EN; break;
                                                 }
 
-                                                // SMS — sms_EN / sms_MR / sms_HI
                                                 String smsTemplate;
                                                 switch (lang) {
                                                     case "MR": smsTemplate = template.sms_MR; break;
@@ -607,15 +590,11 @@ public class InquiryActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<InquiryResponse> call, Throwable t) {
                 loaderLayout.setVisibility(View.GONE);
-                Toast.makeText(InquiryActivity.this, "Something went wrong: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(InquiryActivity.this,
+                        "Something went wrong: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    private String getCurrentDateTime() {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(new Date());
-    }
-
 
     private void sendSmsInBackground(String phoneNumber, String message) {
         try {
@@ -626,8 +605,11 @@ public class InquiryActivity extends AppCompatActivity {
             }
             SmsManager smsManager = SmsManager.getDefault();
             ArrayList<String> parts = smsManager.divideMessage(message);
-            smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
-            Log.d("SMS", "SMS sent to " + phoneNumber);
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber
+                    : phoneNumber.startsWith("91") ? "+" + phoneNumber
+                    : "+91" + phoneNumber;
+            smsManager.sendMultipartTextMessage(formattedNumber, null, parts, null, null);
+            Log.d("SMS", "SMS sent to " + formattedNumber);
         } catch (Exception e) {
             Log.e("SMS", "SMS failed: " + e.getMessage());
         }
@@ -636,8 +618,11 @@ public class InquiryActivity extends AppCompatActivity {
     private void openWhatsApp(String phoneNumber, String message) {
         whatsAppDone = true;
         try {
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber.substring(1)
+                    : phoneNumber.startsWith("91") ? phoneNumber
+                    : "91" + phoneNumber;
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+            intent.setData(Uri.parse("https://wa.me/" + formattedNumber
                     + "?text=" + Uri.encode(message)));
             startActivity(intent);
         } catch (Exception e) {
@@ -658,5 +643,10 @@ public class InquiryActivity extends AppCompatActivity {
     private void goToDashboard() {
         startActivity(new Intent(InquiryActivity.this, DashboardActivity.class));
         finish();
+    }
+
+    private String getCurrentDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                .format(new Date());
     }
 }

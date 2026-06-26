@@ -500,7 +500,12 @@ public class WithTimeStudentAdapter
             }
             SmsManager smsManager = SmsManager.getDefault();
             ArrayList<String> parts = smsManager.divideMessage(message);
-            smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+        //    smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber
+                    : phoneNumber.startsWith("91") ? "+" + phoneNumber
+                    : "+91" + phoneNumber;
+            smsManager.sendMultipartTextMessage(formattedNumber, null, parts, null, null);
+
             Log.d(TAG, "SMS sent to " + phoneNumber);
         } catch (Exception e) {
             Log.e(TAG, "SMS failed: " + e.getMessage());
@@ -510,7 +515,12 @@ public class WithTimeStudentAdapter
     private void openWhatsApp(Context context, String phoneNumber, String message) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+           /* intent.setData(Uri.parse("https://wa.me/" + phoneNumber
+                    + "?text=" + Uri.encode(message)));*/
+            String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber.substring(1)
+                    : phoneNumber.startsWith("91") ? phoneNumber
+                    : "91" + phoneNumber;
+            intent.setData(Uri.parse("https://wa.me/" + formattedNumber
                     + "?text=" + Uri.encode(message)));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);

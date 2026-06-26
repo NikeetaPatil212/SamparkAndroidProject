@@ -111,7 +111,7 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <!-- Course label -->
+                        <!-- ── COURSE SPINNER ── -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -121,16 +121,15 @@
                             android:textStyle="bold"
                             android:layout_marginBottom="4dp" />
 
-                        <!-- Course dropdown -->
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="52dp"
                             android:background="@drawable/bg_edittext_outline"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:paddingStart="12dp"
-                            android:paddingEnd="8dp"
-                            android:layout_marginBottom="12dp">
+                            android:paddingEnd="4dp"
+                            android:layout_marginBottom="14dp">
 
                             <ImageView
                                 android:layout_width="18dp"
@@ -145,27 +144,17 @@
                                 android:background="#DDDDDD"
                                 android:layout_marginEnd="8dp" />
 
-                            <AutoCompleteTextView
+                            <Spinner
                                 android:id="@+id/spCourse"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:background="@null"
-                                android:hint="Select course"
-                                android:textColor="#1A1A1A"
-                                android:textColorHint="#AAAAAA"
-                                android:textSize="14sp"
-                                android:inputType="none"
-                                android:cursorVisible="false" />
+                                android:spinnerMode="dropdown" />
 
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/outline_arrow_drop_down_24"
-                                android:tint="#2E7D32" />
                         </LinearLayout>
 
-                        <!-- Batch label -->
+                        <!-- ── BATCH SPINNER ── -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -175,54 +164,42 @@
                             android:textStyle="bold"
                             android:layout_marginBottom="4dp" />
 
-                        <!-- Batch dropdown -->
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="52dp"
                             android:background="@drawable/bg_edittext_outline"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:paddingStart="12dp"
-                            android:paddingEnd="8dp"
-                            android:layout_marginBottom="12dp">
+                            android:paddingEnd="4dp"
+                            android:layout_marginBottom="14dp">
 
                             <ImageView
                                 android:id="@+id/ivBatchIcon"
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:src="@drawable/outline_book_2_24"
-                                android:tint="#AAAAAA" />
+                                android:tint="#AAAAAA"
+                                android:layout_marginEnd="8dp" />
 
                             <View
                                 android:layout_width="1dp"
                                 android:layout_height="20dp"
                                 android:background="#DDDDDD"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginEnd="8dp" />
 
-                            <AutoCompleteTextView
+                            <Spinner
                                 android:id="@+id/spBatch"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:background="@null"
-                                android:hint="Select batch"
-                                android:textColor="#1A1A1A"
-                                android:textColorHint="#AAAAAA"
-                                android:textSize="14sp"
-                                android:inputType="none"
-                                android:cursorVisible="false"
-                                android:enabled="false" />
+                                android:enabled="false"
+                                android:spinnerMode="dropdown" />
 
-                            <ImageView
-                                android:id="@+id/ivBatchArrow"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/outline_arrow_drop_down_24"
-                                android:tint="#AAAAAA" />
                         </LinearLayout>
 
-                        <!-- Batch Timing label -->
+                        <!-- ── TIMING SPINNER ── -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -232,51 +209,39 @@
                             android:textStyle="bold"
                             android:layout_marginBottom="4dp" />
 
-                        <!-- Batch Timing dropdown -->
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="52dp"
                             android:background="@drawable/bg_edittext_outline"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:paddingStart="12dp"
-                            android:paddingEnd="8dp"
-                            android:layout_marginBottom="12dp">
+                            android:paddingEnd="4dp"
+                            android:layout_marginBottom="14dp">
 
                             <ImageView
+                                android:id="@+id/ivTimingIcon"
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:src="@drawable/baseline_calendar_today_24"
                                 android:tint="#AAAAAA"
-                                android:id="@+id/ivTimingIcon" />
+                                android:layout_marginEnd="8dp" />
 
                             <View
                                 android:layout_width="1dp"
                                 android:layout_height="20dp"
                                 android:background="#DDDDDD"
-                                android:layout_marginStart="8dp"
                                 android:layout_marginEnd="8dp" />
 
-                            <AutoCompleteTextView
+                            <Spinner
                                 android:id="@+id/spTiming"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:background="@null"
-                                android:hint="All timings (optional filter)"
-                                android:textColor="#1A1A1A"
-                                android:textColorHint="#AAAAAA"
-                                android:textSize="14sp"
-                                android:inputType="none"
-                                android:cursorVisible="false"
-                                android:enabled="false" />
+                                android:enabled="false"
+                                android:spinnerMode="dropdown" />
 
-                            <ImageView
-                                android:id="@+id/ivTimingArrow"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/outline_arrow_drop_down_24"
-                                android:tint="#AAAAAA" />
                         </LinearLayout>
 
                         <!-- View Students button -->
@@ -367,7 +332,6 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <!-- Checkbox col -->
                         <TextView
                             android:layout_width="50dp"
                             android:layout_height="match_parent"
@@ -382,7 +346,6 @@
                             android:layout_height="match_parent"
                             android:background="#CCCCCC" />
 
-                        <!-- ADM ID -->
                         <TextView
                             android:layout_width="70dp"
                             android:layout_height="match_parent"
@@ -397,7 +360,6 @@
                             android:layout_height="match_parent"
                             android:background="#CCCCCC" />
 
-                        <!-- Student Name -->
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
@@ -423,20 +385,7 @@
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false" />
 
-                    <!-- Update Record Button -->
-                  <!--  <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnUpdateRecord"
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:layout_margin="14dp"
-                        android:backgroundTint="#1565C0"
-                        android:text="Update Record"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:textAllCaps="false" />-->
-
-                    <!-- Replace single btnUpdateRecord with this -->
+                    <!-- Update buttons row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -451,7 +400,7 @@
                             android:layout_height="52dp"
                             android:layout_weight="1"
                             android:layout_marginEnd="5dp"
-                            android:backgroundTint="#1565C0"
+                            android:backgroundTint="#25D366"
                             android:text="Update Record"
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
@@ -468,6 +417,7 @@
                             android:layout_marginStart="5dp"
                             android:backgroundTint="#25D366"
                             android:text="Update + Msg"
+                            android:visibility="gone"
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
                             android:textStyle="bold"

@@ -6,19 +6,22 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.androidproject.model.template.TemplateDao;
-
 @Database(
-        entities = {AdmissionDetail.class},   // ← only your existing tables
-        version = 1,
+        entities = {
+                AdmissionDetail.class,  // ← existing
+                CourseEntity.class,     // ← ADD
+                BatchEntity.class       // ← ADD
+        },
+        version = 3,                    // ← bump version from 2 to 3
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
+
     public abstract AdmissionDetailDao feeDetailDao();
+    public abstract CourseDao courseDao();
+    public abstract BatchDao batchDao();
 
     private static volatile AppDatabase INSTANCE;
-
-   /* public abstract TemplateDao templateDao();
 
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
@@ -27,7 +30,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(
                                     context.getApplicationContext(),
                                     AppDatabase.class,
-                                    "app_database"
+                                    "admission-db"
                             )
                             .fallbackToDestructiveMigration()
                             .build();
@@ -35,5 +38,5 @@ public abstract class AppDatabase extends RoomDatabase {
             }
         }
         return INSTANCE;
-    }*/
+    }
 }

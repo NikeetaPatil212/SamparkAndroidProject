@@ -4,12 +4,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,15 +23,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.androidproject.adapters.TimingLessStudentAdapter;
 import com.example.androidproject.adapters.WithTimeStudentAdapter;
 import com.example.androidproject.model.Batch;
-import com.example.androidproject.model.BatchRequest;
-import com.example.androidproject.model.BatchResponse;
 import com.example.androidproject.model.Course;
-import com.example.androidproject.model.GetCoursesRequest;
-import com.example.androidproject.model.GetCoursesResponse;
 import com.example.androidproject.model.StudentBasicRequest;
 import com.example.androidproject.model.profile.BatchTimingResponse;
 import com.example.androidproject.model.profile.TimingLessStudentResponse;
 import com.example.androidproject.model.profile.WithTimeStudentResponse;
+import com.example.androidproject.room.BatchEntity;
+import com.example.androidproject.room.CourseBatchRepository;
+import com.example.androidproject.room.CourseEntity;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.gson.Gson;
@@ -50,24 +50,28 @@ public class AllotBatchActivity extends AppCompatActivity {
     public static final int MODE_CHANGE = 1;  // students who ALREADY have timing
 
     // ── Views ─────────────────────────────────────────────────────────────────
-    private AutoCompleteTextView spCourse, spBatch;
-    private ImageView ivBatchArrow, ivBatchIcon;
-    private TextView tvBatchHelper, tvHint, tvStudentCount, tvTitle;
-    private CardView cardStudentList, cardBatchTimings;
+    private Spinner      spCourse, spBatch;
+    private ImageView    ivBatchIcon;
+    private TextView     tvBatchHelper, tvHint, tvStudentCount, tvTitle;
+    private CardView     cardStudentList, cardBatchTimings;
     private RecyclerView rvStudents;
     private LinearLayout llTimingTiles;
-    private FrameLayout loaderLayout;
+    private FrameLayout  loaderLayout;
 
     // ── Data ──────────────────────────────────────────────────────────────────
     private List<Course> courseList = new ArrayList<>();
     private List<Batch>  batchList  = new ArrayList<>();
 
-    private int selectedCourseId  = -1;
-    private int selectedBatchId   = -1;
+    private int selectedCourseId = -1;
+    private int selectedBatchId  = -1;
+
+    // ── Track if spinner selection is a real user pick or programmatic ─────────
+    private boolean courseSpinnerReady = false;
+    private boolean batchSpinnerReady  = false;
 
     // ── Adapters ──────────────────────────────────────────────────────────────
-    private TimingLessStudentAdapter adapterAllot;   // MODE_ALLOT
-    private WithTimeStudentAdapter   adapterChange;  // MODE_CHANGE
+    private TimingLessStudentAdapter adapterAllot;
+    private WithTimeStudentAdapter   adapterChange;
 
     // ── Screen mode ───────────────────────────────────────────────────────────
     private int screenMode = MODE_ALLOT;
@@ -79,7 +83,6 @@ public class AllotBatchActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_allot_batch);
 
-        // Read mode BEFORE initViews so applyChangeModeUI() can use views
         screenMode = getIntent().getIntExtra(EXTRA_MODE, MODE_ALLOT);
 
         initViews();
@@ -91,7 +94,6 @@ public class AllotBatchActivity extends AppCompatActivity {
     private void initViews() {
         spCourse         = findViewById(R.id.spCourse);
         spBatch          = findViewById(R.id.spBatch);
-        ivBatchArrow     = findViewById(R.id.ivBatchArrow);
         ivBatchIcon      = findViewById(R.id.ivBatchIcon);
         tvBatchHelper    = findViewById(R.id.tvBatchHelper);
         tvHint           = findViewById(R.id.tvHint);
@@ -104,35 +106,28 @@ public class AllotBatchActivity extends AppCompatActivity {
         loaderLayout     = findViewById(R.id.loaderLayout);
 
         rvStudents.setLayoutManager(new LinearLayoutManager(this));
+
+        // Disable batch spinner until course is chosen
         spBatch.setEnabled(false);
 
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
 
         if (screenMode == MODE_ALLOT) {
-            // ── Allot mode: students with NO timing ───────────────────────────
             adapterAllot = new TimingLessStudentAdapter(
                     Integer.parseInt(userId),
                     Integer.parseInt(instituteId));
-
-            // When a student row is tapped, refresh Card-3 timing tiles
             adapterAllot.setOnTimingsFetchedListener(this::showTimingTiles);
-
             rvStudents.setAdapter(adapterAllot);
 
         } else {
-            // ── Change mode: students who ALREADY have a timing ───────────────
             adapterChange = new WithTimeStudentAdapter(
                     Integer.parseInt(userId),
-                    Integer.parseInt(instituteId)
-            );
-
+                    Integer.parseInt(instituteId));
             rvStudents.setAdapter(adapterChange);
 
-            // Update UI labels for change mode
             if (tvTitle != null) tvTitle.setText("Change Batch Timing");
-            if (tvHint  != null) tvHint.setText(
-                    "Tap \"Change\" on a student to reassign their slot");
+            if (tvHint  != null) tvHint.setText("Tap \"Change\" on a student to reassign their slot");
         }
     }
 
@@ -141,134 +136,142 @@ public class AllotBatchActivity extends AppCompatActivity {
         if (btnBack != null) btnBack.setOnClickListener(v -> onBackPressed());
     }
 
-    // ── Fetch courses ─────────────────────────────────────────────────────────
+    // ── Fetch courses from Room DB ────────────────────────────────────────────
     private void fetchCourses() {
-        String userId      = PrefManager.getInstance(this).getUserId();
-        String instituteId = PrefManager.getInstance(this).getInstituteId();
-
-        GetCoursesRequest request = new GetCoursesRequest(
-                Integer.parseInt(userId), Integer.parseInt(instituteId));
-
-        RetrofitClient.getApiService().getCourses(request)
-                .enqueue(new Callback<GetCoursesResponse>() {
-                    @Override
-                    public void onResponse(Call<GetCoursesResponse> call,
-                                           Response<GetCoursesResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            courseList = response.body().getCouseList();
-                            setupCourseDropdown();
-                        } else {
-                            toast("Failed to fetch courses");
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<GetCoursesResponse> call, Throwable t) {
-                        toast("Course API error: " + t.getMessage());
-                    }
-                });
-    }
-
-    // ── Course dropdown ───────────────────────────────────────────────────────
-    private void setupCourseDropdown() {
-        List<String> names = new ArrayList<>();
-        for (Course c : courseList) names.add(c.getCouse_Name());
-
-        ArrayAdapter<String> aa = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, names);
-        spCourse.setAdapter(aa);
-        spCourse.setOnClickListener(v -> spCourse.showDropDown());
-
-        spCourse.setOnItemClickListener((parent, view, position, id) -> {
-            Course selected    = courseList.get(position);
-            selectedCourseId   = selected.getCouseID();
-
-            // Add this inside spCourse.setOnItemClickListener:
-            if (adapterChange != null) adapterChange.setCourseName(selected.getCouse_Name());
-            if (adapterAllot != null) adapterAllot.setCourseNameTimingLess(selected.getCouse_Name());
-
-            resetBatchDropdown();
-            hideStudentList();
-            fetchBatches(selectedCourseId);
+        CourseBatchRepository.getInstance(this).getCourses(courses -> {
+            courseList.clear();
+            for (CourseEntity e : courses) {
+                courseList.add(new Course(e.courseId, e.courseName, "", "", 0, 0));
+            }
+            setupCourseSpinner();
         });
     }
 
-    // ── Fetch batches ─────────────────────────────────────────────────────────
-    private void fetchBatches(int courseId) {
-        String userId      = PrefManager.getInstance(this).getUserId();
-        String instituteId = PrefManager.getInstance(this).getInstituteId();
+    // ── Course Spinner ────────────────────────────────────────────────────────
+    private void setupCourseSpinner() {
+        // "-- Select Course --" as first hint item
+        List<String> names = new ArrayList<>();
+        names.add("Select Course --");
+        for (Course c : courseList) names.add(c.getCouse_Name());
 
-        if (tvBatchHelper != null) {
-            tvBatchHelper.setText("  ⏳ Loading batches...");
-            tvBatchHelper.setTextColor(
-                    getResources().getColor(android.R.color.darker_gray, getTheme()));
-        }
+        ArrayAdapter<String> aa = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, names);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spCourse.setAdapter(aa);
 
-        BatchRequest request = new BatchRequest(
-                Integer.parseInt(userId), Integer.parseInt(instituteId), courseId);
+        courseSpinnerReady = false; // suppress the first auto-fire
 
-        RetrofitClient.getApiService().getBatch(request)
-                .enqueue(new Callback<BatchResponse>() {
-                    @Override
-                    public void onResponse(Call<BatchResponse> call,
-                                           Response<BatchResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            batchList = response.body().getBatchList();
-                            setupBatchDropdown();
-                        } else {
-                            toast("Failed to fetch batches");
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<BatchResponse> call, Throwable t) {
-                        toast("Batch API error: " + t.getMessage());
-                    }
-                });
+        spCourse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!courseSpinnerReady) {
+                    // first call is always position 0 — ignore it
+                    courseSpinnerReady = true;
+                    return;
+                }
+                if (position == 0) {
+                    // user re-selected the hint row
+                    resetBatchSpinner();
+                    hideStudentList();
+                    return;
+                }
+
+                // position - 1 because index 0 is the hint
+                Course selected  = courseList.get(position - 1);
+                selectedCourseId = selected.getCouseID();
+
+                if (adapterChange != null) adapterChange.setCourseName(selected.getCouse_Name());
+                if (adapterAllot  != null) adapterAllot.setCourseNameTimingLess(selected.getCouse_Name());
+
+                resetBatchSpinner();
+                hideStudentList();
+                fetchBatches(selectedCourseId);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
     }
 
-    // ── Batch dropdown ────────────────────────────────────────────────────────
-    private void setupBatchDropdown() {
+    // ── Fetch batches from Room DB ────────────────────────────────────────────
+    private void fetchBatches(int courseId) {
+        if (tvBatchHelper != null) {
+            tvBatchHelper.setText("  ⏳ Loading batches...");
+            tvBatchHelper.setTextColor(getResources().getColor(android.R.color.darker_gray, getTheme()));
+        }
+
+        CourseBatchRepository.getInstance(this).getBatchesByCourse(courseId, batches -> {
+            batchList.clear();
+            for (BatchEntity e : batches) {
+                batchList.add(new Batch(e.batchId, courseId, e.batchName, "", "", ""));
+            }
+            setupBatchSpinner();
+        });
+    }
+
+    // ── Batch Spinner ─────────────────────────────────────────────────────────
+    private void setupBatchSpinner() {
         List<String> names = new ArrayList<>();
+        names.add("Select Batch --");
         for (Batch b : batchList) names.add(b.getBatchName());
 
         ArrayAdapter<String> batchAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, names);
+                this, android.R.layout.simple_spinner_item, names);
+        batchAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
         spBatch.setAdapter(batchAdapter);
         spBatch.setEnabled(true);
-        spBatch.setOnClickListener(v -> spBatch.showDropDown());
 
-        if (ivBatchArrow != null)
-            ivBatchArrow.setColorFilter(
-                    getResources().getColor(android.R.color.holo_green_dark, getTheme()));
         if (ivBatchIcon != null)
             ivBatchIcon.setColorFilter(
                     getResources().getColor(android.R.color.holo_green_dark, getTheme()));
+
         if (tvBatchHelper != null) {
-            tvBatchHelper.setText("  ✅ " + names.size() + " batch(es) available");
+            tvBatchHelper.setText("  ✅ " + batchList.size() + " batch(es) available");
             tvBatchHelper.setTextColor(
                     getResources().getColor(android.R.color.holo_green_dark, getTheme()));
         }
 
-        spBatch.setOnItemClickListener((parent, view, position, id) -> {
-            Batch selected  = batchList.get(position);
-            selectedBatchId = selected.getBatchID();
+        batchSpinnerReady = false; // suppress the first auto-fire
 
-            tvHint.setVisibility(View.VISIBLE);
+        spBatch.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!batchSpinnerReady) {
+                    batchSpinnerReady = true;
+                    return;
+                }
+                if (position == 0) {
+                    // user re-selected hint row
+                    hideStudentList();
+                    return;
+                }
 
-            if (adapterChange != null) adapterChange.setBatchName(selected.getBatchName());
-            if (adapterAllot != null) adapterAllot.setBatchNameTimingLess(selected.getBatchName());
-            Log.d("BatchName---", selected.getBatchName());
+                // position - 1 because index 0 is the hint
+                Batch selected  = batchList.get(position - 1);
+                selectedBatchId = selected.getBatchID();
 
-            // ── KEY BRANCH: which API to call depends on mode ─────────────────
-            if (screenMode == MODE_CHANGE) {
-                fetchStudentsWithTime();
-            } else {
-                fetchStudentsWithoutTime();
+                tvHint.setVisibility(View.VISIBLE);
+
+                if (adapterChange != null) adapterChange.setBatchName(selected.getBatchName());
+                if (adapterAllot  != null) adapterAllot.setBatchNameTimingLess(selected.getBatchName());
+
+                Log.d("BatchName---", selected.getBatchName());
+
+                if (screenMode == MODE_CHANGE) {
+                    fetchStudentsWithTime();
+                } else {
+                    fetchStudentsWithoutTime();
+                }
             }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // MODE_ALLOT  →  students WITHOUT timing  (your original logic)
+    // MODE_ALLOT  →  students WITHOUT timing
     // ═════════════════════════════════════════════════════════════════════════
     private void fetchStudentsWithoutTime() {
         loaderLayout.setVisibility(View.VISIBLE);
@@ -292,10 +295,8 @@ public class AllotBatchActivity extends AppCompatActivity {
             StudentBasicRequest request = new StudentBasicRequest(
                     Integer.parseInt(userId),
                     Integer.parseInt(instituteId),
-                    selectedCourseId,   // ← use real IDs (was hardcoded to 1,1)
-                    selectedBatchId
-
-            );
+                    selectedCourseId,
+                    selectedBatchId);
 
             Log.d("TIMING_LESS_REQUEST", new Gson().toJson(request));
 
@@ -312,8 +313,7 @@ public class AllotBatchActivity extends AppCompatActivity {
                                     && response.body() != null
                                     && response.body().isSuccess()) {
 
-                                Log.d("TIMING_LESS_RESPONSE",
-                                        new Gson().toJson(response.body()));
+                                Log.d("TIMING_LESS_RESPONSE", new Gson().toJson(response.body()));
 
                                 List<TimingLessStudentResponse.StudentItem> studentList =
                                         response.body().getStudents();
@@ -328,24 +328,19 @@ public class AllotBatchActivity extends AppCompatActivity {
                                 tvStudentCount.setText(studentList.size() + " Students");
                                 tvHint.setVisibility(View.VISIBLE);
                                 adapterAllot.setData(studentList);
-
-                                // Card-3 populates when first student is tapped
                                 cardBatchTimings.setVisibility(View.GONE);
 
                             } else {
                                 hideStudentList();
                                 String msg = "Failed to fetch students";
-                                if (response.body() != null
-                                        && response.body().getMessage() != null) {
+                                if (response.body() != null && response.body().getMessage() != null)
                                     msg = response.body().getMessage();
-                                }
                                 toast(msg);
                             }
                         }
 
                         @Override
-                        public void onFailure(Call<TimingLessStudentResponse> call,
-                                              Throwable t) {
+                        public void onFailure(Call<TimingLessStudentResponse> call, Throwable t) {
                             loaderLayout.setVisibility(View.GONE);
                             hideStudentList();
                             Log.e("TIMING_LESS_ERROR", t.getMessage(), t);
@@ -387,14 +382,12 @@ public class AllotBatchActivity extends AppCompatActivity {
                     Integer.parseInt(userId),
                     Integer.parseInt(instituteId),
                     selectedCourseId,
-                    //selectedBatchId
-                    1
-            );
+                    selectedBatchId);   // ← now uses real selectedBatchId (was hardcoded 1)
 
             Log.d("WITH_TIME_REQUEST", new Gson().toJson(request));
 
             RetrofitClient.getApiService()
-                    .getStudentsWithTime(request)   // ← NEW endpoint
+                    .getStudentsWithTime(request)
                     .enqueue(new Callback<WithTimeStudentResponse>() {
 
                         @Override
@@ -406,8 +399,7 @@ public class AllotBatchActivity extends AppCompatActivity {
                                     && response.body() != null
                                     && response.body().isSuccess()) {
 
-                                Log.d("WITH_TIME_RESPONSE",
-                                        new Gson().toJson(response.body()));
+                                Log.d("WITH_TIME_RESPONSE", new Gson().toJson(response.body()));
 
                                 List<WithTimeStudentResponse.StudentItem> students =
                                         response.body().getStudents();
@@ -422,24 +414,19 @@ public class AllotBatchActivity extends AppCompatActivity {
                                 tvStudentCount.setText(students.size() + " Students");
                                 tvHint.setVisibility(View.VISIBLE);
                                 adapterChange.setData(students);
-
-                                // Card-3 not needed in change mode
                                 cardBatchTimings.setVisibility(View.GONE);
 
                             } else {
                                 hideStudentList();
                                 String msg = "Failed to fetch students";
-                                if (response.body() != null
-                                        && response.body().getMessage() != null) {
+                                if (response.body() != null && response.body().getMessage() != null)
                                     msg = response.body().getMessage();
-                                }
                                 toast(msg);
                             }
                         }
 
                         @Override
-                        public void onFailure(Call<WithTimeStudentResponse> call,
-                                              Throwable t) {
+                        public void onFailure(Call<WithTimeStudentResponse> call, Throwable t) {
                             loaderLayout.setVisibility(View.GONE);
                             hideStudentList();
                             Log.e("WITH_TIME_ERROR", t.getMessage(), t);
@@ -455,13 +442,6 @@ public class AllotBatchActivity extends AppCompatActivity {
         }
     }
 
-    // ── Timing picker dialog (MODE_CHANGE) ────────────────────────────────────
-    private void showChangeTimingDialog(WithTimeStudentResponse.StudentItem student) {
-        // TODO: Replace Toast with your BottomSheetDialog / AlertDialog
-        // that lists available time slots and calls a change-timing API on confirm.
-        toast("Change timing for: " + student.getStudentName());
-    }
-
     // ── Card-3: timing tiles (MODE_ALLOT only) ────────────────────────────────
     private void showTimingTiles(List<BatchTimingResponse.BatchTimingItem> timings) {
         llTimingTiles.removeAllViews();
@@ -471,36 +451,35 @@ public class AllotBatchActivity extends AppCompatActivity {
             View tile = LayoutInflater.from(this)
                     .inflate(R.layout.item_timing_title, llTimingTiles, false);
 
-            ((TextView) tile.findViewById(R.id.tvTimingName))
-                    .setText(t.getTimingDescription());
-            ((TextView) tile.findViewById(R.id.tvCapacity))
-                    .setText(String.valueOf(t.getCapacity()));
-            ((TextView) tile.findViewById(R.id.tvFilled))
-                    .setText(String.valueOf(t.getFilled()));
+            ((TextView) tile.findViewById(R.id.tvTimingName)).setText(t.getTimingDescription());
+            ((TextView) tile.findViewById(R.id.tvCapacity)).setText(String.valueOf(t.getCapacity()));
+            ((TextView) tile.findViewById(R.id.tvFilled)).setText(String.valueOf(t.getFilled()));
 
             TextView tvFree = tile.findViewById(R.id.tvFree);
             tvFree.setText(String.valueOf(t.getAvailableSeats()));
-            tvFree.setTextColor(t.getAvailableSeats() > 0
-                    ? 0xFF2E7D32    // green
-                    : 0xFFE53935); // red
+            tvFree.setTextColor(t.getAvailableSeats() > 0 ? 0xFF2E7D32 : 0xFFE53935);
 
             llTimingTiles.addView(tile);
         }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-    private void resetBatchDropdown() {
+    private void resetBatchSpinner() {
         batchList.clear();
         selectedBatchId = -1;
-        spBatch.setText("");
-        spBatch.setAdapter(null);
+        batchSpinnerReady = false;
+
+        // Empty adapter to clear the spinner
+        ArrayAdapter<String> empty = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, new ArrayList<>());
+        empty.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spBatch.setAdapter(empty);
         spBatch.setEnabled(false);
-        if (ivBatchArrow != null)
-            ivBatchArrow.setColorFilter(
-                    getResources().getColor(android.R.color.darker_gray, getTheme()));
+
         if (ivBatchIcon != null)
             ivBatchIcon.setColorFilter(
                     getResources().getColor(android.R.color.darker_gray, getTheme()));
+
         if (tvBatchHelper != null) {
             tvBatchHelper.setText("  ℹ️ Select a course first to load batches");
             tvBatchHelper.setTextColor(

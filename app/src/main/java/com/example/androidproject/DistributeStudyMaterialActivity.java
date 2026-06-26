@@ -1,41 +1,51 @@
 package com.example.androidproject;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.adapters.StudyMaterialAdapter;
 import com.example.androidproject.model.Batch;
-import com.example.androidproject.model.BatchRequest;
-import com.example.androidproject.model.BatchResponse;
 import com.example.androidproject.model.Course;
-import com.example.androidproject.model.GetCoursesRequest;
-import com.example.androidproject.model.GetCoursesResponse;
 import com.example.androidproject.model.profile.BatchTimingResponse;
 import com.example.androidproject.model.profile.StudyMaterialDistributionResponse;
 import com.example.androidproject.model.profile.StudyMaterialUpdateRequest;
 import com.example.androidproject.model.profile.StudyMaterialUpdateResponse;
+import com.example.androidproject.model.queue.SmsQueueRequest;
+import com.example.androidproject.model.queue.SmsQueueResponse;
+import com.example.androidproject.model.queue.WhatsAppQueueRequest;
+import com.example.androidproject.model.queue.WhatsAppQueueResponse;
+import com.example.androidproject.model.template.TemplateEntity;
+import com.example.androidproject.model.template.TemplateRepository;
+import com.example.androidproject.room.BatchEntity;
+import com.example.androidproject.room.CourseBatchRepository;
+import com.example.androidproject.room.CourseEntity;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.android.material.button.MaterialButton;
@@ -44,8 +54,10 @@ import com.google.gson.Gson;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import retrofit2.Call;
@@ -55,28 +67,38 @@ import retrofit2.Response;
 public class DistributeStudyMaterialActivity extends AppCompatActivity {
 
     // ── Views ─────────────────────────────────────────────────────────────────
-    private AutoCompleteTextView spCourse, spBatch, spTiming;
-    private ImageView ivBatchArrow, ivBatchIcon, ivTimingArrow, ivTimingIcon;
-    private TextView tvDate, tvStudentCount;
-    private CardView cardStudentList;
-    private RecyclerView rvStudents;
-    private FrameLayout loaderLayout;
-    private MaterialButton btnViewStudents, btnUpdateRecord, btnUpdateWithMsg;
-    private CheckBox cbSelectAll;
+    private Spinner        spCourse, spBatch, spTiming;
+    private ImageView      ivBatchIcon, ivTimingIcon;
+    private TextView       tvDate, tvStudentCount;
+    private CardView       cardStudentList;
+    private RecyclerView   rvStudents;
+    private FrameLayout    loaderLayout;
+    private MaterialButton btnViewStudents, btnUpdateRecord;
+    private CheckBox       cbSelectAll;
 
     // ── Data ──────────────────────────────────────────────────────────────────
-    private List<Course> courseList = new ArrayList<>();
-    private List<Batch>  batchList  = new ArrayList<>();
+    private List<Course> courseList  = new ArrayList<>();
+    private List<Batch>  batchList   = new ArrayList<>();
     private List<BatchTimingResponse.BatchTimingItem> timingList = new ArrayList<>();
     private List<StudyMaterialDistributionResponse.StudentItem> allStudents = new ArrayList<>();
 
     private int selectedCourseId = -1;
     private int selectedBatchId  = -1;
-    private int selectedTimingId = -1; // -1 = no filter
+    private int selectedTimingId = -1;
+
+    // ── Spinner ready flags ───────────────────────────────────────────────────
+    private boolean courseSpinnerReady = false;
+    private boolean batchSpinnerReady  = false;
+    private boolean timingSpinnerReady = false;
+
+    // ── WhatsApp queue ────────────────────────────────────────────────────────
+    private List<String> whatsAppQueue   = new ArrayList<>();
+    private List<String> whatsAppMobiles = new ArrayList<>();
+    private boolean      sendingWhatsApp = false;
 
     private StudyMaterialAdapter adapter;
-    private boolean pendingWhatsAppReturn = false;
 
+    // ─────────────────────────────────────────────────────────────────────────
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,13 +111,12 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
         fetchCourses();
     }
 
+    // ── Init Views ────────────────────────────────────────────────────────────
     private void initViews() {
         spCourse        = findViewById(R.id.spCourse);
         spBatch         = findViewById(R.id.spBatch);
         spTiming        = findViewById(R.id.spTiming);
-        ivBatchArrow    = findViewById(R.id.ivBatchArrow);
         ivBatchIcon     = findViewById(R.id.ivBatchIcon);
-        ivTimingArrow   = findViewById(R.id.ivTimingArrow);
         ivTimingIcon    = findViewById(R.id.ivTimingIcon);
         tvDate          = findViewById(R.id.tvDate);
         tvStudentCount  = findViewById(R.id.tvStudentCount);
@@ -105,40 +126,21 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
         btnViewStudents = findViewById(R.id.btnViewStudents);
         btnUpdateRecord = findViewById(R.id.btnUpdateRecord);
         cbSelectAll     = findViewById(R.id.cbSelectAll);
-        btnUpdateWithMsg = findViewById(R.id.btnUpdateWithMsg);
 
         rvStudents.setLayoutManager(new LinearLayoutManager(this));
         adapter = new StudyMaterialAdapter();
         rvStudents.setAdapter(adapter);
 
-        adapter.setSendMsgListener(student -> sendWhatsAppToStudent(student));
-
         spBatch.setEnabled(false);
         spTiming.setEnabled(false);
         btnViewStudents.setEnabled(false);
 
-        // Select All toggle
-        cbSelectAll.setOnCheckedChangeListener((btn, isChecked) -> {
-            adapter.setAllChecked(isChecked);
-        });
+        cbSelectAll.setOnCheckedChangeListener((btn, isChecked) ->
+                adapter.setAllChecked(isChecked));
 
-        // View Students button
         btnViewStudents.setOnClickListener(v -> fetchStudents());
 
-        // Update Record button
-       /* btnUpdateRecord.setOnClickListener(v -> updateRecord());*/
-
-        btnUpdateRecord.setOnClickListener(v -> {
-            // Turn OFF msg mode if it was on
-            adapter.setMsgMode(false);
-            performUpdate(false);
-        });
-
-// Update + Send Msg — save then show Send Msg button per row
-        btnUpdateWithMsg.setOnClickListener(v -> {
-            performUpdate(true);
-        });
-
+        btnUpdateRecord.setOnClickListener(v -> performUpdate());
     }
 
     private void setupBackButton() {
@@ -151,142 +153,134 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
         tvDate.setText(sdf.format(new Date()));
     }
 
-    // ── Fetch courses ─────────────────────────────────────────────────────────
+    // ── Fetch Courses from Room DB ────────────────────────────────────────────
     private void fetchCourses() {
-        String userId      = PrefManager.getInstance(this).getUserId();
-        String instituteId = PrefManager.getInstance(this).getInstituteId();
-
-        GetCoursesRequest request = new GetCoursesRequest(
-                Integer.parseInt(userId), Integer.parseInt(instituteId));
-
-        RetrofitClient.getApiService().getCourses(request)
-                .enqueue(new Callback<GetCoursesResponse>() {
-                    @Override
-                    public void onResponse(Call<GetCoursesResponse> call,
-                                           Response<GetCoursesResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            courseList = response.body().getCouseList();
-                            setupCourseDropdown();
-                        } else {
-                            toast("Failed to fetch courses");
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<GetCoursesResponse> call, Throwable t) {
-                        toast("Course error: " + t.getMessage());
-                    }
-                });
+        CourseBatchRepository.getInstance(this).getCourses(courses -> {
+            courseList.clear();
+            for (CourseEntity e : courses) {
+                courseList.add(new Course(e.courseId, e.courseName, "", "", 0, 0));
+            }
+            setupCourseSpinner();
+        });
     }
 
-    private void setupCourseDropdown() {
+    // ── Fetch Batches from Room DB ────────────────────────────────────────────
+    private void fetchBatches(int courseId) {
+        CourseBatchRepository.getInstance(this).getBatchesByCourse(courseId, batches -> {
+            batchList.clear();
+            for (BatchEntity e : batches) {
+                batchList.add(new Batch(e.batchId, courseId, e.batchName, "", "", ""));
+            }
+            setupBatchSpinner();
+        });
+    }
+
+    // ── Course Spinner ────────────────────────────────────────────────────────
+    private void setupCourseSpinner() {
         List<String> names = new ArrayList<>();
+        names.add("Select Course --");
         for (Course c : courseList) names.add(c.getCouse_Name());
 
         ArrayAdapter<String> aa = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, names);
+                this, android.R.layout.simple_spinner_item, names);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spCourse.setAdapter(aa);
-        spCourse.setOnClickListener(v -> spCourse.showDropDown());
 
-        spCourse.setOnItemClickListener((parent, view, position, id) -> {
-            selectedCourseId = courseList.get(position).getCouseID();
-            resetBatch();
-            resetTiming();
-            hideStudentList();
-            fetchBatches(selectedCourseId);
+        courseSpinnerReady = false;
+
+        spCourse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!courseSpinnerReady) { courseSpinnerReady = true; return; }
+                if (pos == 0) {
+                    resetBatch();
+                    resetTiming();
+                    hideStudentList();
+                    return;
+                }
+                selectedCourseId = courseList.get(pos - 1).getCouseID();
+                resetBatch();
+                resetTiming();
+                hideStudentList();
+                fetchBatches(selectedCourseId);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
-    // ── Fetch batches ─────────────────────────────────────────────────────────
-    private void fetchBatches(int courseId) {
-        String userId      = PrefManager.getInstance(this).getUserId();
-        String instituteId = PrefManager.getInstance(this).getInstituteId();
-
-        BatchRequest request = new BatchRequest(
-                Integer.parseInt(userId), Integer.parseInt(instituteId), courseId);
-
-        RetrofitClient.getApiService().getBatch(request)
-                .enqueue(new Callback<BatchResponse>() {
-                    @Override
-                    public void onResponse(Call<BatchResponse> call,
-                                           Response<BatchResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            batchList = response.body().getBatchList();
-                            setupBatchDropdown();
-                        } else {
-                            toast("Failed to fetch batches");
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<BatchResponse> call, Throwable t) {
-                        toast("Batch error: " + t.getMessage());
-                    }
-                });
-    }
-
-    private void setupBatchDropdown() {
+    // ── Batch Spinner ─────────────────────────────────────────────────────────
+    private void setupBatchSpinner() {
         List<String> names = new ArrayList<>();
+        names.add("Select Batch --");
         for (Batch b : batchList) names.add(b.getBatchName());
 
         ArrayAdapter<String> aa = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, names);
+                this, android.R.layout.simple_spinner_item, names);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spBatch.setAdapter(aa);
         spBatch.setEnabled(true);
-        spBatch.setOnClickListener(v -> spBatch.showDropDown());
 
-        ivBatchArrow.setColorFilter(
-                getResources().getColor(android.R.color.holo_green_dark, getTheme()));
         ivBatchIcon.setColorFilter(
                 getResources().getColor(android.R.color.holo_green_dark, getTheme()));
 
-        spBatch.setOnItemClickListener((parent, view, position, id) -> {
-            selectedBatchId = batchList.get(position).getBatchID();
-            resetTiming();
-            hideStudentList();
-            btnViewStudents.setEnabled(true);
-            // Timing dropdown is optional — enable it after batch selected
-            setupTimingDropdown();
+        batchSpinnerReady = false;
+
+        spBatch.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!batchSpinnerReady) { batchSpinnerReady = true; return; }
+                if (pos == 0) {
+                    resetTiming();
+                    hideStudentList();
+                    btnViewStudents.setEnabled(false);
+                    return;
+                }
+                selectedBatchId = batchList.get(pos - 1).getBatchID();
+                resetTiming();
+                hideStudentList();
+                btnViewStudents.setEnabled(true);
+                setupTimingSpinner();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
-    // ── Timing dropdown (optional filter) ────────────────────────────────────
-    private void setupTimingDropdown() {
-        // Re-use your existing batch timing fetch if you have it,
-        // or just enable with the timings already fetched for this batch.
-        // For now wire it from your existing TIMING_URL call if needed.
-        // Minimal: just enable it so user can optionally pick.
-        spTiming.setEnabled(true);
-        ivTimingArrow.setColorFilter(
-                getResources().getColor(android.R.color.holo_green_dark, getTheme()));
-        ivTimingIcon.setColorFilter(
-                getResources().getColor(android.R.color.holo_green_dark, getTheme()));
-
-        // You can load real timings here via your existing batch_time_test API
-        // For now just add an "All Timings" placeholder:
-        List<String> timingNames = new ArrayList<>();
-        timingNames.add("All Timings");
+    // ── Timing Spinner ────────────────────────────────────────────────────────
+    private void setupTimingSpinner() {
+        List<String> names = new ArrayList<>();
+        names.add("All Timings");
         for (BatchTimingResponse.BatchTimingItem t : timingList) {
-            timingNames.add(t.getTimingDescription());
+            names.add(t.getTimingDescription());
         }
 
         ArrayAdapter<String> aa = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, timingNames);
+                this, android.R.layout.simple_spinner_item, names);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spTiming.setAdapter(aa);
-        spTiming.setOnClickListener(v -> spTiming.showDropDown());
+        spTiming.setEnabled(true);
 
-        spTiming.setOnItemClickListener((parent, view, position, id) -> {
-            if (position == 0) {
-                selectedTimingId = -1; // All
-            } else {
-                selectedTimingId = timingList.get(position - 1).getTimingID();
+        ivTimingIcon.setColorFilter(
+                getResources().getColor(android.R.color.holo_green_dark, getTheme()));
+
+        timingSpinnerReady = false;
+
+        spTiming.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!timingSpinnerReady) { timingSpinnerReady = true; return; }
+                if (pos == 0) {
+                    selectedTimingId = -1;
+                } else {
+                    selectedTimingId = timingList.get(pos - 1).getTimingID();
+                }
+                if (!allStudents.isEmpty()) applyTimingFilter();
             }
-            // If students already loaded, re-filter
-            if (!allStudents.isEmpty()) applyTimingFilter();
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
-
+    // ── Fetch Students ────────────────────────────────────────────────────────
     private void fetchStudents() {
-
         if (selectedCourseId == -1 || selectedBatchId == -1) {
             toast("Please select Course and Batch");
             return;
@@ -298,36 +292,24 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
 
-        // 🔥 LOG REQUEST HERE
         Log.d("API_REQUEST_PARAMS",
                 "userID=" + userId +
                         ", instituteID=" + instituteId +
                         ", courseID=" + selectedCourseId +
                         ", batchID=" + selectedBatchId);
 
-        String fullUrl = "http://160.187.87.113:8081/api/InstituteControllersV1/list_of_distribution"
-                + "?userID=" + userId
-                + "&instituteID=" + instituteId
-                + "&CourseID=" + selectedCourseId
-                + "&batchID=" + selectedBatchId;
-
-        Log.d("API_FULL_URL", fullUrl);
-
         RetrofitClient.getApiService()
                 .getDistributionList(
                         Integer.parseInt(userId),
                         Integer.parseInt(instituteId),
                         selectedCourseId,
-                        1)
+                        selectedBatchId)
                 .enqueue(new Callback<StudyMaterialDistributionResponse>() {
 
                     @Override
                     public void onResponse(Call<StudyMaterialDistributionResponse> call,
                                            Response<StudyMaterialDistributionResponse> response) {
-
                         loaderLayout.setVisibility(View.GONE);
-
-                        // 🔥 ALSO LOG RAW RESPONSE
                         Log.d("API_RESPONSE_CODE", String.valueOf(response.code()));
                         Log.d("RESPONSE_BODY", new Gson().toJson(response.body()));
 
@@ -341,7 +323,6 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
                                 toast("No students found");
                                 return;
                             }
-
                             applyTimingFilter();
 
                         } else {
@@ -355,17 +336,14 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<StudyMaterialDistributionResponse> call,
                                           Throwable t) {
-
                         loaderLayout.setVisibility(View.GONE);
-
                         Log.e("API_ERROR", t.getMessage(), t);
-
                         toast("API Failed: " + t.getMessage());
                     }
                 });
     }
 
-    // ── Filter by timing if selected ──────────────────────────────────────────
+    // ── Timing filter ─────────────────────────────────────────────────────────
     private void applyTimingFilter() {
         List<StudyMaterialDistributionResponse.StudentItem> filtered;
 
@@ -374,8 +352,7 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
         } else {
             filtered = new ArrayList<>();
             for (StudyMaterialDistributionResponse.StudentItem s : allStudents) {
-                // Filter by timing — add timingID field to your model if API returns it
-                filtered.add(s);
+                filtered.add(s); // add timingID field filter here when API supports it
             }
         }
 
@@ -385,78 +362,8 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
         cbSelectAll.setChecked(false);
     }
 
-    // ── Update Record ─────────────────────────────────────────────────────────
-  /*  private void updateRecord() {
-        List<StudyMaterialDistributionResponse.StudentItem> checkedStudents =
-                adapter.getCheckedStudents();
-
-        if (checkedStudents.isEmpty()) {
-            toast("Please select at least one student");
-            return;
-        }
-
-        // Build admissionID list for API
-        List<Integer> checkedIds = new ArrayList<>();
-        for (StudyMaterialDistributionResponse.StudentItem s : checkedStudents) {
-            checkedIds.add(s.getAdmissionID());
-        }
-
-        loaderLayout.setVisibility(View.VISIBLE);
-
-        String userId      = PrefManager.getInstance(this).getUserId();
-        String instituteId = PrefManager.getInstance(this).getInstituteId();
-
-        SimpleDateFormat iso = new SimpleDateFormat(
-                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
-        iso.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String materialDate = iso.format(new Date());
-
-        StudyMaterialUpdateRequest request = new StudyMaterialUpdateRequest(
-                checkedIds,
-                Integer.parseInt(userId),
-                Integer.parseInt(instituteId),
-                materialDate
-        );
-
-        RetrofitClient.getApiService()
-                .updateStudyMaterial(request)
-                .enqueue(new Callback<StudyMaterialUpdateResponse>() {
-
-                    @Override
-                    public void onResponse(Call<StudyMaterialUpdateResponse> call,
-                                           Response<StudyMaterialUpdateResponse> response) {
-                        loaderLayout.setVisibility(View.GONE);
-
-                        if (response.isSuccessful()
-                                && response.body() != null
-                                && response.body().isSuccess()) {
-
-                            toast("✅ " + response.body().getMessage());
-
-                            // ── Send WhatsApp to all checked students ──────────
-                            sendWhatsAppToStudents(checkedStudents);
-
-                            // Refresh list
-                            fetchStudents();
-
-                        } else {
-                            String msg = (response.body() != null)
-                                    ? response.body().getMessage()
-                                    : "Update failed";
-                            toast(msg);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<StudyMaterialUpdateResponse> call,
-                                          Throwable t) {
-                        loaderLayout.setVisibility(View.GONE);
-                        toast("Failed: " + t.getMessage());
-                    }
-                });
-    }*/
-
-    private void performUpdate(boolean withMsg) {
+    // ── Update Record → then queue WhatsApp + SMS ─────────────────────────────
+    private void performUpdate() {
         List<StudyMaterialDistributionResponse.StudentItem> checkedStudents =
                 adapter.getCheckedStudents();
 
@@ -501,15 +408,7 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
                                 && response.body().isSuccess()) {
 
                             toast("✅ " + response.body().getMessage());
-
-                            if (withMsg) {
-                                // Show Send Msg button on every row
-                                adapter.setMsgMode(true);
-                                toast("Tap 'Send Msg' on each student to send WhatsApp");
-                            } else {
-                                // Normal update — just refresh
-                                fetchStudents();
-                            }
+                            buildAndSendQueue(checkedStudents);
 
                         } else {
                             String msg = (response.body() != null)
@@ -520,131 +419,337 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<StudyMaterialUpdateResponse> call,
-                                          Throwable t) {
+                    public void onFailure(Call<StudyMaterialUpdateResponse> call, Throwable t) {
                         loaderLayout.setVisibility(View.GONE);
                         toast("Failed: " + t.getMessage());
                     }
                 });
     }
 
-    // ── Single student WhatsApp (called from row Send Msg button) ─────────────
-
-    // ── Add onResume() — auto-refresh when user comes back from WhatsApp ───────
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (pendingWhatsAppReturn) {
-            pendingWhatsAppReturn = false;
-
-            // Turn off msg mode — hide all Send Msg buttons
-            adapter.setMsgMode(false);
-
-            // Refresh student list
-            fetchStudents();
-
-            toast("List refreshed");
-        }
-    }
-
-    // ── Replace sendWhatsAppToStudent() with this ─────────────────────────────
-    private void sendWhatsAppToStudent(
-            StudyMaterialDistributionResponse.StudentItem student) {
-
-        String mobile = student.getMobile();
-        if (mobile == null || mobile.trim().isEmpty()) {
-            toast("No mobile number for: " + student.getStudentName());
-            return;
-        }
-
-        mobile = mobile.replaceAll("[^0-9]", "");
-        if (!mobile.startsWith("91") && mobile.length() == 10) {
-            mobile = "91" + mobile;
-        }
-
-        String today = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-                .format(new Date());
-
-        String message =
-                "Dear " + student.getStudentName() + ",\n\n" +
-                        "📚 Study material has been distributed to you on " + today + ".\n\n" +
-                        "Please collect it from the institute.\n\n" +
-                        "Thank you!";
-
-        try {
-            Uri uri = Uri.parse(
-                    "https://api.whatsapp.com/send?phone=" + mobile
-                            + "&text=" + Uri.encode(message));
-
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            intent.setPackage("com.whatsapp");
-
-            // ── Set flag BEFORE launching WhatsApp ────────────────────────────
-            pendingWhatsAppReturn = true;
-
-            startActivity(intent);
-
-        } catch (Exception e) {
-            pendingWhatsAppReturn = false;
-            Log.e("WHATSAPP", "Failed: " + e.getMessage());
-
-            // Fallback — try without forcing WhatsApp package
-            try {
-                Uri uri = Uri.parse(
-                        "https://api.whatsapp.com/send?phone=" + mobile
-                                + "&text=" + Uri.encode(message));
-                startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                pendingWhatsAppReturn = true;
-            } catch (Exception ex) {
-                toast("WhatsApp not installed for: " + student.getStudentName());
-            }
-        }
-    }
-
-   /* private void sendWhatsAppToStudents(
+    // ── Build queue and fire SMS for all, then start WhatsApp one-by-one ──────
+/*    private void buildAndSendQueue(
             List<StudyMaterialDistributionResponse.StudentItem> students) {
 
-        // Compose the message — customize as needed
+        whatsAppQueue.clear();
+        whatsAppMobiles.clear();
+
         String today = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
                 .format(new Date());
 
-        for (StudyMaterialDistributionResponse.StudentItem student : students) {
-
-            String mobile = student.getMobile();
+        for (StudyMaterialDistributionResponse.StudentItem s : students) {
+            String mobile = s.getMobile();
             if (mobile == null || mobile.trim().isEmpty()) continue;
 
-            // Clean number — remove spaces, dashes, brackets
             mobile = mobile.replaceAll("[^0-9]", "");
-
-            // Add India country code if not present
             if (!mobile.startsWith("91") && mobile.length() == 10) {
                 mobile = "91" + mobile;
             }
 
             String message =
-                    "Dear " + student.getStudentName() + ",\n\n" +
+                    "Dear " + s.getStudentName() + ",\n\n" +
                             "📚 Study material has been distributed to you on " + today + ".\n\n" +
                             "Please collect it from the institute.\n\n" +
                             "Thank you!";
 
-            try {
-                // ── Option 1: Direct WhatsApp chat (no need for contact saved) ──
-                Uri uri = Uri.parse(
-                        "https://api.whatsapp.com/send?phone=" + mobile
-                                + "&text=" + Uri.encode(message));
+            // SMS fires silently for every student right away
+            sendSmsInBackground(mobile, message);
 
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                intent.setPackage("com.whatsapp"); // force WhatsApp app
-                startActivity(intent);
+            // WhatsApp queue — opened one-by-one via onResume
+            whatsAppMobiles.add(mobile);
+            whatsAppQueue.add(message);
+        }
 
-            } catch (Exception e) {
-                Log.e("WHATSAPP", "Failed for " + mobile + ": " + e.getMessage());
-                toast("WhatsApp not installed or number invalid for: "
-                        + student.getStudentName());
-            }
+        if (!whatsAppQueue.isEmpty()) {
+            sendingWhatsApp = true;
+            sendNextWhatsApp();
+        } else {
+            // No valid numbers — just refresh
+            fetchStudents();
         }
     }*/
 
+
+    private void buildAndSendQueue(
+            List<StudyMaterialDistributionResponse.StudentItem> students) {
+
+        TemplateRepository.getInstance(this)
+                .getTemplateByCategory("Study Material",
+                        new TemplateRepository.SingleTemplateCallback() {
+
+                            @Override
+                            public void onSuccess(TemplateEntity template) {
+
+                                if (!template.isActive) {
+                                    Log.d("StudyMaterial", "Template isActive=false, skipping");
+                                    toast("Notifications are currently disabled.");
+                                    fetchStudents();
+                                    return;
+                                }
+
+                                PrefManager pref = PrefManager.getInstance(
+                                        DistributeStudyMaterialActivity.this);
+                                String lang = pref.getLanguage();
+
+                                List<WhatsAppQueueRequest.WhatsAppItem> waItems  = new ArrayList<>();
+                                List<SmsQueueRequest.SmsItem>           smsItems = new ArrayList<>();
+
+                                for (StudyMaterialDistributionResponse.StudentItem s : students) {
+                                    String mobile = s.getMobile();
+                                    if (mobile == null || mobile.trim().isEmpty()) continue;
+
+                                    mobile = mobile.replaceAll("[^0-9]", "");
+                                    if (!mobile.startsWith("91") && mobile.length() == 10) {
+                                        mobile = "91" + mobile;
+                                    }
+
+                                    // ── Fill placeholder map ──────────────────
+                                    Map<String, String> data = new HashMap<>();
+                                    data.put("StudentName", s.getStudentName() != null
+                                            ? s.getStudentName() : "");
+                                  /*  data.put("course",     s.getCourseName()   != null
+                                            ? s.getCourseName()   : "");*/
+                                    data.put("institute",  pref.getInstituteName());
+                                    data.put("Authority",  pref.getStudentName());
+                                    data.put("mobile1",    pref.getInstituteMobile1());
+                                    data.put("mobile2",    pref.getInstituteMobile2());
+                                    data.put("email",      pref.getInstituteEmail());
+                                    data.put("address1",   pref.getInstituteAddress1());
+                                    data.put("address2",   pref.getInstituteAddress2());
+
+                                    // ── Pick WA text by language ──────────────
+                                    String waText;
+                                    switch (lang) {
+                                        case "MR": waText = template.wa_MR; break;
+                                        case "HI": waText = template.wa_HI; break;
+                                        default:   waText = template.wa_EN; break;
+                                    }
+
+                                    // ── Pick SMS text by language ─────────────
+                                    String smsText;
+                                    switch (lang) {
+                                        case "MR": smsText = template.sms_MR; break;
+                                        case "HI": smsText = template.sms_HI; break;
+                                        default:   smsText = template.sms_EN; break;
+                                    }
+
+                                    String waMessage  = TemplateRepository.fillTemplate(waText,  data);
+                                    String smsMessage = TemplateRepository.fillTemplate(smsText, data);
+
+                                    Log.d("StudyMaterial", "mobile="     + mobile);
+                                    Log.d("StudyMaterial", "waMessage="  + waMessage);
+                                    Log.d("StudyMaterial", "smsMessage=" + smsMessage);
+
+                                    // WhatsApp queue item
+                                    waItems.add(new WhatsAppQueueRequest.WhatsAppItem(
+                                            mobile,
+                                            waMessage,
+                                            "Study Material",
+                                            template.accessToken != null ? template.accessToken : "",
+                                            template.instanceID  != null ? template.instanceID  : ""
+                                    ));
+
+                                    // SMS queue item
+                                    smsItems.add(new SmsQueueRequest.SmsItem(
+                                            mobile,
+                                            smsMessage,
+                                            "Study Material"
+                                    ));
+                                }
+
+                                if (waItems.isEmpty() && smsItems.isEmpty()) {
+                                    toast("No valid mobile numbers found");
+                                    fetchStudents();
+                                    return;
+                                }
+
+                                // Post both queues — WA first, then SMS
+                                postToWhatsAppQueue(waItems, smsItems);
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.e("StudyMaterial", "Template not found: " + error);
+                                toast("Message template not found");
+                                fetchStudents();
+                            }
+                        });
+    }
+
+    // ── POST queue items to API ───────────────────────────────────────────────────
+    private void postToWhatsAppQueue(
+            List<WhatsAppQueueRequest.WhatsAppItem> waItems,
+            List<SmsQueueRequest.SmsItem>           smsItems) {
+
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+
+        WhatsAppQueueRequest request = new WhatsAppQueueRequest(
+                Integer.parseInt(userId),
+                Integer.parseInt(instituteId),
+                waItems
+        );
+
+        Log.d("WA_QUEUE_REQ", new Gson().toJson(request));
+        loaderLayout.setVisibility(View.VISIBLE);
+
+        RetrofitClient.getApiService()
+                .sendWhatsAppQueue(request)
+                .enqueue(new Callback<WhatsAppQueueResponse>() {
+
+                    @Override
+                    public void onResponse(Call<WhatsAppQueueResponse> call,
+                                           Response<WhatsAppQueueResponse> response) {
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().isSuccess) {
+                            Log.d("WA_QUEUE", "✅ WA queued: "
+                                    + response.body().insertedCount);
+                            toast("✅ " + response.body().message);
+                        } else {
+                            String msg = (response.body() != null)
+                                    ? response.body().message : "WA Queue API failed";
+                            Log.e("WA_QUEUE", "❌ " + msg);
+                            toast("WA Queue failed: " + msg);
+                        }
+
+                        // Always chain SMS queue regardless of WA result
+                        postToSmsQueue(smsItems);
+                    }
+
+                    @Override
+                    public void onFailure(Call<WhatsAppQueueResponse> call, Throwable t) {
+                        Log.e("WA_QUEUE", "❌ " + t.getMessage());
+                        toast("WA Queue error: " + t.getMessage());
+                        // Still attempt SMS queue
+                        postToSmsQueue(smsItems);
+                    }
+                });
+    }
+
+    private void postToSmsQueue(List<SmsQueueRequest.SmsItem> smsItems) {
+        String userId      = PrefManager.getInstance(this).getUserId();
+        String instituteId = PrefManager.getInstance(this).getInstituteId();
+
+        SmsQueueRequest request = new SmsQueueRequest(
+                Integer.parseInt(userId),
+                Integer.parseInt(instituteId),
+                smsItems
+        );
+
+        Log.d("SMS_QUEUE_REQ", new Gson().toJson(request));
+
+        RetrofitClient.getApiService()
+                .sendSmsQueue(request)
+                .enqueue(new Callback<SmsQueueResponse>() {
+
+                    @Override
+                    public void onResponse(Call<SmsQueueResponse> call,
+                                           Response<SmsQueueResponse> response) {
+                        loaderLayout.setVisibility(View.GONE);
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().isSuccess) {
+                            Log.d("SMS_QUEUE", "✅ SMS queued: "
+                                    + response.body().insertedCount);
+                            toast("✅ " + response.body().message);
+                        } else {
+                            String msg = (response.body() != null)
+                                    ? response.body().message : "SMS Queue API failed";
+                            Log.e("SMS_QUEUE", "❌ " + msg);
+                            toast("SMS Queue failed: " + msg);
+                        }
+
+                        fetchStudents();
+                    }
+
+                    @Override
+                    public void onFailure(Call<SmsQueueResponse> call, Throwable t) {
+                        loaderLayout.setVisibility(View.GONE);
+                        Log.e("SMS_QUEUE", "❌ " + t.getMessage());
+                        toast("SMS Queue error: " + t.getMessage());
+                        fetchStudents();
+                    }
+                });
+    }
+
+    // ── Open WhatsApp for the next student in queue ───────────────────────────
+    private void sendNextWhatsApp() {
+        if (whatsAppQueue.isEmpty()) {
+            sendingWhatsApp = false;
+            fetchStudents();
+            toast("✅ All messages sent");
+            return;
+        }
+
+        String message = whatsAppQueue.remove(0);
+        String mobile  = whatsAppMobiles.remove(0);
+
+        try {
+            Uri uri = Uri.parse(
+                    "https://api.whatsapp.com/send?phone=" + mobile
+                            + "&text=" + Uri.encode(message));
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.setPackage("com.whatsapp");
+            startActivity(intent);
+        } catch (Exception e) {
+            // WhatsApp not installed — try browser fallback
+            try {
+                Uri uri = Uri.parse(
+                        "https://api.whatsapp.com/send?phone=" + mobile
+                                + "&text=" + Uri.encode(message));
+                startActivity(new Intent(Intent.ACTION_VIEW, uri));
+            } catch (Exception ex) {
+                Log.e("WHATSAPP", "Failed for " + mobile + ": " + ex.getMessage());
+                // Skip this student, continue queue immediately
+                sendNextWhatsApp();
+            }
+        }
+        // onResume will pick up the next entry when user returns from WhatsApp
+    }
+
+    // ── SMS — fires silently in background ────────────────────────────────────
+    private void sendSmsInBackground(String phoneNumber, String message) {
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Log.w("SMS", "SEND_SMS permission not granted");
+                return;
+            }
+            SmsManager smsManager = SmsManager.getDefault();
+            ArrayList<String> parts = smsManager.divideMessage(message);
+
+            PendingIntent sentIntent = PendingIntent.getBroadcast(
+                    this, 0, new Intent("SMS_SENT"), PendingIntent.FLAG_IMMUTABLE);
+
+            registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.d("SMS_DEBUG", getResultCode() == Activity.RESULT_OK
+                            ? "✅ SMS sent to " + phoneNumber
+                            : "❌ SMS failed: " + getResultCode());
+                }
+            }, new IntentFilter("SMS_SENT"));
+
+            ArrayList<PendingIntent> sentIntents = new ArrayList<>();
+            for (int i = 0; i < parts.size(); i++) sentIntents.add(sentIntent);
+
+            smsManager.sendMultipartTextMessage(
+                    phoneNumber, null, parts, sentIntents, null);
+
+        } catch (Exception e) {
+            Log.e("SMS", "SMS failed for " + phoneNumber + ": " + e.getMessage());
+        }
+    }
+
+    // ── onResume — called when user returns from WhatsApp ────────────────────
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (sendingWhatsApp) {
+            sendNextWhatsApp();
+        }
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     private void hideStudentList() {
@@ -654,23 +759,30 @@ public class DistributeStudyMaterialActivity extends AppCompatActivity {
 
     private void resetBatch() {
         batchList.clear();
-        selectedBatchId = -1;
-        spBatch.setText("");
-        spBatch.setAdapter(null);
+        selectedBatchId   = -1;
+        batchSpinnerReady = false;
+
+        ArrayAdapter<String> empty = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, new ArrayList<>());
+        empty.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spBatch.setAdapter(empty);
         spBatch.setEnabled(false);
-        ivBatchArrow.setColorFilter(
-                getResources().getColor(android.R.color.darker_gray, getTheme()));
+
         ivBatchIcon.setColorFilter(
                 getResources().getColor(android.R.color.darker_gray, getTheme()));
         btnViewStudents.setEnabled(false);
     }
 
     private void resetTiming() {
-        selectedTimingId = -1;
-        spTiming.setText("");
+        selectedTimingId   = -1;
+        timingSpinnerReady = false;
+
+        ArrayAdapter<String> empty = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, new ArrayList<>());
+        empty.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spTiming.setAdapter(empty);
         spTiming.setEnabled(false);
-        ivTimingArrow.setColorFilter(
-                getResources().getColor(android.R.color.darker_gray, getTheme()));
+
         ivTimingIcon.setColorFilter(
                 getResources().getColor(android.R.color.darker_gray, getTheme()));
     }

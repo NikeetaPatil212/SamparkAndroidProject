@@ -19,6 +19,12 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".BirthdayReminderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CertificateHandOverActivity"
+            android:exported="false" />
+        <activity
             android:name=".DistributeStudyMaterialActivity"
             android:exported="false" />
         <activity

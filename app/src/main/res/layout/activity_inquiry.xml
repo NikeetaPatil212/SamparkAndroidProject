@@ -196,7 +196,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Last Name"
+                            android:text="Last Name *"
                             android:textColor="#888888"
                             android:textSize="11sp"
                             android:layout_marginBottom="4dp" />
@@ -399,7 +399,7 @@
                             <ImageView
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
-                                android:src="@drawable/baseline_add_ic_call_24"
+                                android:src="@drawable/outline_attach_email_24"
                                 android:tint="#AAAAAA"
                                 android:layout_marginEnd="8dp" />
 
@@ -445,7 +445,7 @@
                             <ImageView
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
-                                android:src="@drawable/baseline_add_ic_call_24"
+                                android:src="@drawable/outline_add_location_24"
                                 android:tint="#AAAAAA"
                                 android:layout_marginEnd="8dp" />
 
@@ -617,6 +617,8 @@
                                 android:textSize="14sp"
                                 android:maxLines="1"
                                 android:inputType="none"
+                                android:focusable="false"
+                                android:focusableInTouchMode="false"
                                 android:cursorVisible="false" />
 
                             <ImageView
@@ -679,7 +681,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="School Name *"
+                            android:text="School Name"
                             android:textColor="#2E7D32"
                             android:textSize="11sp"
                             android:textStyle="bold"
@@ -726,7 +728,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Source Of Inquiry *"
+                            android:text="Source Of Inquiry"
                             android:textColor="#2E7D32"
                             android:textSize="11sp"
                             android:textStyle="bold"

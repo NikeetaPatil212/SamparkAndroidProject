@@ -35,6 +35,7 @@ import com.example.androidproject.model.template.InstituteRequest;
 import com.example.androidproject.model.template.SettingsResponse;
 import com.example.androidproject.model.template.TemplateEntity;
 import com.example.androidproject.model.template.TemplateRepository;
+import com.example.androidproject.room.CourseBatchRepository;
 import com.example.androidproject.room.InstituteProfileRepository;
 import com.example.androidproject.utils.ApiService;
 import com.example.androidproject.utils.PrefManager;
@@ -417,6 +418,11 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
 
+
+                    // 4. Cache courses (batches cached on demand when course is selected)
+                    CourseBatchRepository.getInstance(MainActivity.this)
+                            .fetchAndCacheCourses(() ->
+                                    Log.d("Login", "✅ Courses cached"));
                     /*startActivity(new Intent(MainActivity.this, DashboardActivity.class));
                     finish();*/
 
