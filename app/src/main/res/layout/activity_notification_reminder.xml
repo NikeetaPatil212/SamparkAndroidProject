@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="#2E7D32">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/outline_arrow_back_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📢 Notification"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- ── Filter Card ── -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:layout_marginBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Set Receiver"
+                        android:textSize="13sp"
+                        android:textColor="#888888"
+                        android:layout_marginBottom="10dp" />
+
+                    <!-- Send To -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <TextView
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="Send To"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#333333" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/spSendTo"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:hint="Select"
+                                android:textSize="13sp"
+                                android:paddingStart="12dp"
+                                android:inputType="none"
+                                android:focusable="false"
+                                android:focusableInTouchMode="false" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+
+                    <!-- ── Course, Batch, Timing — HIDDEN by default ── -->
+                    <LinearLayout
+                        android:id="@+id/layoutSelectFilters"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <!-- Course -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <TextView
+                                android:layout_width="90dp"
+                                android:layout_height="wrap_content"
+                                android:text="Course"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="#333333" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/spCourse"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="48dp"
+                                    android:hint="All Courses"
+                                    android:textSize="13sp"
+                                    android:paddingStart="12dp"
+                                    android:inputType="none"
+                                    android:focusable="false"
+                                    android:focusableInTouchMode="false" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <!-- Batch -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <TextView
+                                android:layout_width="90dp"
+                                android:layout_height="wrap_content"
+                                android:text="Batch"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="#333333" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/spBatch"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="48dp"
+                                    android:hint="All Batches"
+                                    android:textSize="13sp"
+                                    android:paddingStart="12dp"
+                                    android:inputType="none"
+                                    android:focusable="false"
+                                    android:focusableInTouchMode="false" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <!-- Timing -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="14dp">
+
+                            <TextView
+                                android:layout_width="90dp"
+                                android:layout_height="wrap_content"
+                                android:text="Timing"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="#333333" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/spTiming"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="48dp"
+                                    android:hint="All Timings"
+                                    android:textSize="13sp"
+                                    android:paddingStart="12dp"
+                                    android:inputType="none"
+                                    android:focusable="false"
+                                    android:focusableInTouchMode="false" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- View Students button — hidden by default -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewStudents"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_gravity="center_horizontal"
+                        android:text="View Students"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        app:backgroundTint="#1565C0"
+                        app:cornerRadius="8dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- ── Message Card ── -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:layout_marginBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Header (About)"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="6dp" />
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/rounded_border"
+                        android:paddingStart="12dp"
+                        android:textSize="13sp"
+                        android:hint="Enter subject / header"
+                        android:textColorHint="#AAAAAA" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Message"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="6dp" />
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMessage"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:background="@drawable/rounded_border"
+                        android:padding="12dp"
+                        android:textSize="13sp"
+                        android:hint="Type your message here..."
+                        android:textColorHint="#AAAAAA"
+                        android:gravity="top"
+                        android:inputType="textMultiLine" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+           <!-- &lt;!&ndash; ── Student List Card ── &ndash;&gt;
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardStudentList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    &lt;!&ndash; Header row &ndash;&gt;
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Student List"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#333333" />
+
+                        &lt;!&ndash; Select All checkbox &ndash;&gt;
+                        <CheckBox
+                            android:id="@+id/cbSelectAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select All"
+                            android:textSize="12sp"
+                            android:textColor="#333333"
+                            android:buttonTint="#2E7D32" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#EEEEEE"
+                        android:layout_marginBottom="6dp" />
+
+                    &lt;!&ndash; ProgressBar &ndash;&gt;
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:visibility="gone" />
+
+                    &lt;!&ndash; Empty &ndash;&gt;
+                    <TextView
+                        android:id="@+id/tvEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No students found"
+                        android:gravity="center"
+                        android:textSize="14sp"
+                        android:textColor="#AAAAAA"
+                        android:padding="20dp"
+                        android:visibility="gone" />
+
+                    &lt;!&ndash; RecyclerView — wrap_content inside ScrollView &ndash;&gt;
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvStudents"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>-->
+
+
+            <!-- ── Student List Card ── -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardStudentList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <!-- Header row: title + select all -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Student List"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#333333" />
+
+                        <CheckBox
+                            android:id="@+id/cbSelectAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select All"
+                            android:textSize="12sp"
+                            android:textColor="#333333"
+                            android:buttonTint="#2E7D32" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#EEEEEE" />
+
+                    <!-- ProgressBar -->
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:visibility="gone" />
+
+                    <!-- Empty -->
+                    <TextView
+                        android:id="@+id/tvEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No students found"
+                        android:gravity="center"
+                        android:textSize="14sp"
+                        android:textColor="#AAAAAA"
+                        android:padding="20dp"
+                        android:visibility="gone" />
+
+                    <!-- Horizontal scroll wraps BOTH header + list -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <!-- Table column header -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:background="#E8F5E9"
+                                android:paddingStart="8dp"
+                                android:paddingEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="36dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="#"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32"
+                                    android:gravity="center" />
+
+                                <TextView
+                                    android:layout_width="36dp"
+                                    android:layout_height="wrap_content"
+                                    android:text=""
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="130dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Student Name"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32" />
+
+                                <TextView
+                                    android:layout_width="100dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Mobile"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32"
+                                    android:paddingStart="6dp" />
+
+                                <TextView
+                                    android:layout_width="70dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Course"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32"
+                                    android:paddingStart="6dp" />
+
+                                <TextView
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Batch"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32"
+                                    android:paddingStart="6dp" />
+
+                                <TextView
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Timing"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32"
+                                    android:paddingStart="6dp" />
+
+                                <TextView
+                                    android:layout_width="50dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Select"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#2E7D32"
+                                    android:paddingStart="4dp" />
+
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#CCCCCC" />
+
+                            <!-- RecyclerView -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvStudents"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:nestedScrollingEnabled="false" />
+
+                        </LinearLayout>
+
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- ── Send Message button ── -->
+            <!-- ── 3 Send Buttons ── -->
+            <LinearLayout
+                android:id="@+id/layoutSendButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <!-- Row 1: WhatsApp + SMS -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Send WhatsApp -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSendWhatsApp"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="📲 WhatsApp"
+                        android:textSize="12sp"
+                        app:backgroundTint="#25D366"
+                        app:cornerRadius="10dp" />
+
+                    <!-- Send SMS -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSendSMS"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="💬 Send SMS"
+                        android:textSize="12sp"
+                        app:backgroundTint="#1565C0"
+                        app:cornerRadius="10dp" />
+
+                </LinearLayout>
+
+                <!-- Row 2: WhatsApp + SMS together -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSendBoth"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:text="📲 WhatsApp + 💬 SMS"
+                    android:textSize="13sp"
+                    app:backgroundTint="#2E7D32"
+                    app:cornerRadius="10dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

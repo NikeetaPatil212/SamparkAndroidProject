@@ -65,4 +65,10 @@ public class InquiryItem {
     public String getFeedback() {
         return feedback;
     }
+
+
+    // Add this field and methods to your existing InquiryItem model
+    private boolean selected = false;
+    public boolean isSelected()          { return selected; }
+    public void setSelected(boolean s)   { this.selected = s; }
 }

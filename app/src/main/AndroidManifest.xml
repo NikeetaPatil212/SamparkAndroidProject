@@ -19,6 +19,15 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".DetailedReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SummaryReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".NotificationReminderActivity"
+            android:exported="false" />
+        <activity
             android:name=".BirthdayReminderActivity"
             android:exported="false" />
         <activity

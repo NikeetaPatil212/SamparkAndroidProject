@@ -74,6 +74,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_add_inquiry).setVisible(false);
             menu.findItem(R.id.nav_get_inquiry).setVisible(false);
             menu.findItem(R.id.nav_batch).setVisible(false);
+            menu.findItem(R.id.nav_summary_report).setVisible(false);
+            menu.findItem(R.id.nav_detailed_report).setVisible(false);
             menu.findItem(R.id.nav_inquiry).setTitle("Inquiry");
         }
 
@@ -86,6 +88,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_distribute_study_material).setVisible(false);
             menu.findItem(R.id.nav_certificate_handover).setVisible(false);
             menu.findItem(R.id.nav_birthdate).setVisible(false);
+            menu.findItem(R.id.nav_notification_reminder).setVisible(false);
             menu.findItem(R.id.nav_admissions).setTitle("Admissions");
         }
     }
@@ -103,12 +106,16 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_add_inquiry).setVisible(isInquiryExpanded);
             menu.findItem(R.id.nav_get_inquiry).setVisible(isInquiryExpanded);
             menu.findItem(R.id.nav_batch).setVisible(isInquiryExpanded);
+            menu.findItem(R.id.nav_summary_report).setVisible(isInquiryExpanded);
+            menu.findItem(R.id.nav_detailed_report).setVisible(isInquiryExpanded);
 
             item.setTitle(isInquiryExpanded ? "Inquiry  ▲" : "Inquiry  ▼");
 
             styleSubItem(menu.findItem(R.id.nav_add_inquiry), "Add Inquiry");
             styleSubItem(menu.findItem(R.id.nav_get_inquiry), "Get Inquiry");
             styleSubItem(menu.findItem(R.id.nav_batch),       "Get Batch");
+            styleSubItem(menu.findItem(R.id.nav_summary_report),       "Summary Report");
+            styleSubItem(menu.findItem(R.id.nav_detailed_report),       "Detailed Report");
             return true;
         }
 
@@ -120,6 +127,18 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         }
         if (id == R.id.nav_get_inquiry) {
             startActivity(new Intent(this, GetInquiryActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_summary_report) {
+            startActivity(new Intent(this, SummaryReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_detailed_report) {
+            startActivity(new Intent(this, DetailedReportActivity.class));
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }
@@ -136,6 +155,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_distribute_study_material).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_certificate_handover).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_birthdate).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_notification_reminder).setVisible(isAdmissionExpanded);
 
             item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
 
@@ -146,6 +166,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             styleSubItem(menu.findItem(R.id.nav_distribute_study_material), "Distribute Study Material");
             styleSubItem(menu.findItem(R.id.nav_certificate_handover), "Certificate Handover");
             styleSubItem(menu.findItem(R.id.nav_birthdate), "Birthdate Reminder");
+            styleSubItem(menu.findItem(R.id.nav_notification_reminder), "Notification Reminder");
             return true;
         }
 
@@ -203,6 +224,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         if (id == R.id.nav_birthdate) {
             startActivity(new Intent(this, BirthdayReminderActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_notification_reminder) {
+            startActivity(new Intent(this, NotificationReminderActivity.class));
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }

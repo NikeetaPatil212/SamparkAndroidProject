@@ -9,6 +9,8 @@ public class InquiryListRequest {
     private String toDate;
     private Map<String, String> filters;
 
+
+
     public InquiryListRequest(int userID, int instituteID,
                               String fromDate, String toDate,
                               Map<String, String> filters) {

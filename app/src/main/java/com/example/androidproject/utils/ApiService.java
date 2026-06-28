@@ -35,6 +35,8 @@ import com.example.androidproject.model.certificate.CertificateResponse;
 import com.example.androidproject.model.certificate.UpdateCertificateRequest;
 import com.example.androidproject.model.certificate.UpdateCertificateResponse;
 import com.example.androidproject.model.certificate.UploadImageResponse;
+import com.example.androidproject.model.notification.NotificationStudentRequest;
+import com.example.androidproject.model.notification.NotificationStudentResponse;
 import com.example.androidproject.model.profile.EditProfileRequest;
 import com.example.androidproject.model.profile.EditProfileResponse;
 import com.example.androidproject.model.profile.ProfileDetailsRequest;
@@ -50,6 +52,10 @@ import com.example.androidproject.model.queue.SmsQueueRequest;
 import com.example.androidproject.model.queue.SmsQueueResponse;
 import com.example.androidproject.model.queue.WhatsAppQueueRequest;
 import com.example.androidproject.model.queue.WhatsAppQueueResponse;
+import com.example.androidproject.model.summary.InquiryReportRequest;
+import com.example.androidproject.model.summary.InquiryReportResponse;
+import com.example.androidproject.model.summary.InquirySummaryRequest;
+import com.example.androidproject.model.summary.InquirySummaryResponse;
 import com.example.androidproject.model.template.InstituteProfileResponse;
 import com.example.androidproject.model.template.InstituteRequest;
 import com.example.androidproject.model.template.SettingsResponse;
@@ -167,4 +173,13 @@ public interface ApiService {
 
     @POST("BirthDayList")
     Call<BirthdayResponse> getBirthdayList(@Body BirthdayRequest request);
+
+    @POST("NotificationStudents")
+    Call<NotificationStudentResponse> getNotificationStudents(@Body NotificationStudentRequest request);
+
+    @POST("GetInquirySummary")
+    Call<InquirySummaryResponse> getInquirySummary(@Body InquirySummaryRequest request);
+
+    @POST("GetInquiryReport")
+    Call<InquiryReportResponse> getInquiryReport(@Body InquiryReportRequest request);
 }

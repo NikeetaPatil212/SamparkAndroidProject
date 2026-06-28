@@ -24,6 +24,18 @@
             android:visible="false"/>
 
         <item
+            android:id="@+id/nav_summary_report"
+            android:title="Summary Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_detailed_report"
+            android:title="Detailed Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
             android:id="@+id/nav_batch"
             android:title="Get Batch"
             android:icon="@drawable/ic_person_foreground"
@@ -73,6 +85,12 @@
         <item
             android:id="@+id/nav_birthdate"
             android:title="BirthDate Reminder"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_notification_reminder"
+            android:title="Notification Reminder"
             android:icon="@drawable/ic_person_foreground"
             android:visible="false"/>
 
