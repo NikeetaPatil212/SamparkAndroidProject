@@ -1,5 +1,6 @@
 package com.example.androidproject;
 
+
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -7,30 +8,32 @@ import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.androidproject.adapters.InquiryReportAdapter;
+import com.example.androidproject.adapters.OutstandingFeesAdapter;
+import com.example.androidproject.model.outstanding.OutstandingItem;
+
 import com.example.androidproject.model.summary.InquiryReportItem;
-import com.example.androidproject.model.summary.InquiryReportRequest;
-import com.example.androidproject.model.summary.InquiryReportResponse;
+import com.example.androidproject.model.summary.OutstandingRequest;
+import com.example.androidproject.model.summary.OutstandingResponse;
 import com.example.androidproject.model.template.TemplateEntity;
 import com.example.androidproject.model.template.TemplateRepository;
 import com.example.androidproject.utils.PrefManager;
@@ -44,6 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -52,109 +56,96 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DetailedReportActivity extends AppCompatActivity {
+public class OutStandingDetailedActivity extends AppCompatActivity {
 
-    // ── Views ─────────────────────────────────────────────────────
-    private EditText       etStudentName, etContactNo, etLocation;
-    private Spinner        spCourse;
-    private CheckBox       cbAll, cbActive, cbConverted, cbCancelled;
-    private MaterialButton btnViewStudents, btnReset, btnSendWhatsappMessage,btnSendSMSMessage,btnGeneratePdf;
-    private CardView       cardStudentList;
-    private RecyclerView   rvInquiries;
-    private TextView       tvStudentCount, tvCount;
-    private FrameLayout    loaderLayout;
+    private Spinner spinnerCourse, spinnerBatch, spinnerTime;
+    private EditText etStudentName, etContactNo, etLocation;
+    private Button btnReset, btnApplyFilter, btnExportExcel, btnSendMessage;
+    private CheckBox cbSelectAll;
+    private MaterialButton btnSendWhatsappMessage,btnSendSMSMessage,btnExportToPdf;
+    private RecyclerView rvOutstanding;
+    private LinearLayout llFooter;
+    private CardView cardTable;
+    private TextView tvEmptyState, tvTotalBadge, tvTotalFees, tvTotalPaid, tvTotalOutstanding;
+    private FrameLayout loaderLayout;
 
-    // ── Data ──────────────────────────────────────────────────────
-    // change from List<InquiryItem> to:
-    private List<InquiryReportItem> allInquiries = new ArrayList<>();
-    private InquiryReportAdapter adapter;
+    private OutstandingFeesAdapter adapter;
+    private List<OutstandingItem> fullList = new ArrayList<>();
 
-    // ADD these fields after existing fields:
-    private List<InquiryReportItem> selectedItems = new ArrayList<>();
-    private static final int PAGE_WIDTH    = 842;
-    private static final int PAGE_HEIGHT   = 595;
+    private static final int PAGE_WIDTH    = 842;   // A4 landscape width  (pt)
+    private static final int PAGE_HEIGHT   = 595;   // A4 landscape height (pt)
     private static final int MARGIN        = 24;
     private static final int ROW_HEIGHT    = 22;
     private static final int HEADER_HEIGHT = 30;
 
-    // 14 columns — widths must sum ≤ (PAGE_WIDTH - 2*MARGIN) = 794
-    private static final int[] COL_WIDTHS = {
-            22,   // No
-            38,   // Inquiry No
-            58,   // Inquiry Date
-            105,  // Student Name
-            70,   // Mobile
-            70,   // Alt No
-            58,   // Location
-            62,   // Course        ← added
-            58,   // Reminder Date
-            58,   // Status
-            55,   // Feedback
-            35,   // Gender
-            48,   // School
-            47    // Reference
-    };  // total = 764 ✔
-
+    // Column widths (must sum ≤ PAGE_WIDTH - 2*MARGIN)
+    private static final int[] COL_WIDTHS = { 28, 72, 38, 108, 80, 68, 68, 68, 68, 52, 52, 60 };
     private static final String[] COL_HEADERS = {
-            "No",
-            "Inq Date",
-            "Student Name",
-            "Mobile",
-            "Alt No",
-            "Location",
-            "Course",        // ← added
-            "Reminder",
-            "Status",
-            "Feedback",
-            "Gender",
-            "School",
-            "Reference"
+            "No", "Adm Date", "Student Name",
+            "Mobile", "Location", "Course", "Batch",
+            "Time", "Fees", "Paid", "Outstanding", "Due Date"
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_detailed_report);
+        setContentView(R.layout.activity_out_standing_detailed);
 
         initViews();
         setupBackButton();
-        setupCourseSpinner();
-        setupStatusCheckboxes();
-        setupLiveFilters();
-        fetchInquiries();
+        setupRecyclerView();
+        setupListeners();
+        fetchOutstandingData();
     }
 
-    // ── Init Views ─────────────────────────────────────────────────
     private void initViews() {
-        etStudentName   = findViewById(R.id.etStudentName);
-        etContactNo     = findViewById(R.id.etContactNo);
-        etLocation      = findViewById(R.id.etLocation);
-        spCourse        = findViewById(R.id.spCourse);
-        cbAll           = findViewById(R.id.cbAll);
-        cbActive        = findViewById(R.id.cbActive);
-        cbConverted     = findViewById(R.id.cbConverted);
-        cbCancelled     = findViewById(R.id.cbCancelled);
-        btnViewStudents = findViewById(R.id.btnViewStudents);
-        btnReset        = findViewById(R.id.btnReset);
+        spinnerCourse  = findViewById(R.id.spinnerCourse);
+        spinnerBatch   = findViewById(R.id.spinnerBatch);
+        spinnerTime    = findViewById(R.id.spinnerTime);
+        etStudentName  = findViewById(R.id.etStudentName);
+        etContactNo    = findViewById(R.id.etContactNo);
+        etLocation     = findViewById(R.id.etLocation);
+        btnReset       = findViewById(R.id.btnReset);
+        btnApplyFilter = findViewById(R.id.btnViewStudents);
         btnSendWhatsappMessage  = findViewById(R.id.btnSendWhatsappMessage);
         btnSendSMSMessage  = findViewById(R.id.btnSendSMSMessage);
-        btnGeneratePdf  = findViewById(R.id.btnGeneratePdf);
-        cardStudentList = findViewById(R.id.cardStudentList);
-        rvInquiries     = findViewById(R.id.rvInquiries);
-        tvStudentCount  = findViewById(R.id.tvStudentCount);
-        tvCount         = findViewById(R.id.tvCount);
-        loaderLayout    = findViewById(R.id.loaderLayout);
+        btnExportToPdf  = findViewById(R.id.btnExportToPdf);
+        cbSelectAll    = findViewById(R.id.cbSelectAll);
+        rvOutstanding  = findViewById(R.id.rvOutstanding);
+        llFooter       = findViewById(R.id.llFooter);
+        cardTable      = findViewById(R.id.cardTable);
+        tvEmptyState   = findViewById(R.id.tvEmptyState);
+        tvTotalBadge   = findViewById(R.id.tvTotalBadge);
+        tvTotalFees    = findViewById(R.id.tvTotalFees);
+        tvTotalPaid    = findViewById(R.id.tvTotalPaid);
+        tvTotalOutstanding = findViewById(R.id.tvTotalOutstanding);
+        loaderLayout   = findViewById(R.id.loaderLayout);
+    }
 
-        rvInquiries.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new InquiryReportAdapter();
-        rvInquiries.setAdapter(adapter);
+    private void setupBackButton() {
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) btnBack.setOnClickListener(v -> onBackPressed());
+    }
 
-        btnViewStudents.setOnClickListener(v -> fetchInquiries());
+    private void setupRecyclerView() {
+        adapter = new OutstandingFeesAdapter();
+        rvOutstanding.setLayoutManager(new LinearLayoutManager(this));
+        rvOutstanding.setAdapter(adapter);
+        adapter.setOnSelectionChangedListener(() -> {
+            cbSelectAll.setChecked(adapter.isAllSelected());
+            updateTotalsAndBadge();
+        });
+    }
+
+    private void setupListeners() {
+        btnApplyFilter.setOnClickListener(v -> applyFilters());
         btnReset.setOnClickListener(v -> resetFilters());
-
+        cbSelectAll.setOnClickListener(v -> {
+            adapter.selectAll(cbSelectAll.isChecked());
+            updateTotalsAndBadge();
+        });
         btnSendWhatsappMessage.setOnClickListener(v -> {
-            List<InquiryReportItem> selected = adapter.getCheckedItems();
+            List<OutstandingItem> selected = adapter.getCheckedItems();
             if (selected.isEmpty()) {
                 toast("Please select at least one student");
                 return;
@@ -163,7 +154,7 @@ public class DetailedReportActivity extends AppCompatActivity {
         });
 
         btnSendSMSMessage.setOnClickListener(v -> {
-            List<InquiryReportItem> selected = adapter.getCheckedItems();
+            List<OutstandingItem> selected = adapter.getCheckedItems();
             if (selected.isEmpty()) {
                 toast("Please select at least one student");
                 return;
@@ -171,22 +162,12 @@ public class DetailedReportActivity extends AppCompatActivity {
             sendSmsBulk(selected);
         });
 
-        btnGeneratePdf.setOnClickListener(v -> exportToPdf());  // ← wired here
-
-       /* btnSendMessage.setOnClickListener(v -> {
-            List<InquiryItem> selected = adapter.getCheckedItems();
-            if (selected.isEmpty()) {
-                toast("Please select at least one student");
-                return;
-            }
-            toast("Selected: " + selected.size() + " students");
-            // wire send message logic here
-        });*/
-
+        btnExportToPdf.setOnClickListener(v -> exportToPdf());  // ← wired here
     }
 
+    // ── Entry point ───────────────────────────────────────────────
     private void exportToPdf() {
-        List<InquiryReportItem> data = adapter.getFilteredList();
+        List<OutstandingItem> data = adapter.getFilteredList();
         if (data == null || data.isEmpty()) {
             Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show();
             return;
@@ -205,7 +186,7 @@ public class DetailedReportActivity extends AppCompatActivity {
     }
 
     // ── Build PDF ─────────────────────────────────────────────────
-    private File buildPdf(List<InquiryReportItem> data) throws Exception {
+    private File buildPdf(List<OutstandingItem> data) throws Exception {
 
         PdfDocument document = new PdfDocument();
 
@@ -285,12 +266,12 @@ public class DetailedReportActivity extends AppCompatActivity {
                 Locale.getDefault()).format(new Date());
 
         // Grand totals for footer
-     /*   double totalFees = 0, totalPaid = 0, totalOut = 0;
-        for (InquiryReportItem item : data) {
+        double totalFees = 0, totalPaid = 0, totalOut = 0;
+        for (OutstandingItem item : data) {
             totalFees += item.fees;
             totalPaid += item.paid;
             totalOut  += item.outstanding;
-        }*/
+        }
 
         int dataIndex = 0;
 
@@ -331,7 +312,7 @@ public class DetailedReportActivity extends AppCompatActivity {
             int rowsDrawn    = 0;
 
             while (dataIndex < data.size() && rowsDrawn < rowsThisPage) {
-                InquiryReportItem item = data.get(dataIndex);
+                OutstandingItem item = data.get(dataIndex);
 
                 c.drawRect(MARGIN, y, PAGE_WIDTH - MARGIN, y + ROW_HEIGHT,
                         dataIndex % 2 == 0 ? paintRowEven : paintRowOdd);
@@ -339,19 +320,16 @@ public class DetailedReportActivity extends AppCompatActivity {
                 // ── cells[] — note reminderDate uses safe(), NOT fmt() ──
                 String[] cells = {
                         String.valueOf(dataIndex + 1),          // No
-                      //  safe(item.nu),               // Adm Date  ← safe()
-                        safe(item.inquiryDate),               // Adm Date  ← safe()
-                        safe(item.fullName),                 // Student Name
+                        safe(item.admissionDate),               // Adm Date  ← safe()
+                        safe(item.studentName),                 // Student Name
                         safe(item.mobile),                      // Mobile
-                        safe(item.alternateNo),                      // Mobile
                         safe(item.location),                    // Location
-                        safe(item.about),                  // Course
-                        safe(item.reminderDate),                   // Batch
-                        safe(item.reminderStatus),                   // Batch
-                        safe(item.feedback),
-                        safe(item.gender),
-                        safe(item.schoolName),
-                        safe(item.reference)
+                        safe(item.courseName),                  // Course
+                        safe(item.batchName),                   // Batch
+                        fmt(item.fees),                         // Fees       ← fmt()
+                        fmt(item.paid),                         // Paid       ← fmt()
+                        fmt(item.outstanding),                  // Outstanding← fmt()
+                        safe(item.reminderDate)                 // Due Date   ← safe() ✔
                 };
 
                 x = MARGIN;
@@ -376,7 +354,7 @@ public class DetailedReportActivity extends AppCompatActivity {
             }
 
             // Footer
-           /* int footerY = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT;
+            int footerY = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT;
             c.drawRect(MARGIN, footerY, PAGE_WIDTH - MARGIN,
                     footerY + FOOTER_HEIGHT, paintFooterBg);
             c.drawText(
@@ -384,7 +362,7 @@ public class DetailedReportActivity extends AppCompatActivity {
                             + "   |   Total Paid: " + fmt(totalPaid)
                             + "   |   Outstanding: " + fmt(totalOut)
                             + "   |   Page " + (p + 1) + "/" + pageCount,
-                    MARGIN + 6, footerY + FOOTER_HEIGHT - 8, paintFooterText);*/
+                    MARGIN + 6, footerY + FOOTER_HEIGHT - 8, paintFooterText);
 
             document.finishPage(page);
         }
@@ -443,10 +421,10 @@ public class DetailedReportActivity extends AppCompatActivity {
         return text + "…";
     }
 
-    private void sendWhatsAppBulk(List<InquiryReportItem> items) {
+    private void sendWhatsAppBulk(List<OutstandingItem> items) {
         // ── Fetch template first, then build messages ─────────────────────────
         TemplateRepository.getInstance(this)
-                .getTemplateByCategory("Inquiry Follow Up",
+                .getTemplateByCategory("Payment Reminder",
                         new TemplateRepository.SingleTemplateCallback() {
 
                             @Override
@@ -456,7 +434,7 @@ public class DetailedReportActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                PrefManager pref = PrefManager.getInstance(DetailedReportActivity.this);
+                                PrefManager pref = PrefManager.getInstance(OutStandingDetailedActivity.this);
                                 String lang = pref.getLanguage();
                                 String templateText;
                                 switch (lang) {
@@ -471,20 +449,21 @@ public class DetailedReportActivity extends AppCompatActivity {
                                 List<com.example.androidproject.model.queue.WhatsAppQueueRequest.WhatsAppItem>
                                         whatsappItems = new ArrayList<>();
 
-                                for (InquiryReportItem s : items) {
+                                for (OutstandingItem s : items) {
                                     if (s.mobile == null || s.mobile.isEmpty()) continue;
 
                                     // ── Fill template placeholders ────────────
-                                    String fullName  = s.fullName != null ? s.fullName : "";
+                                    String fullName  = s.studentName != null ? s.studentName : "";
                                     String firstName = fullName.contains(" ")
                                             ? fullName.substring(0, fullName.indexOf(" "))
                                             : fullName;
 
                                     Map<String, String> data = new HashMap<>();
-                                    data.put("FirstName",      firstName);
-                                    data.put("StudentName",    fullName);
-                                    data.put("InquiryDate",    s.inquiryDate != null ? s.inquiryDate : "");
-                                    data.put("InquiryCourses", s.about != null ? s.about : "");
+                                    data.put("studentName",    s.studentName);
+                                    data.put("due", String.valueOf(s.outstanding));
+                                    data.put("dueDate", s.reminderDate != null ? s.reminderDate : "");
+                                //    data.put("InquiryDate",    s.inquiryDate != null ? s.inquiryDate : "");
+                                //    data.put("InquiryCourses", s.about != null ? s.about : "");
                                     data.put("institute",      pref.getInstituteName());
                                     data.put("Authority",      pref.getOwnerName());
                                     data.put("mobile1",        pref.getInstituteMobile1());
@@ -555,9 +534,9 @@ public class DetailedReportActivity extends AppCompatActivity {
                         });
     }
 
-    private void sendSmsBulk(List<InquiryReportItem> items) {
+    private void sendSmsBulk(List<OutstandingItem> items) {
         TemplateRepository.getInstance(this)
-                .getTemplateByCategory("Inquiry Follow Up",
+                .getTemplateByCategory("Payment Reminder",
                         new TemplateRepository.SingleTemplateCallback() {
 
                             @Override
@@ -567,7 +546,7 @@ public class DetailedReportActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                PrefManager pref = PrefManager.getInstance(DetailedReportActivity.this);
+                                PrefManager pref = PrefManager.getInstance(OutStandingDetailedActivity.this);
                                 String lang = pref.getLanguage();
                                 String templateText;
                                 switch (lang) {
@@ -579,19 +558,21 @@ public class DetailedReportActivity extends AppCompatActivity {
                                 List<com.example.androidproject.model.queue.SmsQueueRequest.SmsItem>
                                         smsItems = new ArrayList<>();
 
-                                for (InquiryReportItem s : items) {
+                                for (OutstandingItem s : items) {
                                     if (s.mobile == null || s.mobile.isEmpty()) continue;
 
-                                    String fullName  = s.fullName != null ? s.fullName : "";
+                                    String fullName  = s.studentName != null ? s.studentName : "";
                                     String firstName = fullName.contains(" ")
                                             ? fullName.substring(0, fullName.indexOf(" "))
                                             : fullName;
 
                                     Map<String, String> data = new HashMap<>();
-                                    data.put("FirstName",      firstName);
-                                    data.put("StudentName",    fullName);
-                                    data.put("InquiryDate",    s.inquiryDate != null ? s.inquiryDate : "");
-                                    data.put("InquiryCourses", s.about != null ? s.about : "");
+                                //    data.put("FirstName",      firstName);
+                                    data.put("studentName",    s.studentName);
+                                    data.put("due", String.valueOf(s.outstanding));
+                                    data.put("dueDate", s.reminderDate != null ? s.reminderDate : "");
+                                //    data.put("InquiryDate",    s.inquiryDate != null ? s.inquiryDate : "");
+                                //    data.put("InquiryCourses", s.about != null ? s.about : "");
                                     data.put("institute",      pref.getInstituteName());
                                     data.put("Authority",      pref.getOwnerName());
                                     data.put("mobile1",        pref.getInstituteMobile1());
@@ -602,6 +583,8 @@ public class DetailedReportActivity extends AppCompatActivity {
                                     data.put("ownerName",      pref.getOwnerName());
 
                                     String message = TemplateRepository.fillTemplate(templateText, data);
+
+                                    Log.d("Msg-----", "onSuccess: " + message);
 
                                     String mobile = s.mobile;
                                     String formattedMobile = mobile.startsWith("+91")
@@ -660,177 +643,200 @@ public class DetailedReportActivity extends AppCompatActivity {
                         });
     }
 
-    private void setupBackButton() {
-        ImageButton btnBack = findViewById(R.id.btnBack);
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
-
-    // ── Course Spinner ─────────────────────────────────────────────
-    private void setupCourseSpinner() {
-        List<String> courses = new ArrayList<>();
-        courses.add("All Courses");
-        ArrayAdapter<String> aa = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, courses);
-        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spCourse.setAdapter(aa);
-    }
-
-    // ── Status checkboxes ──────────────────────────────────────────
-    private void setupStatusCheckboxes() {
-        cbAll.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) {
-                cbActive.setChecked(false);
-                cbConverted.setChecked(false);
-                cbCancelled.setChecked(false);
-            }
-            applyFilters();
-        });
-        cbActive.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) cbAll.setChecked(false);
-            applyFilters();
-        });
-        cbConverted.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) cbAll.setChecked(false);
-            applyFilters();
-        });
-        cbCancelled.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) cbAll.setChecked(false);
-            applyFilters();
-        });
-    }
-
-    // ── Live text filters ──────────────────────────────────────────
-    private void setupLiveFilters() {
-        TextWatcher watcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
-            @Override public void afterTextChanged(Editable s) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {
-                applyFilters();
-            }
-        };
-        etStudentName.addTextChangedListener(watcher);
-        etContactNo.addTextChangedListener(watcher);
-        etLocation.addTextChangedListener(watcher);
-    }
-
-    // ── Apply all filters ──────────────────────────────────────────
-    private void applyFilters() {
-        if (allInquiries.isEmpty()) return; // don't filter before data loads
-
-        List<String> statuses = new ArrayList<>();
-        if (cbAll.isChecked())       statuses.add("All");
-        if (cbActive.isChecked())    statuses.add("Active");
-        if (cbConverted.isChecked()) statuses.add("Converted");
-        if (cbCancelled.isChecked()) {
-            statuses.add("Cancelled");
-            statuses.add("Aborted");
-        }
-
-        String course = spCourse.getSelectedItemPosition() == 0 ? ""
-                : spCourse.getSelectedItem().toString();
-
-        adapter.applyFilters(
-                etStudentName.getText().toString(),
-                etContactNo.getText().toString(),
-                etLocation.getText().toString(),
-                course,
-                statuses
-        );
-        updateCount();
-    }
-
-    // ── Fetch from API ─────────────────────────────────────────────
-    private void fetchInquiries() {
+    // ── API CALL ─────────────────────────────────────────────────
+    private void fetchOutstandingData() {
         loaderLayout.setVisibility(View.VISIBLE);
-        cardStudentList.setVisibility(View.GONE);
-        btnSendSMSMessage.setVisibility(View.GONE);
-        btnGeneratePdf.setVisibility(View.GONE);
-        btnSendWhatsappMessage.setVisibility(View.GONE);
-        allInquiries.clear();
+        cardTable.setVisibility(View.GONE);
+        llFooter.setVisibility(View.GONE);
+        tvEmptyState.setVisibility(View.GONE);
 
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
 
-        InquiryReportRequest request = new InquiryReportRequest(
-                Integer.parseInt(userId),
-                Integer.parseInt(instituteId)
-        );
+        OutstandingRequest request = new OutstandingRequest(
+                Integer.parseInt(userId), Integer.parseInt(instituteId));
 
-        Log.d("INQ_REQ", new Gson().toJson(request));
-
-        RetrofitClient.getApiService()
-                .getInquiryReport(request)
-                .enqueue(new Callback<InquiryReportResponse>() {
-
+        RetrofitClient.getApiService().getOutstandingDetail(request)
+                .enqueue(new Callback<OutstandingResponse>() {
                     @Override
-                    public void onResponse(Call<InquiryReportResponse> call,
-                                           Response<InquiryReportResponse> response) {
+                    public void onResponse(Call<OutstandingResponse> call,
+                                           Response<OutstandingResponse> response) {
                         loaderLayout.setVisibility(View.GONE);
-                        Log.d("INQ_REPORT", "HTTP=" + response.code());
-                        Log.d("INQ_REPORT", "body=" + new Gson().toJson(response.body()));
+                        Log.d("OUTSTANDING_RAW", new Gson().toJson(response.body()));
 
-                        if (response.isSuccessful()
-                                && response.body() != null
-                                && response.body().isSuccess) {
+                        if (response.isSuccessful() && response.body() != null
+                                && response.body().isSuccess()) {
 
-                            allInquiries = response.body().inquiryList;
+                            fullList = mapToItems(response.body().getStudentList());
 
-                            if (allInquiries == null || allInquiries.isEmpty()) {
-                                toast("No inquiries found");
+                            if (fullList.isEmpty()) {
+                                tvEmptyState.setVisibility(View.VISIBLE);
                                 return;
                             }
 
-                            adapter.setData(allInquiries);
-                            applyFilters();
-                            cardStudentList.setVisibility(View.VISIBLE);
+                            setupFilterSpinners();
+                            adapter.setData(fullList);
+                            cardTable.setVisibility(View.VISIBLE);
+                            llFooter.setVisibility(View.VISIBLE);
                             btnSendSMSMessage.setVisibility(View.VISIBLE);
-                            btnGeneratePdf.setVisibility(View.VISIBLE);
                             btnSendWhatsappMessage.setVisibility(View.VISIBLE);
-                            updateCount();
+                            updateTotalsAndBadge();
 
                         } else {
-                            try {
-                                String err = response.errorBody() != null
-                                        ? response.errorBody().string() : "Unknown error";
-                                Log.e("INQ_REPORT", "errorBody=" + err);
-                                toast("Failed: " + err);
-                            } catch (Exception e) {
-                                toast("Failed to load inquiries");
-                            }
+                            String msg = (response.body() != null && response.body().getMessage() != null)
+                                    ? response.body().getMessage() : "Failed to load outstanding report";
+                            Toast.makeText(OutStandingDetailedActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            tvEmptyState.setVisibility(View.VISIBLE);
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<InquiryReportResponse> call, Throwable t) {
+                    public void onFailure(Call<OutstandingResponse> call, Throwable t) {
                         loaderLayout.setVisibility(View.GONE);
-                        Log.e("INQ_REPORT", "onFailure: " + t.getMessage());
-                        toast("Error: " + t.getMessage());
+                        tvEmptyState.setVisibility(View.VISIBLE);
+                        Toast.makeText(OutStandingDetailedActivity.this,
+                                "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
-    // ── Helpers ────────────────────────────────────────────────────
-    private void updateCount() {
-        int count = adapter.getFilteredCount();
-        String text = count + " Records";
-        tvCount.setText(text);
-        tvStudentCount.setText(text);
-        tvStudentCount.setVisibility(View.VISIBLE);
+    private List<OutstandingItem> mapToItems(List<OutstandingResponse.StudentItem> raw) {
+        List<OutstandingItem> result = new ArrayList<>();
+        if (raw == null) return result;
+        for (OutstandingResponse.StudentItem s : raw) {
+            OutstandingItem item = new OutstandingItem();
+            item.admissionID       = s.getAdmissionID();
+            item.admissionDate     = s.getAdmissionDate();
+            item.studentName       = s.getStudentName();
+            item.mobile             = s.getMobile();
+            item.location           = s.getLocation();
+            item.courseID           = s.getCourseID();
+            item.courseName         = s.getCourseName();
+            item.batchID            = s.getBatchID();
+            item.batchName          = s.getBatchName();
+            item.timingID           = s.getTimingID();
+            item.timingDescription  = s.getTimingDescription();
+            item.fees                = s.getFees();
+            item.paid                = s.getPaid();
+            item.outstanding         = s.getOutstanding();
+            item.reminderDate        = s.getReminderDate();
+            result.add(item);
+        }
+        return result;
+    }
+
+    // ── FILTER SPINNERS (built from loaded data) ───────────────────
+    private void setupFilterSpinners() {
+        LinkedHashSet<String> courses = new LinkedHashSet<>();
+        LinkedHashSet<String> batches = new LinkedHashSet<>();
+        LinkedHashSet<String> times   = new LinkedHashSet<>();
+        courses.add("All Courses");
+        batches.add("All Batches");
+        times.add("All Time Slots");
+
+        for (OutstandingItem item : fullList) {
+            if (!TextUtils.isEmpty(item.courseName)) courses.add(item.courseName);
+            if (!TextUtils.isEmpty(item.batchName)) batches.add(item.batchName);
+            if (!TextUtils.isEmpty(item.timingDescription)) times.add(item.timingDescription);
+        }
+
+        spinnerCourse.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, new ArrayList<>(courses)));
+        spinnerBatch.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, new ArrayList<>(batches)));
+        spinnerTime.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, new ArrayList<>(times)));
+    }
+
+    private void applyFilters() {
+        String course = (String) spinnerCourse.getSelectedItem();
+        String batch  = (String) spinnerBatch.getSelectedItem();
+        String time   = (String) spinnerTime.getSelectedItem();
+        String name   = etStudentName.getText().toString();
+        String contact = etContactNo.getText().toString();
+        String location = etLocation.getText().toString();
+
+        adapter.applyFilters(course, batch, time, name, contact, location);
+
+        boolean empty = adapter.getFilteredCount() == 0;
+        cardTable.setVisibility(empty ? View.GONE : View.VISIBLE);
+        llFooter.setVisibility(empty ? View.GONE : View.VISIBLE);
+        tvEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        cbSelectAll.setChecked(false);
+        updateTotalsAndBadge();
     }
 
     private void resetFilters() {
+        spinnerCourse.setSelection(0);
+        spinnerBatch.setSelection(0);
+        spinnerTime.setSelection(0);
         etStudentName.setText("");
         etContactNo.setText("");
         etLocation.setText("");
-        spCourse.setSelection(0);
-        cbAll.setChecked(true);
-        cbActive.setChecked(false);
-        cbConverted.setChecked(false);
-        cbCancelled.setChecked(false);
-        applyFilters();
+        adapter.setData(fullList);
+        cardTable.setVisibility(View.VISIBLE);
+        llFooter.setVisibility(View.VISIBLE);
+        tvEmptyState.setVisibility(View.GONE);
+        cbSelectAll.setChecked(false);
+        updateTotalsAndBadge();
     }
 
-    private void toast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    // ── TOTALS ───────────────────────────────────────────────────
+    private void updateTotalsAndBadge() {
+        double totalFees = 0, totalPaid = 0, totalOutstanding = 0;
+        for (OutstandingItem item : adapter.getFilteredList()) {
+            totalFees        += item.fees;
+            totalPaid         += item.paid;
+            totalOutstanding += item.outstanding;
+        }
+        tvTotalFees.setText("Total Fees " + formatAmount(totalFees));
+        tvTotalPaid.setText("Total Paid " + formatAmount(totalPaid));
+        tvTotalOutstanding.setText("Outstanding " + formatAmount(totalOutstanding));
+        tvTotalBadge.setText(adapter.getFilteredCount() + " Records");
+        tvTotalBadge.setVisibility(View.VISIBLE);
+    }
+
+    private String formatAmount(double amount) {
+        return "₹" + (amount == (long) amount ? String.valueOf((long) amount) : String.valueOf(amount));
+    }
+
+    // ── SEND MESSAGE ─────────────────────────────────────────────
+    private void sendMessageToSelected() {
+        List<OutstandingItem> selected = adapter.getCheckedItems();
+        if (selected.isEmpty()) {
+            Toast.makeText(this, "Please select at least one student", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        OutstandingItem first = selected.get(0);
+        String message = "Dear " + first.studentName
+                + ", your outstanding fee for " + first.courseName
+                + " (" + first.batchName + ") is " + formatAmount(first.outstanding)
+                + ". Please clear it at the earliest. - Sampark IM";
+
+        String mobile = first.mobile != null ? first.mobile.replaceAll("[^0-9]", "") : "";
+        if (mobile.isEmpty()) {
+            Toast.makeText(this, "No valid mobile number found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mobile.length() == 10) mobile = "91" + mobile;
+
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://api.whatsapp.com/send?phone=" + mobile
+                    + "&text=" + Uri.encode(message)));
+            startActivity(intent);
+
+            if (selected.size() > 1) {
+                Toast.makeText(this, "Opened WhatsApp for " + first.studentName
+                                + ". Repeat for remaining " + (selected.size() - 1) + " student(s).",
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.R;
+import com.example.androidproject.model.outstanding.OutstandingItem;
 import com.example.androidproject.model.summary.InquiryReportItem;
 
 import java.util.ArrayList;
@@ -29,6 +30,10 @@ public class InquiryReportAdapter
         filteredList.clear();
         filteredList.addAll(fullList);
         notifyDataSetChanged();
+    }
+
+    public List<InquiryReportItem> getFilteredList() {
+        return filteredList;
     }
 
     public void applyFilters(String name, String contact,

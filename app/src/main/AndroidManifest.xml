@@ -19,6 +19,30 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".StudyMaterialReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CertificateReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AttendanceReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ExpenseReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdmissionReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FeesCollectionSummaryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OutStandingDetailedActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OuStandingSummaryReport"
+            android:exported="false" />
+        <activity
             android:name=".DetailedReportActivity"
             android:exported="false" />
         <activity
@@ -82,7 +106,16 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity> <!-- Inside <application> tag -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
-    <!-- ── TOOLBAR ── -->
+    <!-- TOOLBAR -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:paddingStart="4dp"
-            android:text="Inquiry Detailed Report"
+            android:text="Attendance Report"
             android:textColor="#FFFFFF"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -50,7 +50,7 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- ── SCROLL CONTENT ── -->
+    <!-- SCROLL CONTENT -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -65,7 +65,20 @@
             android:paddingTop="14dp"
             android:paddingBottom="24dp">
 
-            <!-- ══ FILTERS CARD ══ -->
+            <!-- Hidden views kept because your Java class uses these ids -->
+            <EditText
+                android:id="@+id/etStudentName"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
+
+            <EditText
+                android:id="@+id/etContactNo"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
+
+            <!-- FILTERS CARD -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -79,7 +92,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Card Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
@@ -109,117 +121,104 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <!-- Row 1: Student Name + Contact -->
+                        <!-- Row 1: View + Date -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:layout_marginBottom="10dp">
 
-                            <!-- Student Name -->
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:layout_marginEnd="8dp">
+                            <RadioGroup
+                                android:id="@+id/rgView"
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:background="@drawable/bg_edittext_outline"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="8dp">
 
-                                <TextView
-                                    android:layout_width="wrap_content"
+                                <RadioButton
+                                    android:id="@+id/cbAll"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:text="Student Name"
-                                    android:textColor="#2E7D32"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold"
-                                    android:layout_marginBottom="4dp" />
+                                    android:layout_weight="1"
+                                    android:text="All Students"
+                                    android:textSize="12sp"
+                                    android:checked="true"
+                                    android:buttonTint="#2E7D32" />
 
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="46dp"
-                                    android:background="@drawable/bg_edittext_outline"
-                                    android:gravity="center_vertical"
-                                    android:orientation="horizontal"
-                                    android:paddingHorizontal="10dp">
-
-                                    <ImageView
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/ic_person_foreground"
-                                        android:tint="#2E7D32"
-                                        android:layout_marginEnd="6dp" />
-
-                                    <EditText
-                                        android:id="@+id/etStudentName"
-                                        android:layout_width="0dp"
-                                        android:layout_height="match_parent"
-                                        android:layout_weight="1"
-                                        android:background="@null"
-                                        android:hint="Search name..."
-                                        android:textColor="#1A1A1A"
-                                        android:textColorHint="#AAAAAA"
-                                        android:textSize="13sp"
-                                        android:maxLines="1"
-                                        android:singleLine="true"
-                                        android:inputType="textPersonName" />
-                                </LinearLayout>
-                            </LinearLayout>
-
-                            <!-- Contact No -->
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
+                                <RadioButton
+                                    android:id="@+id/cbAbsent"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:text="Contact No"
-                                    android:textColor="#2E7D32"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold"
-                                    android:layout_marginBottom="4dp" />
+                                    android:layout_weight="1"
+                                    android:text="Absent"
+                                    android:textSize="12sp"
+                                    android:buttonTint="#2E7D32" />
 
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="46dp"
-                                    android:background="@drawable/bg_edittext_outline"
-                                    android:gravity="center_vertical"
-                                    android:orientation="horizontal"
-                                    android:paddingHorizontal="10dp">
+                            </RadioGroup>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="10dp">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
-                                    <ImageView
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/baseline_call_24"
-                                        android:tint="#2E7D32"
-                                        android:layout_marginEnd="6dp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Date"
+                                android:textColor="#2E7D32"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp" />
 
-                                    <EditText
-                                        android:id="@+id/etContactNo"
-                                        android:layout_width="0dp"
-                                        android:layout_height="match_parent"
-                                        android:layout_weight="1"
-                                        android:background="@null"
-                                        android:hint="Search contact..."
-                                        android:textColor="#1A1A1A"
-                                        android:textColorHint="#AAAAAA"
-                                        android:textSize="13sp"
-                                        android:maxLines="1"
-                                        android:singleLine="true"
-                                        android:inputType="phone" />
-                                </LinearLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:background="@drawable/bg_edittext_outline"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="10dp">
+
+                                <EditText
+                                    android:id="@+id/etClassDate"
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1"
+                                    android:background="@null"
+                                    android:focusable="false"
+                                    android:hint="Select date"
+                                    android:textColor="#1A1A1A"
+                                    android:textColorHint="#AAAAAA"
+                                    android:textSize="13sp"
+                                    android:maxLines="1"
+                                    android:singleLine="true" />
                             </LinearLayout>
                         </LinearLayout>
+                        </LinearLayout>
 
-                        <!-- Row 2: Course + Location -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Apply Filters"
+                            android:textColor="#2E7D32"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="6dp" />
+
+                        <!-- Row 2: Course + Batch -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:layout_marginBottom="10dp">
 
-                            <!-- Course -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -230,7 +229,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Course"
+                                    android:text="Course Name"
                                     android:textColor="#2E7D32"
                                     android:textSize="11sp"
                                     android:textStyle="bold"
@@ -262,7 +261,6 @@
                                 </LinearLayout>
                             </LinearLayout>
 
-                            <!-- Location -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -272,7 +270,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Location"
+                                    android:text="Batch Name"
                                     android:textColor="#2E7D32"
                                     android:textSize="11sp"
                                     android:textStyle="bold"
@@ -284,100 +282,78 @@
                                     android:background="@drawable/bg_edittext_outline"
                                     android:gravity="center_vertical"
                                     android:orientation="horizontal"
-                                    android:paddingHorizontal="10dp">
+                                    android:paddingStart="10dp"
+                                    android:paddingEnd="4dp">
 
                                     <ImageView
                                         android:layout_width="16dp"
                                         android:layout_height="16dp"
-                                        android:src="@drawable/baseline_content_paste_search_24"
+                                        android:src="@drawable/outline_book_2_24"
                                         android:tint="#2E7D32"
                                         android:layout_marginEnd="6dp" />
 
-                                    <EditText
-                                        android:id="@+id/etLocation"
+                                    <Spinner
+                                        android:id="@+id/spBatch"
                                         android:layout_width="0dp"
                                         android:layout_height="match_parent"
                                         android:layout_weight="1"
                                         android:background="@null"
-                                        android:hint="Search location..."
-                                        android:textColor="#1A1A1A"
-                                        android:textColorHint="#AAAAAA"
-                                        android:textSize="13sp"
-                                        android:maxLines="1"
-                                        android:singleLine="true"
-                                        android:inputType="text" />
+                                        android:spinnerMode="dropdown" />
                                 </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Row 3: Status checkboxes — 2x2 grid -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Inquiry Status"
-                            android:textColor="#2E7D32"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="6dp" />
-
-                        <!-- Checkbox Row 1: All + Active -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="2dp">
-
-                            <CheckBox
-                                android:id="@+id/cbAll"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="All"
-                                android:textSize="12sp"
-                                android:checked="true"
-                                android:buttonTint="#2E7D32" />
-
-                            <CheckBox
-                                android:id="@+id/cbActive"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Active"
-                                android:textSize="12sp"
-                                android:buttonTint="#2E7D32" />
-                        </LinearLayout>
-
-                        <!-- Checkbox Row 2: Converted + Cancelled -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="12dp">
-
-                            <CheckBox
-                                android:id="@+id/cbConverted"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Converted"
-                                android:textSize="12sp"
-                                android:buttonTint="#2E7D32" />
-
-                            <CheckBox
-                                android:id="@+id/cbCancelled"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Cancelled"
-                                android:textSize="12sp"
-                                android:buttonTint="#2E7D32" />
-                        </LinearLayout>
-
-                        <!-- Buttons Row: Reset + View Students -->
+                        <!-- Row 3: Time + Buttons -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Time"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="4dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="46dp"
+                                    android:background="@drawable/bg_edittext_outline"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:paddingStart="10dp"
+                                    android:paddingEnd="4dp">
+
+                                    <Spinner
+                                        android:id="@+id/spTime"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:background="@null"
+                                        android:spinnerMode="dropdown" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginTop="10dp"
+                            android:orientation="horizontal"
+                            android:layout_gravity="bottom">
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnReset"
@@ -408,11 +384,26 @@
                                 android:insetBottom="0dp" />
                         </LinearLayout>
 
+                        </LinearLayout>
+
+                        <!-- Hidden checkboxes kept because your Java class uses these ids -->
+                        <CheckBox
+                            android:id="@+id/cbPresent"
+                            android:layout_width="1dp"
+                            android:layout_height="1dp"
+                            android:visibility="gone" />
+
+                        <CheckBox
+                            android:id="@+id/cbLeave"
+                            android:layout_width="1dp"
+                            android:layout_height="1dp"
+                            android:visibility="gone" />
+
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ══ STUDENT LIST CARD ══ -->
+            <!-- ATTENDANCE LIST CARD -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardStudentList"
                 android:layout_width="match_parent"
@@ -428,7 +419,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Card Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
@@ -447,7 +437,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="8dp"
-                            android:text="Inquiry List"
+                            android:text="Attendance List"
                             android:textColor="#FFFFFF"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -464,7 +454,6 @@
                             android:paddingVertical="2dp" />
                     </LinearLayout>
 
-                    <!-- Horizontal scrollable table -->
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -474,7 +463,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:minWidth="1400dp">
+                            android:minWidth="1120dp">
 
                             <!-- Header Row -->
                             <LinearLayout
@@ -484,94 +473,74 @@
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal">
 
-                                <TextView android:layout_width="50dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="No."
+                                <TextView android:layout_width="45dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="SN"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Select"
+                                <TextView android:layout_width="65dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Adm ID"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Inq Date"
+                                <TextView android:layout_width="100dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Adm Date"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="150dp" android:layout_height="match_parent"
+                                <TextView android:layout_width="180dp" android:layout_height="match_parent"
                                     android:gravity="center_vertical" android:paddingStart="8dp"
                                     android:text="Student Name"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="110dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Mobile"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="110dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Alternate No"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="80dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Location"
+                                    android:gravity="center" android:text="Contact"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="100dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Courses"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Reminder"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Status"
+                                    android:gravity="center" android:text="Course Name"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="100dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Feedback"
+                                    android:gravity="center" android:text="Batch"
+                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
+
+                                <TextView android:layout_width="130dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Batch Timing"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="80dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="School"
+                                    android:gravity="center" android:text="present"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Reference"
+                                <TextView android:layout_width="180dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Class Date"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="60dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Select"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-
                             </LinearLayout>
 
-                            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#CCCCCC" />
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="#CCCCCC" />
 
-                            <!-- Data rows -->
                             <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/rvInquiries"
+                                android:id="@+id/rvAttendance"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:nestedScrollingEnabled="false" />
 
                         </LinearLayout>
                     </HorizontalScrollView>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ══ SEND BUTTONS ROW ══ -->
+            <!-- ACTION BUTTONS ROW -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -585,7 +554,7 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     android:backgroundTint="#2E7D32"
-                    android:text="📱 WhatsApp"
+                    android:text="WhatsApp"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
                     android:textStyle="bold"
@@ -599,8 +568,9 @@
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
                     android:backgroundTint="#2E7D32"
-                    android:text="✉️ Send SMS"
+                    android:text="Send SMS"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
                     android:textStyle="bold"
@@ -614,7 +584,6 @@
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
                     android:backgroundTint="#2E7D32"
                     android:text="Generate PDF"
                     android:textColor="#FFFFFF"
@@ -624,14 +593,12 @@
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:visibility="gone" />
-
-
             </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ── LOADER ── -->
+    <!-- LOADER -->
     <FrameLayout
         android:id="@+id/loaderLayout"
         android:layout_width="match_parent"

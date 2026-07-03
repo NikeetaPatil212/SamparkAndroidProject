@@ -77,8 +77,24 @@
             android:visible="false"/>
 
         <item
+            android:id="@+id/nav_certificates"
+            android:title="Certificates"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
             android:id="@+id/nav_certificate_handover"
             android:title="Certificate Handover"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_notifications"
+            android:title="Notifications"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
+            android:id="@+id/nav_notification_reminder"
+            android:title="New Notification"
             android:icon="@drawable/ic_person_foreground"
             android:visible="false"/>
 
@@ -89,22 +105,6 @@
             android:visible="false"/>
 
         <item
-            android:id="@+id/nav_notification_reminder"
-            android:title="Notification Reminder"
-            android:icon="@drawable/ic_person_foreground"
-            android:visible="false"/>
-
-        <item
-            android:id="@+id/nav_certificates"
-            android:title="Certificates"
-            android:icon="@drawable/ic_person_foreground"/>
-
-        <item
-            android:id="@+id/nav_notifications"
-            android:title="Notifications"
-            android:icon="@drawable/ic_person_foreground"/>
-
-        <item
             android:id="@+id/nav_bulk"
             android:title="Bulk Messenger"
             android:icon="@drawable/ic_person_foreground"/>
@@ -113,6 +113,53 @@
             android:id="@+id/nav_reports"
             android:title="Reports"
             android:icon="@drawable/ic_person_foreground"/>
+
+        <item
+            android:id="@+id/nav_reports_fees"
+            android:title="Summary Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_outstanding_report"
+            android:title="Outstanding Detailed Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_collection_summary"
+            android:title="Fees Collection Summary"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_admission_report"
+            android:title="Admission Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_attendance_report"
+            android:title="Attendance Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_certificate_report"
+            android:title="Certificate Handover Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_study_material_report"
+            android:title="Study Material Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+       <!-- <item
+            android:id="@+id/nav_transaction_report"
+            android:title="Expenses Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>-->
     </group>
 
     <!-- SECTION TITLE -->

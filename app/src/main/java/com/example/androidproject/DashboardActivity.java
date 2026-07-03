@@ -37,6 +37,11 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     NavigationView navigationView;
     private boolean isInquiryExpanded = false;
     private boolean isAdmissionExpanded = false;
+    private boolean isCertificateExpanded = false;
+    private boolean isNotificationExpanded = false;
+    private boolean isReportsExpanded = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,10 +91,36 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_get_timeAllot).setVisible(false);
             menu.findItem(R.id.nav_change_timeAllot).setVisible(false);
             menu.findItem(R.id.nav_distribute_study_material).setVisible(false);
-            menu.findItem(R.id.nav_certificate_handover).setVisible(false);
             menu.findItem(R.id.nav_birthdate).setVisible(false);
             menu.findItem(R.id.nav_notification_reminder).setVisible(false);
             menu.findItem(R.id.nav_admissions).setTitle("Admissions");
+        }
+
+        if(isCertificateExpanded){
+            isCertificateExpanded = false;
+            menu.findItem(R.id.nav_certificate_handover).setVisible(false);
+            menu.findItem(R.id.nav_certificates).setTitle("Certificates");
+        }
+
+        if(isReportsExpanded){
+            isReportsExpanded = false;
+            menu.findItem(R.id.nav_reports_fees).setVisible(false);
+            menu.findItem(R.id.nav_outstanding_report).setVisible(false);
+            menu.findItem(R.id.nav_collection_summary).setVisible(false);
+            menu.findItem(R.id.nav_admission_report).setVisible(false);
+            menu.findItem(R.id.nav_attendance_report).setVisible(false);
+            menu.findItem(R.id.nav_certificate_report).setVisible(false);
+            menu.findItem(R.id.nav_study_material_report).setVisible(false);
+        //    menu.findItem(R.id.nav_transaction_report).setVisible(false);
+            menu.findItem(R.id.nav_reports).setTitle("Reports");
+        }
+
+
+        if(isNotificationExpanded){
+            isNotificationExpanded = false;
+            menu.findItem(R.id.nav_notification_reminder).setVisible(false);
+            menu.findItem(R.id.nav_birthdate).setVisible(false);
+            menu.findItem(R.id.nav_notifications).setTitle("Notification");
         }
     }
 
@@ -116,6 +147,55 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             styleSubItem(menu.findItem(R.id.nav_batch),       "Get Batch");
             styleSubItem(menu.findItem(R.id.nav_summary_report),       "Summary Report");
             styleSubItem(menu.findItem(R.id.nav_detailed_report),       "Detailed Report");
+            return true;
+        }
+
+        if (id == R.id.nav_certificates) {
+            isCertificateExpanded = !isCertificateExpanded;
+
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_certificate_handover).setVisible(isCertificateExpanded);
+
+            item.setTitle(isCertificateExpanded ? "Certificates  ▲" : "Certificates  ▼");
+            styleSubItem(menu.findItem(R.id.nav_certificate_handover),       "Certificate Handover");
+            return true;
+        }
+
+        if (id == R.id.nav_notifications) {
+            isNotificationExpanded = !isNotificationExpanded;
+
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_notification_reminder).setVisible(isNotificationExpanded);
+            menu.findItem(R.id.nav_birthdate).setVisible(isNotificationExpanded);
+
+            item.setTitle(isNotificationExpanded ? "Notifications  ▲" : "Notifications  ▼");
+            styleSubItem(menu.findItem(R.id.nav_notification_reminder),       "New Notification");
+            styleSubItem(menu.findItem(R.id.nav_birthdate),       "BirthDay Reminder");
+            return true;
+        }
+
+        if (id == R.id.nav_reports) {
+            isReportsExpanded = !isReportsExpanded;
+
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_reports_fees).setVisible(isReportsExpanded);
+            menu.findItem(R.id.nav_outstanding_report).setVisible(isReportsExpanded);
+            menu.findItem(R.id.nav_collection_summary).setVisible(isReportsExpanded);
+            menu.findItem(R.id.nav_admission_report).setVisible(isReportsExpanded);
+            menu.findItem(R.id.nav_attendance_report).setVisible(isReportsExpanded);
+            menu.findItem(R.id.nav_certificate_report).setVisible(isReportsExpanded);
+            menu.findItem(R.id.nav_study_material_report).setVisible(isReportsExpanded);
+        //    menu.findItem(R.id.nav_transaction_report).setVisible(isReportsExpanded);
+
+            item.setTitle(isReportsExpanded ? "Reports  ▲" : "Reports  ▼");
+            styleSubItem(menu.findItem(R.id.nav_reports_fees),       "Summary Report");
+            styleSubItem(menu.findItem(R.id.nav_outstanding_report),       "Outstanding Detailed Report");
+            styleSubItem(menu.findItem(R.id.nav_collection_summary),       "Fees Collection Summary");
+            styleSubItem(menu.findItem(R.id.nav_admission_report),       "Admission Report");
+            styleSubItem(menu.findItem(R.id.nav_attendance_report),       "Attendance Report");
+            styleSubItem(menu.findItem(R.id.nav_certificate_report),       "Certificate Handover Report");
+            styleSubItem(menu.findItem(R.id.nav_study_material_report),       "Study Material Report");
+        //    styleSubItem(menu.findItem(R.id.nav_transaction_report),       "Expenses Report");
             return true;
         }
 
@@ -153,7 +233,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_get_timeAllot).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_change_timeAllot).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_distribute_study_material).setVisible(isAdmissionExpanded);
-            menu.findItem(R.id.nav_certificate_handover).setVisible(isAdmissionExpanded);
+        //    menu.findItem(R.id.nav_certificate_handover).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_birthdate).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_notification_reminder).setVisible(isAdmissionExpanded);
 
@@ -164,9 +244,9 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             styleSubItem(menu.findItem(R.id.nav_get_timeAllot), "Allot Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_change_timeAllot), "Change Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_distribute_study_material), "Distribute Study Material");
-            styleSubItem(menu.findItem(R.id.nav_certificate_handover), "Certificate Handover");
-            styleSubItem(menu.findItem(R.id.nav_birthdate), "Birthdate Reminder");
-            styleSubItem(menu.findItem(R.id.nav_notification_reminder), "Notification Reminder");
+         //   styleSubItem(menu.findItem(R.id.nav_certificate_handover), "Certificate Handover");
+        //    styleSubItem(menu.findItem(R.id.nav_birthdate), "Birthdate Reminder");
+        //    styleSubItem(menu.findItem(R.id.nav_notification_reminder), "Notification Reminder");
             return true;
         }
 
@@ -181,18 +261,6 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }
-
-       /* if (id == R.id.nav_get_timeAllot) {
-            startActivity(new Intent(this, AllotBatchActivity.class));
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        }
-
-        if (id == R.id.nav_change_timeAllot) {
-            startActivity(new Intent(this, AllotBatchActivity.class));
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        }*/
 
         if (id == R.id.nav_get_timeAllot) {
             startActivity(new Intent(this, AllotBatchActivity.class));
@@ -234,14 +302,59 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             return true;
         }
 
+        if (id == R.id.nav_reports_fees) {
+            startActivity(new Intent(this, OuStandingSummaryReport.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
 
+        if (id == R.id.nav_outstanding_report) {
+            startActivity(new Intent(this, OutStandingDetailedActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        if (id == R.id.nav_collection_summary) {
+            startActivity(new Intent(this, FeesCollectionSummaryActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_admission_report) {
+            startActivity(new Intent(this, AdmissionReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_attendance_report) {
+            startActivity(new Intent(this, AttendanceReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_certificate_report) {
+            startActivity(new Intent(this, CertificateReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+
+        if (id == R.id.nav_study_material_report) {
+            startActivity(new Intent(this, StudyMaterialReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+
+        /*if (id == R.id.nav_transaction_report) {
+            startActivity(new Intent(this, ExpenseReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }*/
         // ── OTHER items ──────────────────────────────────────────
       /*  if (id == R.id.nav_certificates) {
         } else*/
-        if (id == R.id.nav_notifications) {
-        } else if (id == R.id.nav_bulk) {
-        } else if (id == R.id.nav_reports) {
-        } else if (id == R.id.nav_dashboard) {
+        if (id == R.id.nav_bulk) {
+        }else if (id == R.id.nav_dashboard) {
         } else if (id == R.id.nav_templates) {
         } else if (id == R.id.nav_institute) {
         } else if (id == R.id.nav_data) {

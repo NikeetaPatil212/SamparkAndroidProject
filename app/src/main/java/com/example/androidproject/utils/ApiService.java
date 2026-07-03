@@ -52,10 +52,25 @@ import com.example.androidproject.model.queue.SmsQueueRequest;
 import com.example.androidproject.model.queue.SmsQueueResponse;
 import com.example.androidproject.model.queue.WhatsAppQueueRequest;
 import com.example.androidproject.model.queue.WhatsAppQueueResponse;
+
+import com.example.androidproject.model.summary.AdmissionReportRequest;
+import com.example.androidproject.model.summary.AdmissionReportResponse;
+import com.example.androidproject.model.summary.AttendanceReportRequest;
+import com.example.androidproject.model.summary.AttendanceReportResponse;
+import com.example.androidproject.model.summary.CertificateReportRequest;
+import com.example.androidproject.model.summary.CertificateReportResponse;
+import com.example.androidproject.model.summary.CollectionSummaryRequest;
+import com.example.androidproject.model.summary.CollectionSummaryResponse;
+import com.example.androidproject.model.summary.FeeOutstandingRequest;
+import com.example.androidproject.model.summary.FeeOutstandingResponse;
 import com.example.androidproject.model.summary.InquiryReportRequest;
 import com.example.androidproject.model.summary.InquiryReportResponse;
 import com.example.androidproject.model.summary.InquirySummaryRequest;
 import com.example.androidproject.model.summary.InquirySummaryResponse;
+import com.example.androidproject.model.summary.OutstandingRequest;
+import com.example.androidproject.model.summary.OutstandingResponse;
+import com.example.androidproject.model.summary.StudyMaterialReportRequest;
+import com.example.androidproject.model.summary.StudyMaterialReportResponse;
 import com.example.androidproject.model.template.InstituteProfileResponse;
 import com.example.androidproject.model.template.InstituteRequest;
 import com.example.androidproject.model.template.SettingsResponse;
@@ -182,4 +197,26 @@ public interface ApiService {
 
     @POST("GetInquiryReport")
     Call<InquiryReportResponse> getInquiryReport(@Body InquiryReportRequest request);
+
+    @POST("OutstandingSummary")
+    Call<FeeOutstandingResponse> getOutstandingSummary(@Body FeeOutstandingRequest request);
+
+    @POST("OutstandingDetail")
+    Call<OutstandingResponse> getOutstandingDetail(@Body OutstandingRequest request);
+
+    @POST("CollectionSummary")
+    Call<CollectionSummaryResponse> getCollectionSummary(@Body CollectionSummaryRequest request);
+
+    @POST("AdmissionReportDetail")
+    Call<AdmissionReportResponse> getAdmissionReport(@Body AdmissionReportRequest request);
+
+    @POST("AttendanceReport")
+    Call<AttendanceReportResponse> getAttendanceReport(@Body AttendanceReportRequest request);
+
+    @POST("CertificateReport")
+    Call<CertificateReportResponse> getCertificateReport(@Body CertificateReportRequest request);
+
+    @POST("StudyMaterialReport")
+    Call<StudyMaterialReportResponse> getStudyMaterialReport(@Body StudyMaterialReportRequest request);
+
 }

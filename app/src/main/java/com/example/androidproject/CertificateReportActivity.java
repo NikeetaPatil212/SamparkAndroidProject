@@ -12,10 +12,10 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,10 +27,10 @@ import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.androidproject.adapters.InquiryReportAdapter;
-import com.example.androidproject.model.summary.InquiryReportItem;
-import com.example.androidproject.model.summary.InquiryReportRequest;
-import com.example.androidproject.model.summary.InquiryReportResponse;
+import com.example.androidproject.adapters.CertificateReportAdapter;
+import com.example.androidproject.model.summary.CertificateReportItem;
+import com.example.androidproject.model.summary.CertificateReportRequest;
+import com.example.androidproject.model.summary.CertificateReportResponse;
 import com.example.androidproject.model.template.TemplateEntity;
 import com.example.androidproject.model.template.TemplateRepository;
 import com.example.androidproject.utils.PrefManager;
@@ -44,33 +44,34 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DetailedReportActivity extends AppCompatActivity {
+public class CertificateReportActivity extends AppCompatActivity {
 
     // ── Views ─────────────────────────────────────────────────────
-    private EditText       etStudentName, etContactNo, etLocation;
-    private Spinner        spCourse;
-    private CheckBox       cbAll, cbActive, cbConverted, cbCancelled;
-    private MaterialButton btnViewStudents, btnReset, btnSendWhatsappMessage,btnSendSMSMessage,btnGeneratePdf;
+    private EditText       etStudentName, etContactNo;
+    private Spinner        spCourse, spBatch, spTiming;
+    private RadioGroup     rgView;
+    private android.widget.RadioButton rbPending, rbDistributed;
+    private MaterialButton btnViewStudents, btnReset, btnSendWhatsappMessage, btnGeneratePdf;
     private CardView       cardStudentList;
-    private RecyclerView   rvInquiries;
+    private RecyclerView   rvCertificates;
     private TextView       tvStudentCount, tvCount;
     private FrameLayout    loaderLayout;
 
     // ── Data ──────────────────────────────────────────────────────
-    // change from List<InquiryItem> to:
-    private List<InquiryReportItem> allInquiries = new ArrayList<>();
-    private InquiryReportAdapter adapter;
+    private List<CertificateReportItem> allCertificates = new ArrayList<>();
+    private CertificateReportAdapter adapter;
 
-    // ADD these fields after existing fields:
-    private List<InquiryReportItem> selectedItems = new ArrayList<>();
+    // ── PDF layout constants ─────────────────────────────────────
     private static final int PAGE_WIDTH    = 842;
     private static final int PAGE_HEIGHT   = 595;
     private static final int MARGIN        = 24;
@@ -79,82 +80,81 @@ public class DetailedReportActivity extends AppCompatActivity {
 
     // 14 columns — widths must sum ≤ (PAGE_WIDTH - 2*MARGIN) = 794
     private static final int[] COL_WIDTHS = {
-            22,   // No
-            38,   // Inquiry No
-            58,   // Inquiry Date
-            105,  // Student Name
-            70,   // Mobile
-            70,   // Alt No
-            58,   // Location
-            62,   // Course        ← added
-            58,   // Reminder Date
-            58,   // Status
-            55,   // Feedback
-            35,   // Gender
-            48,   // School
-            47    // Reference
-    };  // total = 764 ✔
+            22,   // SN
+            40,   // Adm ID
+            58,   // Adm Date
+            90,   // Student Name
+            65,   // Contact
+            55,   // Course Name
+            60,   // Batch
+            55,   // Status
+            65,   // Certificate No
+            45,   // Result
+            55,   // Percentage
+            65,   // Handed To
+            55,   // Contact Info
+            60    // Handover Date
+    }; // total = 790 ✔
 
     private static final String[] COL_HEADERS = {
-            "No",
-            "Inq Date",
+            "SN",
+            "Adm ID",
+            "Adm Date",
             "Student Name",
-            "Mobile",
-            "Alt No",
-            "Location",
-            "Course",        // ← added
-            "Reminder",
+            "Contact",
+            "Course",
+            "Batch",
             "Status",
-            "Feedback",
-            "Gender",
-            "School",
-            "Reference"
+            "Cert No",
+            "Result",
+            "Percentage",
+            "Handed To",
+            "Contact Info",
+            "Handover Date"
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_detailed_report);
+        setContentView(R.layout.activity_certificate_report);
 
         initViews();
         setupBackButton();
-        setupCourseSpinner();
-        setupStatusCheckboxes();
+        setupViewToggle();
         setupLiveFilters();
-        fetchInquiries();
+        fetchCertificates();
     }
 
     // ── Init Views ─────────────────────────────────────────────────
     private void initViews() {
         etStudentName   = findViewById(R.id.etStudentName);
         etContactNo     = findViewById(R.id.etContactNo);
-        etLocation      = findViewById(R.id.etLocation);
         spCourse        = findViewById(R.id.spCourse);
-        cbAll           = findViewById(R.id.cbAll);
-        cbActive        = findViewById(R.id.cbActive);
-        cbConverted     = findViewById(R.id.cbConverted);
-        cbCancelled     = findViewById(R.id.cbCancelled);
+        spBatch         = findViewById(R.id.spBatch);
+        spTiming        = findViewById(R.id.spTiming);
+        rgView          = findViewById(R.id.rgView);
+        rbPending       = findViewById(R.id.rbPending);
+        rbDistributed   = findViewById(R.id.rbDistributed);
         btnViewStudents = findViewById(R.id.btnViewStudents);
         btnReset        = findViewById(R.id.btnReset);
-        btnSendWhatsappMessage  = findViewById(R.id.btnSendWhatsappMessage);
-        btnSendSMSMessage  = findViewById(R.id.btnSendSMSMessage);
+        btnSendWhatsappMessage = findViewById(R.id.btnSendWhatsappMessage);
         btnGeneratePdf  = findViewById(R.id.btnGeneratePdf);
         cardStudentList = findViewById(R.id.cardStudentList);
-        rvInquiries     = findViewById(R.id.rvInquiries);
+        rvCertificates  = findViewById(R.id.rvCertificates);
         tvStudentCount  = findViewById(R.id.tvStudentCount);
         tvCount         = findViewById(R.id.tvCount);
         loaderLayout    = findViewById(R.id.loaderLayout);
 
-        rvInquiries.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new InquiryReportAdapter();
-        rvInquiries.setAdapter(adapter);
+        rvCertificates.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new CertificateReportAdapter();
+        rvCertificates.setAdapter(adapter);
 
-        btnViewStudents.setOnClickListener(v -> fetchInquiries());
+        btnViewStudents.setOnClickListener(v -> fetchCertificates());
         btnReset.setOnClickListener(v -> resetFilters());
 
         btnSendWhatsappMessage.setOnClickListener(v -> {
-            List<InquiryReportItem> selected = adapter.getCheckedItems();
+            List<CertificateReportItem> selected = adapter.getCheckedItems();
             if (selected.isEmpty()) {
                 toast("Please select at least one student");
                 return;
@@ -162,31 +162,16 @@ public class DetailedReportActivity extends AppCompatActivity {
             sendWhatsAppBulk(selected);
         });
 
-        btnSendSMSMessage.setOnClickListener(v -> {
-            List<InquiryReportItem> selected = adapter.getCheckedItems();
-            if (selected.isEmpty()) {
-                toast("Please select at least one student");
-                return;
-            }
-            sendSmsBulk(selected);
-        });
+        btnGeneratePdf.setOnClickListener(v -> exportToPdf());
+    }
 
-        btnGeneratePdf.setOnClickListener(v -> exportToPdf());  // ← wired here
-
-       /* btnSendMessage.setOnClickListener(v -> {
-            List<InquiryItem> selected = adapter.getCheckedItems();
-            if (selected.isEmpty()) {
-                toast("Please select at least one student");
-                return;
-            }
-            toast("Selected: " + selected.size() + " students");
-            // wire send message logic here
-        });*/
-
+    private void setupViewToggle() {
+        rbPending.setChecked(true);
+        rgView.setOnCheckedChangeListener((group, checkedId) -> applyFilters());
     }
 
     private void exportToPdf() {
-        List<InquiryReportItem> data = adapter.getFilteredList();
+        List<CertificateReportItem> data = adapter.getFilteredList();
         if (data == null || data.isEmpty()) {
             Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show();
             return;
@@ -205,11 +190,10 @@ public class DetailedReportActivity extends AppCompatActivity {
     }
 
     // ── Build PDF ─────────────────────────────────────────────────
-    private File buildPdf(List<InquiryReportItem> data) throws Exception {
+    private File buildPdf(List<CertificateReportItem> data) throws Exception {
 
         PdfDocument document = new PdfDocument();
 
-        // Paints
         Paint paintTitle = new Paint();
         paintTitle.setColor(Color.parseColor("#2E7D32"));
         paintTitle.setTextSize(14f);
@@ -232,20 +216,15 @@ public class DetailedReportActivity extends AppCompatActivity {
         paintCellText.setColor(Color.parseColor("#1A1A1A"));
         paintCellText.setTextSize(8f);
 
-        Paint paintCellBlue = new Paint();
-        paintCellBlue.setColor(Color.parseColor("#1565C0"));
-        paintCellBlue.setTextSize(8f);
-        paintCellBlue.setFakeBoldText(true);
-
         Paint paintCellGreen = new Paint();
         paintCellGreen.setColor(Color.parseColor("#2E7D32"));
         paintCellGreen.setTextSize(8f);
         paintCellGreen.setFakeBoldText(true);
 
-        Paint paintCellRed = new Paint();
-        paintCellRed.setColor(Color.parseColor("#C62828"));
-        paintCellRed.setTextSize(8f);
-        paintCellRed.setFakeBoldText(true);
+        Paint paintCellAmber = new Paint();
+        paintCellAmber.setColor(Color.parseColor("#EF6C00"));
+        paintCellAmber.setTextSize(8f);
+        paintCellAmber.setFakeBoldText(true);
 
         Paint paintRowEven = new Paint();
         paintRowEven.setColor(Color.WHITE);
@@ -260,19 +239,8 @@ public class DetailedReportActivity extends AppCompatActivity {
         paintGrid.setStyle(Paint.Style.STROKE);
         paintGrid.setStrokeWidth(0.5f);
 
-        Paint paintFooterBg = new Paint();
-        paintFooterBg.setColor(Color.parseColor("#E8F5E9"));
-        paintFooterBg.setStyle(Paint.Style.FILL);
-
-        Paint paintFooterText = new Paint();
-        paintFooterText.setColor(Color.parseColor("#2E7D32"));
-        paintFooterText.setTextSize(9f);
-        paintFooterText.setFakeBoldText(true);
-
-        // Pagination
         int TITLE_BLOCK_HEIGHT = 52;
-        int FOOTER_HEIGHT      = 28;
-        int usableHeight       = PAGE_HEIGHT - MARGIN * 2 - FOOTER_HEIGHT;
+        int usableHeight       = PAGE_HEIGHT - MARGIN * 2;
         int rowsPerFirstPage   = (usableHeight - TITLE_BLOCK_HEIGHT - HEADER_HEIGHT) / ROW_HEIGHT;
         int rowsPerOtherPage   = (usableHeight - HEADER_HEIGHT) / ROW_HEIGHT;
 
@@ -283,14 +251,7 @@ public class DetailedReportActivity extends AppCompatActivity {
 
         String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm",
                 Locale.getDefault()).format(new Date());
-
-        // Grand totals for footer
-     /*   double totalFees = 0, totalPaid = 0, totalOut = 0;
-        for (InquiryReportItem item : data) {
-            totalFees += item.fees;
-            totalPaid += item.paid;
-            totalOut  += item.outstanding;
-        }*/
+        String viewLabel = rbDistributed.isChecked() ? "Distributed Certificates" : "Pending Certificates";
 
         int dataIndex = 0;
 
@@ -303,9 +264,8 @@ public class DetailedReportActivity extends AppCompatActivity {
 
             int y = MARGIN;
 
-            // Title block — first page only
             if (p == 0) {
-                c.drawText("Sampark IM — Outstanding Fees Report", MARGIN, y + 12, paintTitle);
+                c.drawText("Sampark IM — Certificate Hand-Over Report (" + viewLabel + ")", MARGIN, y + 12, paintTitle);
                 y += 18;
                 c.drawText("Generated: " + timestamp
                                 + "   |   Total Records: " + data.size(),
@@ -317,7 +277,6 @@ public class DetailedReportActivity extends AppCompatActivity {
                 y += 16;
             }
 
-            // Header row
             int x = MARGIN;
             c.drawRect(x, y, PAGE_WIDTH - MARGIN, y + HEADER_HEIGHT, paintHeaderBg);
             for (int col = 0; col < COL_HEADERS.length; col++) {
@@ -326,41 +285,42 @@ public class DetailedReportActivity extends AppCompatActivity {
             }
             y += HEADER_HEIGHT;
 
-            // Data rows
             int rowsThisPage = (p == 0) ? rowsPerFirstPage : rowsPerOtherPage;
             int rowsDrawn    = 0;
 
             while (dataIndex < data.size() && rowsDrawn < rowsThisPage) {
-                InquiryReportItem item = data.get(dataIndex);
+                CertificateReportItem item = data.get(dataIndex);
 
                 c.drawRect(MARGIN, y, PAGE_WIDTH - MARGIN, y + ROW_HEIGHT,
                         dataIndex % 2 == 0 ? paintRowEven : paintRowOdd);
 
-                // ── cells[] — note reminderDate uses safe(), NOT fmt() ──
+                String statusText = item.isDistributed ? "Distributed" : "Pending";
+
                 String[] cells = {
-                        String.valueOf(dataIndex + 1),          // No
-                      //  safe(item.nu),               // Adm Date  ← safe()
-                        safe(item.inquiryDate),               // Adm Date  ← safe()
-                        safe(item.fullName),                 // Student Name
-                        safe(item.mobile),                      // Mobile
-                        safe(item.alternateNo),                      // Mobile
-                        safe(item.location),                    // Location
-                        safe(item.about),                  // Course
-                        safe(item.reminderDate),                   // Batch
-                        safe(item.reminderStatus),                   // Batch
-                        safe(item.feedback),
-                        safe(item.gender),
-                        safe(item.schoolName),
-                        safe(item.reference)
+                        String.valueOf(dataIndex + 1),      // SN
+                        String.valueOf(item.admissionID),   // Adm ID
+                        safe(item.admissionDate),           // Adm Date
+                        safe(item.studentName),             // Student Name
+                        safe(item.mobile),                  // Contact
+                        safe(item.courseName),              // Course
+                        safe(item.batchName),               // Batch
+                        statusText,                         // Status
+                        safe(item.certificateNumber),       // Cert No
+                        safe(item.result),                  // Result
+                        safe(item.percentage),              // Percentage
+                        safe(item.issuerName),              // Handed To
+                        safe(item.issuerContact),           // Contact Info
+                        safe(item.handoverDate)             // Handover Date
                 };
 
                 x = MARGIN;
                 for (int col = 0; col < cells.length; col++) {
                     Paint cellPaint;
-                    if      (col == 8)  cellPaint = paintCellBlue;   // Fees
-                    else if (col == 9)  cellPaint = paintCellGreen;  // Paid
-                    else if (col == 10) cellPaint = paintCellRed;    // Outstanding
-                    else                cellPaint = paintCellText;
+                    if (col == 7) {
+                        cellPaint = item.isDistributed ? paintCellGreen : paintCellAmber;
+                    } else {
+                        cellPaint = paintCellText;
+                    }
 
                     String txt = clipText(cells[col], COL_WIDTHS[col] - 4, cellPaint);
                     c.drawText(txt, x + 3, y + ROW_HEIGHT - 6, cellPaint);
@@ -375,25 +335,13 @@ public class DetailedReportActivity extends AppCompatActivity {
                 rowsDrawn++;
             }
 
-            // Footer
-           /* int footerY = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT;
-            c.drawRect(MARGIN, footerY, PAGE_WIDTH - MARGIN,
-                    footerY + FOOTER_HEIGHT, paintFooterBg);
-            c.drawText(
-                    "Total Fees: " + fmt(totalFees)
-                            + "   |   Total Paid: " + fmt(totalPaid)
-                            + "   |   Outstanding: " + fmt(totalOut)
-                            + "   |   Page " + (p + 1) + "/" + pageCount,
-                    MARGIN + 6, footerY + FOOTER_HEIGHT - 8, paintFooterText);*/
-
             document.finishPage(page);
         }
 
-        // Save to cache
         File pdfDir = new File(getCacheDir(), "pdfs");
         if (!pdfDir.exists()) pdfDir.mkdirs();
 
-        String fileName = "OutstandingReport_"
+        String fileName = "CertificateReport_"
                 + new SimpleDateFormat("yyyyMMdd_HHmmss",
                 Locale.getDefault()).format(new Date())
                 + ".pdf";
@@ -432,10 +380,6 @@ public class DetailedReportActivity extends AppCompatActivity {
         return (s == null || s.trim().isEmpty()) ? "-" : s.trim();
     }
 
-    private String fmt(double v) {
-        return "\u20B9" + (v == (long) v ? String.valueOf((long) v) : String.valueOf(v));
-    }
-
     private String clipText(String text, int maxWidth, Paint paint) {
         if (paint.measureText(text) <= maxWidth) return text;
         while (text.length() > 1 && paint.measureText(text + "…") > maxWidth)
@@ -443,10 +387,13 @@ public class DetailedReportActivity extends AppCompatActivity {
         return text + "…";
     }
 
-    private void sendWhatsAppBulk(List<InquiryReportItem> items) {
-        // ── Fetch template first, then build messages ─────────────────────────
+    // ── Bulk WhatsApp ─────────────────────────────────────────────
+    // Uses the same TemplateRepository pattern as inquiries/attendance,
+    // pointed at a "Certificate Notification" template category — rename
+    // to match whatever category you configure for this message type.
+    private void sendWhatsAppBulk(List<CertificateReportItem> items) {
         TemplateRepository.getInstance(this)
-                .getTemplateByCategory("Inquiry Follow Up",
+                .getTemplateByCategory("Certificate Pendings",
                         new TemplateRepository.SingleTemplateCallback() {
 
                             @Override
@@ -456,7 +403,7 @@ public class DetailedReportActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                PrefManager pref = PrefManager.getInstance(DetailedReportActivity.this);
+                                PrefManager pref = PrefManager.getInstance(CertificateReportActivity.this);
                                 String lang = pref.getLanguage();
                                 String templateText;
                                 switch (lang) {
@@ -471,32 +418,32 @@ public class DetailedReportActivity extends AppCompatActivity {
                                 List<com.example.androidproject.model.queue.WhatsAppQueueRequest.WhatsAppItem>
                                         whatsappItems = new ArrayList<>();
 
-                                for (InquiryReportItem s : items) {
+                                for (CertificateReportItem s : items) {
                                     if (s.mobile == null || s.mobile.isEmpty()) continue;
 
-                                    // ── Fill template placeholders ────────────
-                                    String fullName  = s.fullName != null ? s.fullName : "";
+                                    String fullName  = s.studentName != null ? s.studentName : "";
                                     String firstName = fullName.contains(" ")
                                             ? fullName.substring(0, fullName.indexOf(" "))
                                             : fullName;
 
                                     Map<String, String> data = new HashMap<>();
-                                    data.put("FirstName",      firstName);
-                                    data.put("StudentName",    fullName);
-                                    data.put("InquiryDate",    s.inquiryDate != null ? s.inquiryDate : "");
-                                    data.put("InquiryCourses", s.about != null ? s.about : "");
-                                    data.put("institute",      pref.getInstituteName());
-                                    data.put("Authority",      pref.getOwnerName());
-                                    data.put("mobile1",        pref.getInstituteMobile1());
-                                    data.put("mobile2",        pref.getInstituteMobile2());
-                                    data.put("email",          pref.getInstituteEmail());
-                                    data.put("address1",       pref.getInstituteAddress1());
-                                    data.put("address2",       pref.getInstituteAddress2());
-                                    data.put("ownerName",      pref.getOwnerName());
+                                    data.put("FirstName",         firstName);
+                                    data.put("StudentName",       s.studentName);
+                                    data.put("Course",            s.courseName != null ? s.courseName : "");
+                                    data.put("Batch",              s.batchName != null ? s.batchName : "");
+                                    data.put("CertificateNumber", s.certificateNumber != null ? s.certificateNumber : "");
+                                    data.put("institute",         pref.getInstituteName());
+                                    data.put("Authority",         pref.getOwnerName());
+                                    data.put("mobile1",           pref.getInstituteMobile1());
+                                    data.put("mobile2",           pref.getInstituteMobile2());
+                                    data.put("email",             pref.getInstituteEmail());
+                                    data.put("address1",          pref.getInstituteAddress1());
+                                    data.put("address2",          pref.getInstituteAddress2());
+                                    data.put("ownerName",         pref.getOwnerName());
 
                                     String message = TemplateRepository.fillTemplate(templateText, data);
+                                    Log.d("Certificate msg--", "onSuccess: " + message);
 
-                                    // ── Format mobile ─────────────────────────
                                     String mobile = s.mobile;
                                     String formattedMobile = mobile.startsWith("+91")
                                             ? mobile.substring(1)
@@ -514,7 +461,6 @@ public class DetailedReportActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                // ── Call queue API ────────────────────────────
                                 com.example.androidproject.model.queue.WhatsAppQueueRequest request =
                                         new com.example.androidproject.model.queue.WhatsAppQueueRequest(
                                                 Integer.parseInt(pref.getUserId()),
@@ -555,148 +501,37 @@ public class DetailedReportActivity extends AppCompatActivity {
                         });
     }
 
-    private void sendSmsBulk(List<InquiryReportItem> items) {
-        TemplateRepository.getInstance(this)
-                .getTemplateByCategory("Inquiry Follow Up",
-                        new TemplateRepository.SingleTemplateCallback() {
-
-                            @Override
-                            public void onSuccess(TemplateEntity template) {
-                                if (!template.isActive) {
-                                    toast("SMS notifications are currently disabled.");
-                                    return;
-                                }
-
-                                PrefManager pref = PrefManager.getInstance(DetailedReportActivity.this);
-                                String lang = pref.getLanguage();
-                                String templateText;
-                                switch (lang) {
-                                    case "MR": templateText = template.sms_MR; break;
-                                    case "HI": templateText = template.sms_HI; break;
-                                    default:   templateText = template.sms_EN; break;
-                                }
-
-                                List<com.example.androidproject.model.queue.SmsQueueRequest.SmsItem>
-                                        smsItems = new ArrayList<>();
-
-                                for (InquiryReportItem s : items) {
-                                    if (s.mobile == null || s.mobile.isEmpty()) continue;
-
-                                    String fullName  = s.fullName != null ? s.fullName : "";
-                                    String firstName = fullName.contains(" ")
-                                            ? fullName.substring(0, fullName.indexOf(" "))
-                                            : fullName;
-
-                                    Map<String, String> data = new HashMap<>();
-                                    data.put("FirstName",      firstName);
-                                    data.put("StudentName",    fullName);
-                                    data.put("InquiryDate",    s.inquiryDate != null ? s.inquiryDate : "");
-                                    data.put("InquiryCourses", s.about != null ? s.about : "");
-                                    data.put("institute",      pref.getInstituteName());
-                                    data.put("Authority",      pref.getOwnerName());
-                                    data.put("mobile1",        pref.getInstituteMobile1());
-                                    data.put("mobile2",        pref.getInstituteMobile2());
-                                    data.put("email",          pref.getInstituteEmail());
-                                    data.put("address1",       pref.getInstituteAddress1());
-                                    data.put("address2",       pref.getInstituteAddress2());
-                                    data.put("ownerName",      pref.getOwnerName());
-
-                                    String message = TemplateRepository.fillTemplate(templateText, data);
-
-                                    String mobile = s.mobile;
-                                    String formattedMobile = mobile.startsWith("+91")
-                                            ? mobile.substring(1)
-                                            : mobile.startsWith("91") ? mobile
-                                            : "91" + mobile;
-
-                                    smsItems.add(
-                                            new com.example.androidproject.model.queue.SmsQueueRequest
-                                                    .SmsItem(formattedMobile, message,
-                                                    "manualnotification"));
-                                }
-
-                                if (smsItems.isEmpty()) {
-                                    toast("No valid mobile numbers found");
-                                    return;
-                                }
-
-                                com.example.androidproject.model.queue.SmsQueueRequest request =
-                                        new com.example.androidproject.model.queue.SmsQueueRequest(
-                                                Integer.parseInt(pref.getUserId()),
-                                                Integer.parseInt(pref.getInstituteId()),
-                                                smsItems);
-
-                                loaderLayout.setVisibility(View.VISIBLE);
-
-                                RetrofitClient.getApiService().sendSmsQueue(request)
-                                        .enqueue(new Callback<com.example.androidproject.model.queue.SmsQueueResponse>() {
-                                            @Override
-                                            public void onResponse(
-                                                    Call<com.example.androidproject.model.queue.SmsQueueResponse> call,
-                                                    Response<com.example.androidproject.model.queue.SmsQueueResponse> response) {
-                                                loaderLayout.setVisibility(View.GONE);
-                                                if (response.isSuccessful() && response.body() != null
-                                                        && response.body().isSuccess) {
-                                                    toast("✅ " + response.body().insertedCount
-                                                            + " SMS message(s) queued!");
-                                                } else {
-                                                    toast("❌ Failed to queue SMS messages");
-                                                }
-                                            }
-                                            @Override
-                                            public void onFailure(
-                                                    Call<com.example.androidproject.model.queue.SmsQueueResponse> call,
-                                                    Throwable t) {
-                                                loaderLayout.setVisibility(View.GONE);
-                                                toast("SMS Failed: " + t.getMessage());
-                                            }
-                                        });
-                            }
-
-                            @Override
-                            public void onError(String error) {
-                                toast("Template not found: " + error);
-                            }
-                        });
-    }
-
     private void setupBackButton() {
         ImageButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
     }
 
-    // ── Course Spinner ─────────────────────────────────────────────
-    private void setupCourseSpinner() {
-        List<String> courses = new ArrayList<>();
-        courses.add("All Courses");
-        ArrayAdapter<String> aa = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, courses);
-        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spCourse.setAdapter(aa);
+    // ── Course / Batch / Timing spinners ────────────────────────────
+    // Populated dynamically from whatever data came back so the filter
+    // options always match what's actually in the report (mirrors the
+    // desktop screen's dropdowns). "All" sits at position 0 in each.
+    private void populateSpinnersFromData() {
+        Set<String> courses = new LinkedHashSet<>();
+        Set<String> batches = new LinkedHashSet<>();
+        Set<String> timings = new LinkedHashSet<>();
+        for (CertificateReportItem item : allCertificates) {
+            if (item.courseName != null && !item.courseName.isEmpty()) courses.add(item.courseName);
+            if (item.batchName != null && !item.batchName.isEmpty()) batches.add(item.batchName);
+            if (item.timingDescription != null && !item.timingDescription.isEmpty()) timings.add(item.timingDescription);
+        }
+        setSpinnerOptions(spCourse, "All Courses", courses);
+        setSpinnerOptions(spBatch, "All Batches", batches);
+        setSpinnerOptions(spTiming, "All Timings", timings);
     }
 
-    // ── Status checkboxes ──────────────────────────────────────────
-    private void setupStatusCheckboxes() {
-        cbAll.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) {
-                cbActive.setChecked(false);
-                cbConverted.setChecked(false);
-                cbCancelled.setChecked(false);
-            }
-            applyFilters();
-        });
-        cbActive.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) cbAll.setChecked(false);
-            applyFilters();
-        });
-        cbConverted.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) cbAll.setChecked(false);
-            applyFilters();
-        });
-        cbCancelled.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked) cbAll.setChecked(false);
-            applyFilters();
-        });
+    private void setSpinnerOptions(Spinner spinner, String allLabel, Set<String> values) {
+        List<String> options = new ArrayList<>();
+        options.add(allLabel);
+        options.addAll(values);
+        ArrayAdapter<String> aa = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, options);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(aa);
     }
 
     // ── Live text filters ──────────────────────────────────────────
@@ -710,80 +545,92 @@ public class DetailedReportActivity extends AppCompatActivity {
         };
         etStudentName.addTextChangedListener(watcher);
         etContactNo.addTextChangedListener(watcher);
-        etLocation.addTextChangedListener(watcher);
+
+        AdapterViewSelectionWatcher spinnerWatcher = new AdapterViewSelectionWatcher();
+        spCourse.setOnItemSelectedListener(spinnerWatcher);
+        spBatch.setOnItemSelectedListener(spinnerWatcher);
+        spTiming.setOnItemSelectedListener(spinnerWatcher);
+    }
+
+    private class AdapterViewSelectionWatcher implements android.widget.AdapterView.OnItemSelectedListener {
+        @Override
+        public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+            applyFilters();
+        }
+        @Override
+        public void onNothingSelected(android.widget.AdapterView<?> parent) {}
     }
 
     // ── Apply all filters ──────────────────────────────────────────
     private void applyFilters() {
-        if (allInquiries.isEmpty()) return; // don't filter before data loads
-
-        List<String> statuses = new ArrayList<>();
-        if (cbAll.isChecked())       statuses.add("All");
-        if (cbActive.isChecked())    statuses.add("Active");
-        if (cbConverted.isChecked()) statuses.add("Converted");
-        if (cbCancelled.isChecked()) {
-            statuses.add("Cancelled");
-            statuses.add("Aborted");
-        }
+        if (allCertificates.isEmpty()) return; // don't filter before data loads
 
         String course = spCourse.getSelectedItemPosition() == 0 ? ""
                 : spCourse.getSelectedItem().toString();
+        String batch = spBatch.getSelectedItemPosition() == 0 ? ""
+                : spBatch.getSelectedItem().toString();
+        String timing = spTiming.getSelectedItemPosition() == 0 ? ""
+                : spTiming.getSelectedItem().toString();
+
+        boolean showDistributed = rbDistributed.isChecked();
 
         adapter.applyFilters(
                 etStudentName.getText().toString(),
                 etContactNo.getText().toString(),
-                etLocation.getText().toString(),
                 course,
-                statuses
+                batch,
+                timing,
+                showDistributed
         );
         updateCount();
     }
 
     // ── Fetch from API ─────────────────────────────────────────────
-    private void fetchInquiries() {
+    private void fetchCertificates() {
         loaderLayout.setVisibility(View.VISIBLE);
         cardStudentList.setVisibility(View.GONE);
-        btnSendSMSMessage.setVisibility(View.GONE);
         btnGeneratePdf.setVisibility(View.GONE);
         btnSendWhatsappMessage.setVisibility(View.GONE);
-        allInquiries.clear();
+        allCertificates.clear();
 
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
 
-        InquiryReportRequest request = new InquiryReportRequest(
+        CertificateReportRequest request = new CertificateReportRequest(
                 Integer.parseInt(userId),
                 Integer.parseInt(instituteId)
         );
 
-        Log.d("INQ_REQ", new Gson().toJson(request));
+        Log.d("CERT_REQ", new Gson().toJson(request));
 
+        // NOTE: add getCertificateReport(CertificateReportRequest) to ApiService,
+        // pointing at POST /api/InstituteControllersV1/CertificateReport
         RetrofitClient.getApiService()
-                .getInquiryReport(request)
-                .enqueue(new Callback<InquiryReportResponse>() {
+                .getCertificateReport(request)
+                .enqueue(new Callback<CertificateReportResponse>() {
 
                     @Override
-                    public void onResponse(Call<InquiryReportResponse> call,
-                                           Response<InquiryReportResponse> response) {
+                    public void onResponse(Call<CertificateReportResponse> call,
+                                           Response<CertificateReportResponse> response) {
                         loaderLayout.setVisibility(View.GONE);
-                        Log.d("INQ_REPORT", "HTTP=" + response.code());
-                        Log.d("INQ_REPORT", "body=" + new Gson().toJson(response.body()));
+                        Log.d("CERT_REPORT", "HTTP=" + response.code());
+                        Log.d("CERT_REPORT", "body=" + new Gson().toJson(response.body()));
 
                         if (response.isSuccessful()
                                 && response.body() != null
                                 && response.body().isSuccess) {
 
-                            allInquiries = response.body().inquiryList;
+                            allCertificates = response.body().studentList;
 
-                            if (allInquiries == null || allInquiries.isEmpty()) {
-                                toast("No inquiries found");
+                            if (allCertificates == null || allCertificates.isEmpty()) {
+                                toast("No certificate records found");
                                 return;
                             }
 
-                            adapter.setData(allInquiries);
+                            adapter.setData(allCertificates);
+                            populateSpinnersFromData();
                             applyFilters();
                             cardStudentList.setVisibility(View.VISIBLE);
-                            btnSendSMSMessage.setVisibility(View.VISIBLE);
                             btnGeneratePdf.setVisibility(View.VISIBLE);
                             btnSendWhatsappMessage.setVisibility(View.VISIBLE);
                             updateCount();
@@ -792,18 +639,18 @@ public class DetailedReportActivity extends AppCompatActivity {
                             try {
                                 String err = response.errorBody() != null
                                         ? response.errorBody().string() : "Unknown error";
-                                Log.e("INQ_REPORT", "errorBody=" + err);
+                                Log.e("CERT_REPORT", "errorBody=" + err);
                                 toast("Failed: " + err);
                             } catch (Exception e) {
-                                toast("Failed to load inquiries");
+                                toast("Failed to load certificate report");
                             }
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<InquiryReportResponse> call, Throwable t) {
+                    public void onFailure(Call<CertificateReportResponse> call, Throwable t) {
                         loaderLayout.setVisibility(View.GONE);
-                        Log.e("INQ_REPORT", "onFailure: " + t.getMessage());
+                        Log.e("CERT_REPORT", "onFailure: " + t.getMessage());
                         toast("Error: " + t.getMessage());
                     }
                 });
@@ -821,12 +668,10 @@ public class DetailedReportActivity extends AppCompatActivity {
     private void resetFilters() {
         etStudentName.setText("");
         etContactNo.setText("");
-        etLocation.setText("");
-        spCourse.setSelection(0);
-        cbAll.setChecked(true);
-        cbActive.setChecked(false);
-        cbConverted.setChecked(false);
-        cbCancelled.setChecked(false);
+        if (spCourse.getAdapter() != null) spCourse.setSelection(0);
+        if (spBatch.getAdapter() != null) spBatch.setSelection(0);
+        if (spTiming.getAdapter() != null) spTiming.setSelection(0);
+        rbPending.setChecked(true);
         applyFilters();
     }
 

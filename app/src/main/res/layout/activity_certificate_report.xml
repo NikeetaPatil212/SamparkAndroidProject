@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:paddingStart="4dp"
-            android:text="Inquiry Detailed Report"
+            android:text="Certificate Hand-Over Report"
             android:textColor="#FFFFFF"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -212,7 +212,7 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Row 2: Course + Location -->
+                        <!-- Row 2: Course + Batch -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -230,7 +230,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Course"
+                                    android:text="Course Name"
                                     android:textColor="#2E7D32"
                                     android:textSize="11sp"
                                     android:textStyle="bold"
@@ -262,7 +262,7 @@
                                 </LinearLayout>
                             </LinearLayout>
 
-                            <!-- Location -->
+                            <!-- Batch -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -272,7 +272,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Location"
+                                    android:text="Batch Name"
                                     android:textColor="#2E7D32"
                                     android:textSize="11sp"
                                     android:textStyle="bold"
@@ -284,94 +284,105 @@
                                     android:background="@drawable/bg_edittext_outline"
                                     android:gravity="center_vertical"
                                     android:orientation="horizontal"
-                                    android:paddingHorizontal="10dp">
+                                    android:paddingStart="10dp"
+                                    android:paddingEnd="4dp">
 
                                     <ImageView
                                         android:layout_width="16dp"
                                         android:layout_height="16dp"
-                                        android:src="@drawable/baseline_content_paste_search_24"
+                                        android:src="@drawable/outline_book_2_24"
                                         android:tint="#2E7D32"
                                         android:layout_marginEnd="6dp" />
 
-                                    <EditText
-                                        android:id="@+id/etLocation"
+                                    <Spinner
+                                        android:id="@+id/spBatch"
                                         android:layout_width="0dp"
                                         android:layout_height="match_parent"
                                         android:layout_weight="1"
                                         android:background="@null"
-                                        android:hint="Search location..."
-                                        android:textColor="#1A1A1A"
-                                        android:textColorHint="#AAAAAA"
-                                        android:textSize="13sp"
-                                        android:maxLines="1"
-                                        android:singleLine="true"
-                                        android:inputType="text" />
+                                        android:spinnerMode="dropdown" />
                                 </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Row 3: Status checkboxes — 2x2 grid -->
+                        <!-- Row 3: Time -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Time"
+                                android:textColor="#2E7D32"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:background="@drawable/bg_edittext_outline"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="10dp"
+                                android:paddingEnd="4dp">
+
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/outline_book_2_24"
+                                    android:tint="#2E7D32"
+                                    android:layout_marginEnd="6dp" />
+
+                                <Spinner
+                                    android:id="@+id/spTiming"
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1"
+                                    android:background="@null"
+                                    android:spinnerMode="dropdown" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Row 4: View toggle — Pending / Distributed -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Inquiry Status"
+                            android:text="View"
                             android:textColor="#2E7D32"
                             android:textSize="11sp"
                             android:textStyle="bold"
                             android:layout_marginBottom="6dp" />
 
-                        <!-- Checkbox Row 1: All + Active -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="2dp">
-
-                            <CheckBox
-                                android:id="@+id/cbAll"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="All"
-                                android:textSize="12sp"
-                                android:checked="true"
-                                android:buttonTint="#2E7D32" />
-
-                            <CheckBox
-                                android:id="@+id/cbActive"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Active"
-                                android:textSize="12sp"
-                                android:buttonTint="#2E7D32" />
-                        </LinearLayout>
-
-                        <!-- Checkbox Row 2: Converted + Cancelled -->
-                        <LinearLayout
+                        <RadioGroup
+                            android:id="@+id/rgView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:layout_marginBottom="12dp">
 
-                            <CheckBox
-                                android:id="@+id/cbConverted"
+                            <RadioButton
+                                android:id="@+id/rbPending"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Converted"
+                                android:text="Pending Certificates"
                                 android:textSize="12sp"
+                                android:checked="true"
                                 android:buttonTint="#2E7D32" />
 
-                            <CheckBox
-                                android:id="@+id/cbCancelled"
+                            <RadioButton
+                                android:id="@+id/rbDistributed"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Cancelled"
+                                android:text="Distributed Certificates"
                                 android:textSize="12sp"
                                 android:buttonTint="#2E7D32" />
-                        </LinearLayout>
+                        </RadioGroup>
 
                         <!-- Buttons Row: Reset + View Students -->
                         <LinearLayout
@@ -447,7 +458,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="8dp"
-                            android:text="Inquiry List"
+                            android:text="Certificate List"
                             android:textColor="#FFFFFF"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -474,7 +485,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:minWidth="1400dp">
+                            android:minWidth="1550dp">
 
                             <!-- Header Row -->
                             <LinearLayout
@@ -489,13 +500,18 @@
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
+                                <TextView android:layout_width="60dp" android:layout_height="match_parent"
                                     android:gravity="center" android:text="Select"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
+                                <TextView android:layout_width="70dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Adm ID"
+                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
+
                                 <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Inq Date"
+                                    android:gravity="center" android:text="Adm Date"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
@@ -510,23 +526,13 @@
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="110dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Alternate No"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="80dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Location"
+                                <TextView android:layout_width="100dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Course"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="100dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Courses"
-                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
-                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
-
-                                <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Reminder"
+                                    android:gravity="center" android:text="Batch"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
@@ -536,22 +542,32 @@
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="100dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Feedback"
+                                    android:gravity="center" android:text="Cert No"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="80dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="School"
+                                    android:gravity="center" android:text="Result"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
                                 <TextView android:layout_width="90dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Reference"
+                                    android:gravity="center" android:text="Percentage"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
                                 <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
 
-                                <TextView android:layout_width="60dp" android:layout_height="match_parent"
-                                    android:gravity="center" android:text="Select"
+                                <TextView android:layout_width="120dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Handed To"
+                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
+
+                                <TextView android:layout_width="110dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Contact Info"
+                                    android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
+                                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#CCCCCC" />
+
+                                <TextView android:layout_width="100dp" android:layout_height="match_parent"
+                                    android:gravity="center" android:text="Handover Date"
                                     android:textColor="#2E7D32" android:textSize="11sp" android:textStyle="bold" />
 
                             </LinearLayout>
@@ -560,7 +576,7 @@
 
                             <!-- Data rows -->
                             <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/rvInquiries"
+                                android:id="@+id/rvCertificates"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:nestedScrollingEnabled="false" />
@@ -595,26 +611,10 @@
                     android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSendSMSMessage"
-                    android:layout_width="0dp"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:backgroundTint="#2E7D32"
-                    android:text="✉️ Send SMS"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textAllCaps="false"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:visibility="gone" />
-
-                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGeneratePdf"
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
                     android:backgroundTint="#2E7D32"
                     android:text="Generate PDF"
                     android:textColor="#FFFFFF"
@@ -624,7 +624,6 @@
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:visibility="gone" />
-
 
             </LinearLayout>
 
