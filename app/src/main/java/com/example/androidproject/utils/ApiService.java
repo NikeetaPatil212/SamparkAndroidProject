@@ -1,5 +1,7 @@
 package com.example.androidproject.utils;
 
+import com.example.androidproject.model.AbortInquiryRequest;
+import com.example.androidproject.model.AbortInquiryResponse;
 import com.example.androidproject.model.AddReceiptRequest;
 import com.example.androidproject.model.AddReceiptResponse;
 import com.example.androidproject.model.AddStudentRequest;
@@ -219,4 +221,6 @@ public interface ApiService {
     @POST("StudyMaterialReport")
     Call<StudyMaterialReportResponse> getStudyMaterialReport(@Body StudyMaterialReportRequest request);
 
+    @POST("abort_Inquiry")
+    Call<AbortInquiryResponse> abortInquiry(@Body AbortInquiryRequest request);
 }

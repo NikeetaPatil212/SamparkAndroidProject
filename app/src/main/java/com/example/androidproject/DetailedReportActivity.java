@@ -456,6 +456,8 @@ public class DetailedReportActivity extends AppCompatActivity {
                                     return;
                                 }
 
+
+
                                 PrefManager pref = PrefManager.getInstance(DetailedReportActivity.this);
                                 String lang = pref.getLanguage();
                                 String templateText;
@@ -532,6 +534,9 @@ public class DetailedReportActivity extends AppCompatActivity {
                                                 loaderLayout.setVisibility(View.GONE);
                                                 if (response.isSuccessful() && response.body() != null
                                                         && response.body().isSuccess) {
+                                                    adapter.removeItems(items);
+                                                    allInquiries.removeAll(items);
+                                                    updateCount();
                                                     toast("✅ " + response.body().insertedCount
                                                             + " WhatsApp message(s) queued!");
                                                 } else {
@@ -637,6 +642,9 @@ public class DetailedReportActivity extends AppCompatActivity {
                                                 loaderLayout.setVisibility(View.GONE);
                                                 if (response.isSuccessful() && response.body() != null
                                                         && response.body().isSuccess) {
+                                                    adapter.removeItems(items);
+                                                    allInquiries.removeAll(items);
+                                                    updateCount();
                                                     toast("✅ " + response.body().insertedCount
                                                             + " SMS message(s) queued!");
                                                 } else {

@@ -170,4 +170,17 @@ public class InquiryReportAdapter
             cbSelect       = v.findViewById(R.id.cbSelect);
         }
     }
+    public void removeItems(List<InquiryReportItem> itemsToRemove) {
+        if (itemsToRemove == null || itemsToRemove.isEmpty()) return;
+
+        fullList.removeAll(itemsToRemove);
+        filteredList.removeAll(itemsToRemove);
+
+        for (InquiryReportItem item : itemsToRemove) {
+            item.setSelected(false);
+        }
+
+        notifyDataSetChanged();
+    }
+
 }

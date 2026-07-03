@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.adapters.AdmissionReportAdapter;
+import com.example.androidproject.model.outstanding.OutstandingItem;
 import com.example.androidproject.model.summary.AdmissionItem;
 import com.example.androidproject.model.summary.AdmissionReportRequest;
 import com.example.androidproject.model.summary.AdmissionReportResponse;
@@ -99,7 +100,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
         spTime                 = findViewById(R.id.spTime);
         btnReset               = findViewById(R.id.btnReset);
         btnViewStudents        = findViewById(R.id.btnViewStudents);
-        btnSendWhatsappMessage = findViewById(R.id.btnSendWhatsappMessage);
+    //    btnSendWhatsappMessage = findViewById(R.id.btnSendWhatsappMessage);
         btnExportPdf           = findViewById(R.id.btnExportExcel);   // ← your new button
         cardStudentList        = findViewById(R.id.cardStudentList);
         rvAdmissions           = findViewById(R.id.rvAdmissions);
@@ -128,7 +129,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
     private void setupListeners() {
         btnViewStudents.setOnClickListener(v        -> applyFilters());
         btnReset.setOnClickListener(v               -> resetFilters());
-        btnSendWhatsappMessage.setOnClickListener(v -> sendWhatsApp());
+    //    btnSendWhatsappMessage.setOnClickListener(v -> sendWhatsApp());
         btnExportPdf.setOnClickListener(v           -> exportToPdf());  // ← wired here
     }
 
@@ -136,7 +137,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
     private void fetchAdmissionData() {
         loaderLayout.setVisibility(View.VISIBLE);
         cardStudentList.setVisibility(View.GONE);
-        btnSendWhatsappMessage.setVisibility(View.GONE);
+    //    btnSendWhatsappMessage.setVisibility(View.GONE);
         btnExportPdf.setVisibility(View.GONE);
         tvStudentCount.setVisibility(View.GONE);
 
@@ -197,7 +198,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
     // ── shows table card + action buttons + badge ─────────────────
     private void showTable(int count) {
         cardStudentList.setVisibility(View.VISIBLE);
-        btnSendWhatsappMessage.setVisibility(View.VISIBLE);
+    //    btnSendWhatsappMessage.setVisibility(View.VISIBLE);
         btnExportPdf.setVisibility(View.VISIBLE);
         tvCount.setText(count + " Students");
         tvStudentCount.setText(count + " Records");
@@ -248,7 +249,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
         int count = adapter.getFilteredCount();
         if (count == 0) {
             cardStudentList.setVisibility(View.GONE);
-            btnSendWhatsappMessage.setVisibility(View.GONE);
+        //    btnSendWhatsappMessage.setVisibility(View.GONE);
             btnExportPdf.setVisibility(View.GONE);
             tvStudentCount.setVisibility(View.GONE);
             Toast.makeText(this, "No records match the selected filters",
@@ -547,7 +548,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
     }
 
     // ── WhatsApp ───────────────────────────────────────────────────
-    private void sendWhatsApp() {
+    /*private void sendWhatsApp() {
         List<AdmissionItem> selected = adapter.getCheckedItems();
         if (selected.isEmpty()) {
             Toast.makeText(this, "Please select at least one student",
@@ -580,6 +581,7 @@ public class AdmissionReportActivity extends AppCompatActivity {
             startActivity(intent);
 
             if (selected.size() > 1) {
+                removeQueuedStudentsFromList(ite);
                 Toast.makeText(this,
                         "Opened WhatsApp for " + first.studentName
                                 + ". Repeat for remaining "
@@ -589,5 +591,18 @@ public class AdmissionReportActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "WhatsApp not installed", Toast.LENGTH_SHORT).show();
         }
-    }
+    }*/
+
+    /*private void removeQueuedStudentsFromList(List<AdmissionItem> items) {
+        adapter.removeItems(items);
+        fullList.removeAll(items);
+        selec.setChecked(false);
+
+        boolean empty = adapter.getFilteredCount() == 0;
+        cardTable.setVisibility(empty ? View.GONE : View.VISIBLE);
+        llFooter.setVisibility(empty ? View.GONE : View.VISIBLE);
+        tvEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+
+        updateTotalsAndBadge();
+    }*/
 }

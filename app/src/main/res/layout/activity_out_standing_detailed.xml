@@ -258,8 +258,8 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
                 android:backgroundTint="#25D366"
-                android:text="📱 WhatsApp"
                 android:textColor="#FFFFFF"
+                android:text="📱 WhatsApp"
                 android:textStyle="bold"
                 android:textSize="13sp"
                 android:textAllCaps="false"/>
@@ -270,9 +270,9 @@
                 android:layout_height="50dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                android:backgroundTint="#1976D2"
-                android:text="✉ Send SMS"
+                android:backgroundTint="#25D366"
                 android:textColor="#FFFFFF"
+                android:text="✉ Send SMS"
                 android:textStyle="bold"
                 android:textSize="13sp"
                 android:textAllCaps="false"/>
@@ -282,9 +282,9 @@
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
-                android:backgroundTint="#1976D2"
-                android:text="✉ Export PDF"
+                android:backgroundTint="#25D366"
                 android:textColor="#FFFFFF"
+                android:text="Generate PDF"
                 android:textStyle="bold"
                 android:textSize="13sp"
                 android:textAllCaps="false"/>

@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.adapters.CertificateReportAdapter;
+import com.example.androidproject.model.outstanding.OutstandingItem;
 import com.example.androidproject.model.summary.CertificateReportItem;
 import com.example.androidproject.model.summary.CertificateReportRequest;
 import com.example.androidproject.model.summary.CertificateReportResponse;
@@ -478,6 +479,10 @@ public class CertificateReportActivity extends AppCompatActivity {
                                                 loaderLayout.setVisibility(View.GONE);
                                                 if (response.isSuccessful() && response.body() != null
                                                         && response.body().isSuccess) {
+                                                    adapter.removeItems(items);
+                                                    allCertificates.removeAll(items);
+                                                    updateCount();
+
                                                     toast("✅ " + response.body().insertedCount
                                                             + " WhatsApp message(s) queued!");
                                                 } else {
@@ -678,4 +683,5 @@ public class CertificateReportActivity extends AppCompatActivity {
     private void toast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
+
 }

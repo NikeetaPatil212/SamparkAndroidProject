@@ -79,7 +79,7 @@ public class OutStandingDetailedActivity extends AppCompatActivity {
     private static final int HEADER_HEIGHT = 30;
 
     // Column widths (must sum ≤ PAGE_WIDTH - 2*MARGIN)
-    private static final int[] COL_WIDTHS = { 28, 72, 38, 108, 80, 68, 68, 68, 68, 52, 52, 60 };
+    private static final int[] COL_WIDTHS = { 28, 72, 90, 65, 80, 68, 68, 68, 68, 52, 52, 60 };
     private static final String[] COL_HEADERS = {
             "No", "Adm Date", "Student Name",
             "Mobile", "Location", "Course", "Batch",
@@ -120,6 +120,19 @@ public class OutStandingDetailedActivity extends AppCompatActivity {
         tvTotalPaid    = findViewById(R.id.tvTotalPaid);
         tvTotalOutstanding = findViewById(R.id.tvTotalOutstanding);
         loaderLayout   = findViewById(R.id.loaderLayout);
+    }
+
+    private void removeQueuedStudentsFromList(List<OutstandingItem> items) {
+        adapter.removeItems(items);
+        fullList.removeAll(items);
+        cbSelectAll.setChecked(false);
+
+        boolean empty = adapter.getFilteredCount() == 0;
+        cardTable.setVisibility(empty ? View.GONE : View.VISIBLE);
+        llFooter.setVisibility(empty ? View.GONE : View.VISIBLE);
+        tvEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+
+        updateTotalsAndBadge();
     }
 
     private void setupBackButton() {
@@ -511,6 +524,7 @@ public class OutStandingDetailedActivity extends AppCompatActivity {
                                                 loaderLayout.setVisibility(View.GONE);
                                                 if (response.isSuccessful() && response.body() != null
                                                         && response.body().isSuccess) {
+                                                    removeQueuedStudentsFromList(items);
                                                     toast("✅ " + response.body().insertedCount
                                                             + " WhatsApp message(s) queued!");
                                                 } else {
@@ -620,6 +634,7 @@ public class OutStandingDetailedActivity extends AppCompatActivity {
                                                 loaderLayout.setVisibility(View.GONE);
                                                 if (response.isSuccessful() && response.body() != null
                                                         && response.body().isSuccess) {
+                                                    removeQueuedStudentsFromList(items);
                                                     toast("✅ " + response.body().insertedCount
                                                             + " SMS message(s) queued!");
                                                 } else {

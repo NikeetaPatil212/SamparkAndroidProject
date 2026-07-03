@@ -130,7 +130,7 @@ public class AdmissionActivity extends AppCompatActivity {
     private String capturedFileName;
     private TextView tvPhotoInfo;
 
-    private int studentId = -1;
+    private int studentId;
     private String mobile;
 
     private AdmissionDetailAdapter adapter;
@@ -158,8 +158,16 @@ public class AdmissionActivity extends AppCompatActivity {
         PrefManager pref = PrefManager.getInstance(this);
         Log.d("READ_TEST", "InstituteId = " + pref.getInstituteId());
 
+        Bundle extras = getIntent().getExtras();
+
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                Log.d("INTENT_EXTRA", key + " = " + extras.get(key));
+            }
+        }
+
         mobile    = getIntent().getStringExtra("mobile");
-        studentId = getIntent().getIntExtra("studentId", 0);
+        studentId = getIntent().getIntExtra("studentId",-1);
         Log.d("AdmissionActivity", "onCreate: studentId=" + studentId + ", mobile=" + mobile);
 
         if (studentId == -1) {

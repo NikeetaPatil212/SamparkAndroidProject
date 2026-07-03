@@ -24,4 +24,9 @@ public class CertificateReportItem {
 
     // ── UI-only field, not part of API payload ──────────────────────
     public transient boolean isChecked = false;
+
+
+    private boolean selected = false;
+    public boolean isSelected()        { return selected; }
+    public void setSelected(boolean s) { this.selected = s; }
 }

@@ -2,6 +2,7 @@ package com.example.androidproject.adapters;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,10 +23,13 @@ import com.example.androidproject.AdmissionActivity;
 import com.example.androidproject.EditDeleteActivity;
 import com.example.androidproject.ExtendActivity;
 import com.example.androidproject.R;
+import com.example.androidproject.model.AbortInquiryRequest;
+import com.example.androidproject.model.AbortInquiryResponse;
 import com.example.androidproject.model.InquiryItem;
 import com.example.androidproject.model.template.TemplateEntity;
 import com.example.androidproject.model.template.TemplateRepository;
 import com.example.androidproject.utils.PrefManager;
+import com.example.androidproject.utils.RetrofitClient;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,6 +38,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHolder> {
 
@@ -170,7 +178,12 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
             sendInquiryFollowUpMessage(item);
         });
 
-        view.findViewById(R.id.tvAbort).setOnClickListener(v -> dialog.dismiss());
+      //  view.findViewById(R.id.tvAbort).setOnClickListener(v -> dialog.dismiss());
+
+        view.findViewById(R.id.tvAbort).setOnClickListener(v -> {
+            dialog.dismiss();
+            showAbortConfirmation(item);   // ← confirmation before API call
+        });
 
         view.findViewById(R.id.tvExtend).setOnClickListener(v -> {
             dialog.dismiss();
@@ -207,6 +220,85 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.ViewHold
         });
 
         dialog.show();
+    }
+
+    // ── Step 1: Confirm before calling Abort API ──────────────────
+    private void showAbortConfirmation(InquiryItem item) {
+        new AlertDialog.Builder(context)
+                .setTitle("Abort Inquiry")
+                .setMessage("Are you sure you want to cancel the inquiry for "
+                        + item.getStudentName() + "?\nThis action cannot be undone.")
+                .setPositiveButton("Yes, Abort", (dialog, which) -> {
+                    dialog.dismiss();
+                    callAbortApi(item);
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .setCancelable(true)
+                .show();
+    }
+
+    // ── Step 2: Call Abort API ────────────────────────────────────
+    private void callAbortApi(InquiryItem item) {
+        PrefManager pref = PrefManager.getInstance(context);
+
+        int studentID   = item.getStudentId();
+        int userID      = Integer.parseInt(pref.getUserId());
+        int instituteID = Integer.parseInt(pref.getInstituteId());
+        int operatorID  = Integer.parseInt(pref.getOperatorId());
+
+
+        // Show progress
+        ProgressDialog progress = new ProgressDialog(context);
+        progress.setMessage("Cancelling inquiry...");
+        progress.setCancelable(false);
+        progress.show();
+
+        AbortInquiryRequest request = new AbortInquiryRequest(
+                studentID, userID, instituteID, operatorID);
+
+        Log.d("ABORT_INQ", "studentID=" + studentID
+                + " userID=" + userID + " instituteID=" + instituteID);
+
+        RetrofitClient.getApiService().abortInquiry(request)
+                .enqueue(new Callback<AbortInquiryResponse>() {
+                    @Override
+                    public void onResponse(Call<AbortInquiryResponse> call,
+                                           Response<AbortInquiryResponse> response) {
+                        progress.dismiss();
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().isSuccess) {
+
+                            Toast.makeText(context,
+                                    "✅ " + response.body().message,
+                                    Toast.LENGTH_SHORT).show();
+
+                            // Remove item from both lists and refresh
+                            originalList.remove(item);
+                            filteredList.remove(item);
+                            notifyDataSetChanged();
+
+                        } else {
+                            String msg = (response.body() != null
+                                    && response.body().message != null)
+                                    ? response.body().message
+                                    : "Failed to cancel inquiry";
+                            Toast.makeText(context, "❌ " + msg,
+                                    Toast.LENGTH_SHORT).show();
+                            Log.e("ABORT_INQ", "Failed: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<AbortInquiryResponse> call, Throwable t) {
+                        progress.dismiss();
+                        Log.e("ABORT_INQ", "onFailure: " + t.getMessage());
+                        Toast.makeText(context,
+                                "Network error: " + t.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void sendInquiryFollowUpMessage(InquiryItem item) {

@@ -33,6 +33,22 @@ public class OutstandingFeesAdapter
     public void setOnSelectionChangedListener(OnSelectionChangedListener listener) {
         this.selectionListener = listener;
     }
+    public void removeItems(List<OutstandingItem> itemsToRemove) {
+        if (itemsToRemove == null || itemsToRemove.isEmpty()) return;
+
+        fullList.removeAll(itemsToRemove);
+        filteredList.removeAll(itemsToRemove);
+
+        for (OutstandingItem item : itemsToRemove) {
+            item.setSelected(false);
+        }
+
+        notifyDataSetChanged();
+
+        if (selectionListener != null) {
+            selectionListener.onSelectionChanged();
+        }
+    }
 
     public void setData(List<OutstandingItem> list) {
         fullList.clear();

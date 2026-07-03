@@ -244,7 +244,6 @@ public class NewAdmissionActivity extends AppCompatActivity {
 
         RetrofitClient.getApiService().addStudent(request)
                 .enqueue(new Callback<InquiryResponse>() {
-
                     @Override
                     public void onResponse(Call<InquiryResponse> call,
                                            Response<InquiryResponse> response) {
@@ -273,7 +272,9 @@ public class NewAdmissionActivity extends AppCompatActivity {
                             intent.putExtra("student_name",
                                     etFullName.getText().toString().trim());
                             intent.putExtra("mobile", mobile);
-                        //    intent.putExtra("studentId", response.getu());
+                            intent.putExtra("studentId", response.body().getStudentID());
+                            Log.d("NewAdmissionActivity", "onCreate: studentId=" +  response.body().getStudentID() );
+
                             startActivity(intent);
                         } else {
                             Toast.makeText(NewAdmissionActivity.this,

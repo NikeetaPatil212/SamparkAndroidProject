@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.androidproject.R;
+import com.example.androidproject.model.outstanding.OutstandingItem;
 import com.example.androidproject.model.summary.AdmissionItem;
 
 import java.util.ArrayList;
@@ -80,6 +81,23 @@ public class AdmissionReportAdapter
         notifyDataSetChanged();
     }
 
+    public void removeItems(List<AdmissionItem> itemsToRemove) {
+        if (itemsToRemove == null || itemsToRemove.isEmpty()) return;
+
+        fullList.removeAll(itemsToRemove);
+        filteredList.removeAll(itemsToRemove);
+
+        for (AdmissionItem item : itemsToRemove) {
+            item.setSelected(false);
+        }
+
+        notifyDataSetChanged();
+
+        if (selectionListener != null) {
+            selectionListener.onSelectionChanged();
+        }
+    }
+
     // ── Selection helpers ─────────────────────────────────────────
     public List<AdmissionItem> getCheckedItems() {
         List<AdmissionItem> checked = new ArrayList<>();
@@ -133,17 +151,17 @@ public class AdmissionReportAdapter
         h.tvOutstanding.setText(fmt(item.outstanding));
 
         // Checkbox — same guard pattern as InquiryReportAdapter
-        h.cbSelect.setOnCheckedChangeListener(null);
+     /*   h.cbSelect.setOnCheckedChangeListener(null);
         h.cbSelect.setChecked(item.isSelected());
         h.cbSelect.setOnCheckedChangeListener((btn, checked) -> {
             item.setSelected(checked);
             if (selectionListener != null) selectionListener.onSelectionChanged();
-        });
+        });*/
 
         // Tap the whole row to toggle
         h.rowContainer.setOnClickListener(v -> {
             item.setSelected(!item.isSelected());
-            h.cbSelect.setChecked(item.isSelected());
+         //   h.cbSelect.setChecked(item.isSelected());
             if (selectionListener != null) selectionListener.onSelectionChanged();
         });
     }
@@ -164,7 +182,7 @@ public class AdmissionReportAdapter
         TextView tvNo, tvAdmDate, tvAdmId, tvStudentName, tvMobile,
                 tvLocation, tvCourse, tvBatch, tvBatchTime,
                 tvFees, tvPaid, tvOutstanding;
-        CheckBox cbSelect;
+    //    CheckBox cbSelect;
 
         VH(View v) {
             super(v);
@@ -181,7 +199,7 @@ public class AdmissionReportAdapter
             tvFees        = v.findViewById(R.id.tvFees);
             tvPaid        = v.findViewById(R.id.tvPaid);
             tvOutstanding = v.findViewById(R.id.tvOutstanding);
-            cbSelect      = v.findViewById(R.id.cbSelect);
+        //    cbSelect      = v.findViewById(R.id.cbSelect);
         }
     }
 }

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.R;
 import com.example.androidproject.model.summary.CertificateReportItem;
+import com.example.androidproject.model.summary.InquiryReportItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +82,13 @@ public class CertificateReportAdapter extends RecyclerView.Adapter<CertificateRe
             if (item.isChecked) checked.add(item);
         }
         return checked;
+    }
+
+    // ── Remove sent items from both lists ────────────────────────────
+    public void removeItems(List<CertificateReportItem> items) {
+        allItems.removeAll(items);
+        filteredItems.removeAll(items);
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -154,5 +162,17 @@ public class CertificateReportAdapter extends RecyclerView.Adapter<CertificateRe
             tvContactInfo  = itemView.findViewById(R.id.tvContactInfo);
             tvHandoverDate = itemView.findViewById(R.id.tvHandoverDate);
         }
+    }
+    public void removeCertificateItems(List<CertificateReportItem> itemsToRemove) {
+        if (itemsToRemove == null || itemsToRemove.isEmpty()) return;
+
+        allItems.removeAll(itemsToRemove);
+        filteredItems.removeAll(itemsToRemove);
+
+        for (CertificateReportItem item : itemsToRemove) {
+            item.setSelected(false);
+        }
+
+        notifyDataSetChanged();
     }
 }

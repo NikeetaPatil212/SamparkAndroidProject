@@ -16,11 +16,11 @@
             android:gravity="center" android:textColor="#333333" android:textSize="11sp" />
         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" />
 
-        <CheckBox android:id="@+id/cbSelect"
+       <!-- <CheckBox android:id="@+id/cbSelect"
             android:layout_width="60dp" android:layout_height="match_parent"
             android:gravity="center" android:buttonTint="#2E7D32" />
         <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" />
-
+-->
         <TextView android:id="@+id/tvAdmDate"
             android:layout_width="90dp" android:layout_height="match_parent"
             android:gravity="center" android:textColor="#333333" android:textSize="11sp"
