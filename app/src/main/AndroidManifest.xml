@@ -19,6 +19,15 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".BatchTimeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BatchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CourseActivity"
+            android:exported="false" />
+        <activity
             android:name=".StudyMaterialReportActivity"
             android:exported="false" />
         <activity

@@ -8,11 +8,11 @@ import androidx.room.RoomDatabase;
 
 @Database(
         entities = {
-                AdmissionDetail.class,  // ← existing
-                CourseEntity.class,     // ← ADD
-                BatchEntity.class       // ← ADD
+                AdmissionDetail.class,
+                CourseEntity.class,
+                BatchEntity.class
         },
-        version = 3,                    // ← bump version from 2 to 3
+        version = 5,                    // ← bumped from 3 → 4 (new columns in CourseEntity)
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -32,7 +32,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "admission-db"
                             )
-                            .fallbackToDestructiveMigration()
+                            .fallbackToDestructiveMigration() // wipes old DB on schema change
                             .build();
                 }
             }

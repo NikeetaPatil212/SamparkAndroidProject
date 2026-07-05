@@ -47,6 +47,21 @@
             android:icon="@drawable/ic_person_foreground"/>
 
         <item
+            android:id="@+id/nav_courses"
+            android:title="Courses"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
+            android:id="@+id/nav_batch"
+            android:title="Batch"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
+            android:id="@+id/nav_batch_time"
+            android:title="Batch Time"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
             android:id="@+id/nav_add_admission"
             android:title="New Admission"
             android:icon="@drawable/ic_person_foreground"

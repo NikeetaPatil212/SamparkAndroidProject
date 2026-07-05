@@ -37,6 +37,14 @@ import com.example.androidproject.model.certificate.CertificateResponse;
 import com.example.androidproject.model.certificate.UpdateCertificateRequest;
 import com.example.androidproject.model.certificate.UpdateCertificateResponse;
 import com.example.androidproject.model.certificate.UploadImageResponse;
+import com.example.androidproject.model.course.BatchAddRequest;
+import com.example.androidproject.model.course.BatchAddResponse;
+import com.example.androidproject.model.course.BatchTimeAddRequest;
+import com.example.androidproject.model.course.BatchTimeAddResponse;
+import com.example.androidproject.model.course.BatchTimeListRequest;
+import com.example.androidproject.model.course.BatchTimeListResponse;
+import com.example.androidproject.model.course.CourseRequest;
+import com.example.androidproject.model.course.CourseResponse;
 import com.example.androidproject.model.notification.NotificationStudentRequest;
 import com.example.androidproject.model.notification.NotificationStudentResponse;
 import com.example.androidproject.model.profile.EditProfileRequest;
@@ -223,4 +231,16 @@ public interface ApiService {
 
     @POST("abort_Inquiry")
     Call<AbortInquiryResponse> abortInquiry(@Body AbortInquiryRequest request);
+
+    @POST("Add_Courses")
+    Call<CourseResponse> saveCourse(@Body CourseRequest request);
+
+    @POST("Add_Batch")
+    Call<BatchAddResponse> addBatch(@Body BatchAddRequest request);
+
+    @POST("Add_BatchTime")
+    Call<BatchTimeAddResponse> addBatchTime(@Body BatchTimeAddRequest request);
+
+    @POST("batch_time_test")
+    Call<BatchTimeListResponse> getBatchTimes(@Body BatchTimeListRequest request);
 }

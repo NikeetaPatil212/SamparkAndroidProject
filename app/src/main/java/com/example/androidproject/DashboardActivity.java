@@ -351,8 +351,24 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             return true;
         }*/
         // ── OTHER items ──────────────────────────────────────────
-      /*  if (id == R.id.nav_certificates) {
-        } else*/
+
+        if (id == R.id.nav_courses) {
+            startActivity(new Intent(this, CourseActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        if (id == R.id.nav_batch) {
+            startActivity(new Intent(this, BatchActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+        if (id == R.id.nav_batch_time) {
+            startActivity(new Intent(this, BatchTimeActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
         if (id == R.id.nav_bulk) {
         }else if (id == R.id.nav_dashboard) {
         } else if (id == R.id.nav_templates) {
