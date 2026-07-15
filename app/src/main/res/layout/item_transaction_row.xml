@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/rowContainer"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Date -->
+        <TextView android:id="@+id/tvDate"
+            android:layout_width="100dp" android:layout_height="match_parent"
+            android:gravity="center" android:textColor="#333333"
+            android:textSize="11sp" android:paddingHorizontal="4dp" />
+        <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" />
+
+        <!-- UTNO -->
+        <TextView android:id="@+id/tvUtno"
+            android:layout_width="70dp" android:layout_height="match_parent"
+            android:gravity="center" android:textColor="#333333"
+            android:textSize="12sp" android:textStyle="bold"
+            android:paddingHorizontal="4dp" />
+        <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" />
+
+        <!-- Type -->
+        <TextView android:id="@+id/tvType"
+            android:layout_width="110dp" android:layout_height="match_parent"
+            android:gravity="center" android:textSize="11sp"
+            android:textStyle="bold" android:paddingHorizontal="4dp" />
+        <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" />
+
+        <!-- DR -->
+        <TextView android:id="@+id/tvDr"
+            android:layout_width="90dp" android:layout_height="match_parent"
+            android:gravity="center" android:textColor="#D32F2F"
+            android:textSize="12sp" android:textStyle="bold"
+            android:paddingHorizontal="4dp" />
+        <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" />
+
+        <!-- CR -->
+        <TextView android:id="@+id/tvCr"
+            android:layout_width="90dp" android:layout_height="match_parent"
+            android:gravity="center" android:textColor="#2E7D32"
+            android:textSize="12sp" android:textStyle="bold"
+            android:paddingHorizontal="4dp" />
+
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
+
+</LinearLayout>

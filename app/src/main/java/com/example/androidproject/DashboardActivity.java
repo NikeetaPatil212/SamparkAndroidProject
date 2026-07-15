@@ -93,6 +93,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             menu.findItem(R.id.nav_distribute_study_material).setVisible(false);
             menu.findItem(R.id.nav_birthdate).setVisible(false);
             menu.findItem(R.id.nav_notification_reminder).setVisible(false);
+            menu.findItem(R.id.nav_add_summary_report).setVisible(false);
+            menu.findItem(R.id.nav_edit_delete).setVisible(false);
             menu.findItem(R.id.nav_admissions).setTitle("Admissions");
         }
 
@@ -236,6 +238,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         //    menu.findItem(R.id.nav_certificate_handover).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_birthdate).setVisible(isAdmissionExpanded);
             menu.findItem(R.id.nav_notification_reminder).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_add_summary_report).setVisible(isAdmissionExpanded);
+            menu.findItem(R.id.nav_edit_delete).setVisible(isAdmissionExpanded);
 
             item.setTitle(isAdmissionExpanded ? "Admissions  ▲" : "Admissions  ▼");
 
@@ -244,6 +248,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             styleSubItem(menu.findItem(R.id.nav_get_timeAllot), "Allot Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_change_timeAllot), "Change Batch Timing");
             styleSubItem(menu.findItem(R.id.nav_distribute_study_material), "Distribute Study Material");
+            styleSubItem(menu.findItem(R.id.nav_add_summary_report), "Summary Report");
+            styleSubItem(menu.findItem(R.id.nav_edit_delete), "Edit Delete Transaction");
          //   styleSubItem(menu.findItem(R.id.nav_certificate_handover), "Certificate Handover");
         //    styleSubItem(menu.findItem(R.id.nav_birthdate), "Birthdate Reminder");
         //    styleSubItem(menu.findItem(R.id.nav_notification_reminder), "Notification Reminder");
@@ -282,6 +288,18 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }
+
+        if (id == R.id.nav_add_summary_report) {
+            startActivity(new Intent(this, AdmissionSummaryReportActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+
+      /*  if (id == R.id.nav_edit_delete) {
+            startActivity(new Intent(this, EditDeleteTransactionActivity.class));
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }*/
 
 
         if (id == R.id.nav_certificate_handover) {

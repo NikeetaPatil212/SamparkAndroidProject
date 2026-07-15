@@ -19,6 +19,12 @@
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".EditDeleteTransactionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdmissionSummaryReportActivity"
+            android:exported="false" />
+        <activity
             android:name=".BatchTimeActivity"
             android:exported="false" />
         <activity

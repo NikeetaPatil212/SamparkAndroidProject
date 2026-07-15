@@ -47,21 +47,6 @@
             android:icon="@drawable/ic_person_foreground"/>
 
         <item
-            android:id="@+id/nav_courses"
-            android:title="Courses"
-            android:icon="@drawable/ic_person_foreground"/>
-
-        <item
-            android:id="@+id/nav_batch"
-            android:title="Batch"
-            android:icon="@drawable/ic_person_foreground"/>
-
-        <item
-            android:id="@+id/nav_batch_time"
-            android:title="Batch Time"
-            android:icon="@drawable/ic_person_foreground"/>
-
-        <item
             android:id="@+id/nav_add_admission"
             android:title="New Admission"
             android:icon="@drawable/ic_person_foreground"
@@ -90,6 +75,34 @@
             android:title="Distribute Study Material"
             android:icon="@drawable/ic_person_foreground"
             android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_add_summary_report"
+            android:title="Admssion Summary Report"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_edit_delete"
+            android:title="Edit Delete Transaction"
+            android:icon="@drawable/ic_person_foreground"
+            android:visible="false"/>
+
+        <item
+            android:id="@+id/nav_courses"
+            android:title="Courses"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
+            android:id="@+id/nav_batch"
+            android:title="Batch"
+            android:icon="@drawable/ic_person_foreground"/>
+
+        <item
+            android:id="@+id/nav_batch_time"
+            android:title="Batch Time"
+            android:icon="@drawable/ic_person_foreground"/>
+
 
         <item
             android:id="@+id/nav_certificates"

@@ -9,6 +9,8 @@ import com.example.androidproject.model.AdmissionRequest;
 import com.example.androidproject.model.AdmissionResponse;
 import com.example.androidproject.model.BatchRequest;
 import com.example.androidproject.model.BatchResponse;
+import com.example.androidproject.model.CancelAdmissionRequest;
+import com.example.androidproject.model.CancelAdmissionResponse;
 import com.example.androidproject.model.ExtendInquiryRequest;
 import com.example.androidproject.model.FeeReceiptRequest;
 import com.example.androidproject.model.FeeReceiptResponse;
@@ -29,7 +31,11 @@ import com.example.androidproject.model.StudentBasicRequest;
 import com.example.androidproject.model.StudentBasicResponse;
 import com.example.androidproject.model.SuggestReceiptRequest;
 import com.example.androidproject.model.SuggestReceiptResponse;
+import com.example.androidproject.model.TransactionListRequest;
+import com.example.androidproject.model.TransactionListResponse;
 import com.example.androidproject.model.UpdateStudentRequest;
+import com.example.androidproject.model.UpdateTransactionRequest;
+import com.example.androidproject.model.UpdateTransactionResponse;
 import com.example.androidproject.model.certificate.BirthdayRequest;
 import com.example.androidproject.model.certificate.BirthdayResponse;
 import com.example.androidproject.model.certificate.CertificateRequest;
@@ -65,6 +71,8 @@ import com.example.androidproject.model.queue.WhatsAppQueueResponse;
 
 import com.example.androidproject.model.summary.AdmissionReportRequest;
 import com.example.androidproject.model.summary.AdmissionReportResponse;
+import com.example.androidproject.model.summary.AdmissionSummaryRequest;
+import com.example.androidproject.model.summary.AdmissionSummaryResponse;
 import com.example.androidproject.model.summary.AttendanceReportRequest;
 import com.example.androidproject.model.summary.AttendanceReportResponse;
 import com.example.androidproject.model.summary.CertificateReportRequest;
@@ -243,4 +251,16 @@ public interface ApiService {
 
     @POST("batch_time_test")
     Call<BatchTimeListResponse> getBatchTimes(@Body BatchTimeListRequest request);
+
+    @POST("AdmissionSummary")
+    Call<AdmissionSummaryResponse> getAdmissionSummary(@Body AdmissionSummaryRequest request);
+
+    @POST("TransactionList")
+    Call<TransactionListResponse> getTransactionList(@Body TransactionListRequest request);
+
+    @POST("UpdateTransaction")
+    Call<UpdateTransactionResponse> updateTransaction(@Body UpdateTransactionRequest request);
+
+    @POST("CancelAdmission")
+    Call<CancelAdmissionResponse> cancelAdmission(@Body CancelAdmissionRequest request);
 }

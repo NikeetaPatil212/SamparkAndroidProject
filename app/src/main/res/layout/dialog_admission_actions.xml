@@ -273,6 +273,43 @@
 
     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" />
 
+    <!-- Edit Transaction -->
+    <LinearLayout
+        android:id="@+id/tvEditTransaction"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="8dp"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:layout_width="28dp"
+            android:layout_height="wrap_content"
+            android:text="🎓"
+            android:textSize="18sp"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit Transaction"
+            android:textSize="14sp"
+            android:textColor="#1A1A1A"
+            android:paddingStart="8dp" />
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/outline_arrow_back_24"
+            android:rotation="180"
+            android:tint="#CCCCCC" />
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" />
+
+
     <!-- Edit Profile -->
     <LinearLayout
         android:id="@+id/tvEditProfile"

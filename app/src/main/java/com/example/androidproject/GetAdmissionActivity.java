@@ -26,6 +26,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.adapters.AdmissionAdapter;
 import com.example.androidproject.model.AdmissionDetails;
+import com.example.androidproject.model.CancelAdmissionRequest;
+import com.example.androidproject.model.CancelAdmissionResponse;
 import com.example.androidproject.model.GetAdmissionRequest;
 import com.example.androidproject.model.GetAdmissionResponse;
 import com.example.androidproject.utils.ApiService;
@@ -291,6 +293,18 @@ public class GetAdmissionActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        view.findViewById(R.id.tvEditTransaction).setOnClickListener(v -> {
+            dialog.dismiss();
+
+            Log.d("DATA_PASS", "StudentID=" + item.getStudID()
+                    + " AdmissionID=" + item.getAdm_id());
+
+            Intent intent = new Intent(GetAdmissionActivity.this, EditDeleteTransactionActivity.class);
+            intent.putExtra("studentId", item.getStudID());
+            intent.putExtra("admissionId", item.getAdm_id());
+            startActivity(intent);
+        });
+
         // Example: Student Details Activity
         view.findViewById(R.id.tvNewAdmission).setOnClickListener(v -> {
             dialog.dismiss();
@@ -311,6 +325,26 @@ public class GetAdmissionActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        view.findViewById(R.id.tvDelstyeteProfile).setOnClickListener(v -> {
+            dialog.dismiss();
+
+            // ✅ Step 1 — Ask isRefund
+            new AlertDialog.Builder(this)
+                    .setTitle("Cancel Admission")
+                    .setMessage("Do you want to refund the paid amount for "
+                            + item.getStudent_Name() + "?")
+                    .setPositiveButton("Yes — Refund", (d1, w1) -> {
+                        d1.dismiss();
+                        confirmAndCancelAdmission(item, true);
+                    })
+                    .setNegativeButton("No — Cancel Only", (d1, w1) -> {
+                        d1.dismiss();
+                        confirmAndCancelAdmission(item, false);
+                    })
+                    .setNeutralButton("Back", (d1, w1) -> d1.dismiss())
+                    .show();
+        });
+
         // Cancel
         view.findViewById(R.id.tvGoBack).setOnClickListener(v -> dialog.dismiss());
 
@@ -320,5 +354,83 @@ public class GetAdmissionActivity extends AppCompatActivity {
     private static String getTodayIso() {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
+    }
+
+    private void confirmAndCancelAdmission(AdmissionDetails item, boolean isRefund) {
+
+        // ✅ Step 2 — Final confirmation before calling API
+        new AlertDialog.Builder(this)
+                .setTitle("⚠️ Confirm Cancellation")
+                .setMessage("Are you sure you want to cancel the admission of "
+                        + item.getStudent_Name() + "?"
+                        + (isRefund ? "\n\nRefund will be processed." : ""))
+                .setPositiveButton("Yes, Cancel", (d, w) -> {
+                    d.dismiss();
+                    callCancelAdmissionApi(item, isRefund);
+                })
+                .setNegativeButton("No", (d, w) -> d.dismiss())
+                .show();
+    }
+
+    private void callCancelAdmissionApi(AdmissionDetails item, boolean isRefund) {
+        showLoading();
+
+        PrefManager pref = PrefManager.getInstance(this);
+        int userID       = Integer.parseInt(pref.getUserId());
+        int instituteID  = Integer.parseInt(pref.getInstituteId());
+        int operatorID   = Integer.parseInt(pref.getOperatorId());
+
+        String transactionDate = new SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                .format(Calendar.getInstance().getTime());
+
+        CancelAdmissionRequest request = new CancelAdmissionRequest(
+                item.getStudID(),
+                item.getAdm_id(),
+                isRefund,
+                userID,
+                instituteID,
+                operatorID,
+                transactionDate);
+
+        Log.d("CANCEL_ADM_REQ", new Gson().toJson(request));
+
+        RetrofitClient.getApiService().cancelAdmission(request)
+                .enqueue(new Callback<CancelAdmissionResponse>() {
+                    @Override
+                    public void onResponse(Call<CancelAdmissionResponse> call,
+                                           Response<CancelAdmissionResponse> response) {
+                        Log.d("CANCEL_ADM_RESP", new Gson().toJson(response.body()));
+
+                        if (response.isSuccessful()
+                                && response.body() != null
+                                && response.body().isSuccess()) {
+
+                            Toast.makeText(GetAdmissionActivity.this,
+                                    "✅ " + response.body().getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+
+                            // ✅ Refresh list after cancellation
+                            callAdmissionApi();
+
+                        } else {
+                            showEmpty();
+                            String msg = (response.body() != null
+                                    && response.body().getMessage() != null)
+                                    ? response.body().getMessage() : "Cancellation failed";
+                            Toast.makeText(GetAdmissionActivity.this,
+                                    "❌ " + msg, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<CancelAdmissionResponse> call, Throwable t) {
+                        showEmpty();
+                        Log.e("CANCEL_ADM", "onFailure: " + t.getMessage());
+                        Toast.makeText(GetAdmissionActivity.this,
+                                "Network error: " + t.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

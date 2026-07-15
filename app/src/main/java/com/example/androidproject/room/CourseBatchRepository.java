@@ -134,7 +134,7 @@ public class CourseBatchRepository {
                                     e.batchId   = b.getBatchID();
                                     e.courseId  = courseId;
                                     e.batchName = b.getBatchName();
-                                    e.startDate = b.getStartDate(); // ← was missing
+                                    e.startDate = b.getStartDate(); // ← was misqsing
                                     e.endDate   = b.getEndDate();   // ← was missing
                                     entities.add(e);
                                 }
