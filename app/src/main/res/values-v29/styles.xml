@@ -16,7 +16,11 @@
         <item name="colorOnSurface">@color/text_dark</item>
 
         <!-- Status bar -->
-        <item name="android:statusBarColor">@color/card_white</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <!--<item name="android:statusBarColor">@color/card_white</item>
+        <item name="android:windowLightStatusBar">true</item>-->
+
+        <item name="android:statusBarColor">@color/hero_green</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
+
 </resources>

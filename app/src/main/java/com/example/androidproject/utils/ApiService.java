@@ -51,6 +51,9 @@ import com.example.androidproject.model.course.BatchTimeListRequest;
 import com.example.androidproject.model.course.BatchTimeListResponse;
 import com.example.androidproject.model.course.CourseRequest;
 import com.example.androidproject.model.course.CourseResponse;
+import com.example.androidproject.model.dashboard.DashboardCardsResponse;
+import com.example.androidproject.model.dashboard.DashboardChartsResponse;
+import com.example.androidproject.model.dashboard.DashboardRequest;
 import com.example.androidproject.model.notification.NotificationStudentRequest;
 import com.example.androidproject.model.notification.NotificationStudentResponse;
 import com.example.androidproject.model.profile.EditProfileRequest;
@@ -263,4 +266,10 @@ public interface ApiService {
 
     @POST("CancelAdmission")
     Call<CancelAdmissionResponse> cancelAdmission(@Body CancelAdmissionRequest request);
+
+    @POST("DashboardCards")
+    Call<DashboardCardsResponse> getDashboardCards(@Body DashboardRequest request);
+
+    @POST("DashboardCharts")
+    Call<DashboardChartsResponse> getDashboardCharts(@Body DashboardRequest request);
 }

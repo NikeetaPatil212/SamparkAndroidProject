@@ -2,6 +2,7 @@ package com.example.androidproject;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -9,12 +10,15 @@ import android.text.style.RelativeSizeSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -46,7 +50,29 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.hero_green));
+
+            // White status bar icons
+            View decor = window.getDecorView();
+            decor.setSystemUiVisibility(
+                    decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        }
+
+
         setContentView(R.layout.activity_dashboard);
+
+        // Load the dashboard home content into the container by default
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, new DashboardContentFragment())
+                    .commit();
+        }
+
 
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);
@@ -387,8 +413,13 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             return true;
         }
 
+        if (id == R.id.nav_dashboard) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, new DashboardContentFragment())
+                .commit();
+        }
+
         if (id == R.id.nav_bulk) {
-        }else if (id == R.id.nav_dashboard) {
         } else if (id == R.id.nav_templates) {
         } else if (id == R.id.nav_institute) {
         } else if (id == R.id.nav_data) {
