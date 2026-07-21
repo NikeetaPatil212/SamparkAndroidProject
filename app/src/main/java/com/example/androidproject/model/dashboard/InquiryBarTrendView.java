@@ -62,14 +62,14 @@ public class InquiryBarTrendView extends View {
         trackPaint.setStyle(Paint.Style.FILL);
 
         labelPaint.setColor(LABEL_COLOR);
-        labelPaint.setTextSize(dp(13));
+        labelPaint.setTextSize(dp(10));
         labelPaint.setTextAlign(Paint.Align.LEFT);
 
         axisPaint.setColor(AXIS_COLOR);
         axisPaint.setStrokeWidth(dp(1));
 
         axisLabelPaint.setColor(Color.parseColor("#9E9E9E"));
-        axisLabelPaint.setTextSize(dp(11));
+        axisLabelPaint.setTextSize(dp(9));
         axisLabelPaint.setTextAlign(Paint.Align.CENTER);
     }
 
@@ -86,8 +86,8 @@ public class InquiryBarTrendView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        int rowHeight = (int) dp(38);
-        int height = Math.max(1, entries.size()) * rowHeight + (int) dp(36); // + axis area
+        int rowHeight = (int) dp(32);
+        int height = Math.max(1, entries.size()) * rowHeight + (int) dp(30); // + axis area
         setMeasuredDimension(width, height);
     }
 
@@ -97,8 +97,8 @@ public class InquiryBarTrendView extends View {
 
         if (entries.isEmpty()) return;
 
-        float labelColWidth = dp(78);
-        float rightPadding = dp(50); // room for value text at bar end
+        float labelColWidth = dp(70);
+        float rightPadding = dp(54); // room for value text at bar end
         float chartLeft = labelColWidth;
         float chartRight = getWidth() - rightPadding;
         float chartWidth = chartRight - chartLeft;
@@ -107,9 +107,9 @@ public class InquiryBarTrendView extends View {
         for (Entry e : entries) maxValue = Math.max(maxValue, e.value);
         int axisMax = niceCeiling(maxValue);
 
-        float rowHeight = dp(38);
-        float barHeight = dp(18);
-        float axisAreaHeight = dp(28);
+        float rowHeight = dp(30);
+        float barHeight = dp(10);
+        float axisAreaHeight = dp(20);
         float chartBottom = getHeight() - axisAreaHeight;
 
         for (int i = 0; i < entries.size(); i++) {
@@ -124,14 +124,14 @@ public class InquiryBarTrendView extends View {
             // Track (full width background)
             RectF track = new RectF(chartLeft, rowCenterY - barHeight / 2f,
                     chartRight, rowCenterY + barHeight / 2f);
-            canvas.drawRoundRect(track, dp(9), dp(9), trackPaint);
+            canvas.drawRoundRect(track, dp(7), dp(7), trackPaint);
 
             // Value bar
             float ratio = (float) entry.value / axisMax;
             float barEnd = chartLeft + chartWidth * ratio;
             RectF bar = new RectF(chartLeft, rowCenterY - barHeight / 2f,
                     Math.max(barEnd, chartLeft + dp(4)), rowCenterY + barHeight / 2f);
-            canvas.drawRoundRect(bar, dp(9), dp(9), barPaint);
+            canvas.drawRoundRect(bar, dp(7), dp(7), barPaint);
 
             // Value label at bar end
             labelPaint.setTextAlign(Paint.Align.LEFT);
@@ -146,7 +146,7 @@ public class InquiryBarTrendView extends View {
         for (int t = 0; t <= ticks; t++) {
             float x = chartLeft + chartWidth * t / ticks;
             int value = axisMax * t / ticks;
-            canvas.drawText(String.valueOf(value), x, chartBottom + dp(18), axisLabelPaint);
+            canvas.drawText(String.valueOf(value), x, chartBottom + dp(12), axisLabelPaint);
         }
     }
 

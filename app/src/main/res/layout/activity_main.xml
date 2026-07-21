@@ -31,7 +31,7 @@
                 android:layout_height="@dimen/logo_size"
                 android:layout_gravity="center"
                 android:contentDescription="Logo"
-                android:src="@drawable/logo"/>
+                android:src="@drawable/logo_new"/>
 
             <!-- Title -->
             <TextView
@@ -142,6 +142,16 @@
                         android:drawablePadding="10dp"
                         android:inputType="textPassword"
                         android:imeOptions="actionDone"/>
+
+                    <CheckBox
+                        android:id="@+id/cbRememberMe"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Remember Me"
+                        android:textSize="14sp"
+                        android:buttonTint="#4CAF50"
+                        android:textColor="#444444"/>
+
 
                     <Button
                         android:id="@+id/btnLogin"

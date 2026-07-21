@@ -23,7 +23,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/hero_green"
+                android:background="@drawable/bg_header_midnight"
                 app:navigationIcon="@drawable/ic_menu_modern"
                 app:navigationIconTint="#FFFFFF"
                 app:titleTextAppearance="@style/ToolbarTitleStyle"

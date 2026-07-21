@@ -110,7 +110,7 @@
                             android:id="@+id/tvStudentName"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:background="@drawable/bg_edittext_outline"
+                            android:background="@drawable/bg_edittext_readonly"
                             android:hint="Student name"
                             android:focusable="false"
                             android:editable="false"

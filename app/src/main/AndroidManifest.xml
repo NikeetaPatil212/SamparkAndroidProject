@@ -18,6 +18,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Sampark"
         android:usesCleartextTraffic="true">
+      <!--  <activity
+            android:name=".SplashScreenActivity"
+            android:exported="false" />-->
+
+        <activity
+            android:name=".SplashScreenActivity"
+            android:theme="@style/Theme.Splash"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".EditDeleteTransactionActivity"
             android:exported="false" />
@@ -116,11 +130,11 @@
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="stateHidden|adjustResize">
-            <intent-filter>
+           <!-- <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity> <!-- Inside <application> tag -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -131,6 +145,20 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+       <!-- <service
+            android:name=".WhatsAppActionService"
+            android:exported="true"
+            android:label="WhatsApp Auto Send"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
+        </service>-->
     </application>
 
 </manifest>

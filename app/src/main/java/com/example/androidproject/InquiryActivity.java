@@ -81,19 +81,7 @@ public class InquiryActivity extends AppCompatActivity {
     private boolean isCourseDialogShowing  = false;
     private boolean whatsAppDone           = false;
 
-    // ── fullNameWatcher ───────────────────────────────────────────
-    private final TextWatcher fullNameWatcher = new TextWatcher() {
-        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        @Override public void afterTextChanged(Editable s) {}
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (!etFirstName.getText().toString().trim().isEmpty()
-                    || !etMiddleName.getText().toString().trim().isEmpty()
-                    || !etLastName.getText().toString().trim().isEmpty()) {
-                fullNameManuallyEdited = true;
-            }
-        }
-    };
+    private boolean isUpdatingName = false;
 
     // ─────────────────────────────────────────────────────────────
     @Override
@@ -173,22 +161,120 @@ public class InquiryActivity extends AppCompatActivity {
         findViewById(R.id.toolbar).setOnClickListener(v -> finish());
     }
 
+    private String capitalizeWords(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        for (String word : text.trim().split("\\s+")) {
+            if (!word.isEmpty()) {
+                builder.append(Character.toUpperCase(word.charAt(0)));
+
+                if (word.length() > 1) {
+                    builder.append(word.substring(1).toLowerCase());
+                }
+
+                builder.append(" ");
+            }
+        }
+
+        return builder.toString().trim();
+    }
+
+
+    // ── fullNameWatcher ───────────────────────────────────────────
+    private final TextWatcher fullNameWatcher = new TextWatcher() {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            if (isUpdatingName) return;
+
+            if (!etFullName.getText().toString().trim().isEmpty()) {
+                fullNameManuallyEdited = true;
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+    };
+
     // ── Auto-fill Full Name ───────────────────────────────────────
     private void setupNameAutoFill() {
+
         TextWatcher nameWatcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (fullNameManuallyEdited) return;
-                String f = etFirstName.getText().toString().trim();
-                String m = etMiddleName.getText().toString().trim();
-                String l = etLastName.getText().toString().trim();
-                String full = !m.isEmpty() ? f + " " + m + " " + l : (f + " " + l).trim();
-                etFullName.removeTextChangedListener(fullNameWatcher);
-                etFullName.setText(full);
-                etFullName.setSelection(full.length());
-                etFullName.addTextChangedListener(fullNameWatcher);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+                if (isUpdatingName) return;
+
+                isUpdatingName = true;
+
+                EditText current = null;
+
+                if (etFirstName.hasFocus()) {
+                    current = etFirstName;
+                } else if (etMiddleName.hasFocus()) {
+                    current = etMiddleName;
+                } else if (etLastName.hasFocus()) {
+                    current = etLastName;
+                }
+
+                // Capitalize current field
+                if (current != null) {
+                    String value = capitalizeWords(current.getText().toString());
+
+                    if (!value.equals(current.getText().toString())) {
+                        current.setText(value);
+                        current.setSelection(value.length());
+                    }
+                }
+
+                if (!fullNameManuallyEdited) {
+
+                    String f = etFirstName.getText().toString().trim();
+                    String m = etMiddleName.getText().toString().trim();
+                    String l = etLastName.getText().toString().trim();
+
+                    StringBuilder full = new StringBuilder();
+
+                    if (!f.isEmpty()) {
+                        full.append(f);
+                    }
+
+                    if (!m.isEmpty()) {
+                        if (full.length() > 0) full.append(" ");
+                        full.append(m);
+                    }
+
+                    if (!l.isEmpty()) {
+                        if (full.length() > 0) full.append(" ");
+                        full.append(l);
+                    }
+
+                    etFullName.removeTextChangedListener(fullNameWatcher);
+                    etFullName.setText(full.toString());
+                    etFullName.setSelection(full.length());
+                    etFullName.addTextChangedListener(fullNameWatcher);
+                }
+
+                isUpdatingName = false;
             }
         };
 
@@ -196,6 +282,9 @@ public class InquiryActivity extends AppCompatActivity {
         etMiddleName.addTextChangedListener(nameWatcher);
         etLastName.addTextChangedListener(nameWatcher);
 
+        etFullName.addTextChangedListener(fullNameWatcher);
+
+        // Validation watchers
         etFirstName.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
@@ -227,8 +316,6 @@ public class InquiryActivity extends AppCompatActivity {
                 if (!s.toString().trim().isEmpty()) etInquiryAbout.setError(null);
             }
         });
-
-        etFullName.addTextChangedListener(fullNameWatcher);
     }
 
     // ── Gender Dropdown ───────────────────────────────────────────

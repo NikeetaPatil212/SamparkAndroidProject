@@ -168,6 +168,86 @@ public class PrefManager {
                 .apply();  // ← single apply on the SAME editor chain
     }
 
+
+    public void clearSession() {
+
+        prefs.edit()
+                .remove(KEY_USER_ID)
+                .remove(KEY_USER_ROLE)
+                .remove(KEY_OPERATOR_ID)
+                .apply();
+    }
+
+    public void setRememberMe(boolean remember) {
+        prefs.edit()
+                .putBoolean("remember_me", remember)
+                .apply();
+    }
+
+    public boolean isRememberMe() {
+        return prefs.getBoolean("remember_me", false);
+    }
+
+    public void saveLoginCredentials(String phone,
+                                     String username,
+                                     String password) {
+
+        prefs.edit()
+                .putString("remember_phone", phone)
+                .putString("remember_username", username)
+                .putString("remember_password", password)
+                .apply();
+    }
+    public String getRememberPhone() {
+        return prefs.getString("remember_phone", "");
+    }
+
+    public String getRememberUsername() {
+        return prefs.getString("remember_username", "");
+    }
+
+    public String getRememberPassword() {
+        return prefs.getString("remember_password", "");
+    }
+
+    public void saveLastPhone(String phone) {
+        prefs.edit().putString("last_phone", phone).apply();
+    }
+
+    public String getLastPhone() {
+        return prefs.getString("last_phone", "");
+    }
+
+    public void saveLastUsername(String username) {
+        prefs.edit().putString("last_username", username).apply();
+    }
+
+    public String getLastUsername() {
+        return prefs.getString("last_username", "");
+    }
+
+    public void savePassword(String password) {
+        prefs.edit().putString("remember_password", password).apply();
+    }
+
+    public String getPassword() {
+        return prefs.getString("remember_password", "");
+    }
+
+    public void clearPassword() {
+        prefs.edit().remove("remember_password").apply();
+    }
+
+    public void clearRememberMe() {
+
+        prefs.edit()
+                .remove("remember_phone")
+                .remove("remember_username")
+                .remove("remember_password")
+                .putBoolean("remember_me", false)
+                .apply();
+    }
+
     // Getters
     public String getInstituteName()     { return prefs.getString("institute_name",     ""); }
     public String getInstituteMobile1()  { return prefs.getString("institute_mobile1",  ""); }
@@ -176,5 +256,17 @@ public class PrefManager {
     public String getInstituteAddress1() { return prefs.getString("institute_address1", ""); }
     public String getInstituteAddress2() { return prefs.getString("institute_address2", ""); }
     public String getOwnerName() { return prefs.getString("institute_ownerName", ""); }
+
+
+
+    public void saveLastInstituteName(String instituteName) {
+        prefs.edit()
+                .putString("last_institute_name", instituteName)
+                .apply();
+    }
+
+    public String getLastInstituteName() {
+        return prefs.getString("last_institute_name", "");
+    }
 }
 

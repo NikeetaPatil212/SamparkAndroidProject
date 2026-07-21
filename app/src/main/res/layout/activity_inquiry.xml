@@ -280,6 +280,7 @@
                                 android:textColor="#1A1A1A"
                                 android:textColorHint="#AAAAAA"
                                 android:textSize="14sp"
+                                android:enabled="false"
                                 android:maxLines="1"
                                 android:singleLine="true"
                                 android:inputType="textPersonName" />

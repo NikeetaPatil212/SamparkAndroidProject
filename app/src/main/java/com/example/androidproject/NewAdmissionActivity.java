@@ -138,7 +138,7 @@ public class NewAdmissionActivity extends AppCompatActivity {
         });
 
         // ── Auto-populate Full Name from F+M+L ──
-        TextWatcher nameWatcher = new TextWatcher() {
+        /*TextWatcher nameWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
             @Override
@@ -163,7 +163,7 @@ public class NewAdmissionActivity extends AppCompatActivity {
                 etFullName.setSelection(full.length()); // cursor at end
                 etFullName.addTextChangedListener(fullNameWatcher);
             }
-        };
+        };*/
 
         etFName.addTextChangedListener(nameWatcher);
         etMName.addTextChangedListener(nameWatcher);
@@ -175,6 +175,70 @@ public class NewAdmissionActivity extends AppCompatActivity {
         // Save
         btnSave.setOnClickListener(v -> callAddStudentApi());
     }
+    private boolean isUpdating = false;
+    private final TextWatcher nameWatcher = new TextWatcher() {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+            if (isUpdating) return;
+            isUpdating = true;
+
+            EditText current = null;
+
+            if (etFName.hasFocus())
+                current = etFName;
+            else if (etMName.hasFocus())
+                current = etMName;
+            else if (etLName.hasFocus())
+                current = etLName;
+
+            if (current != null) {
+
+                String value = current.getText().toString();
+
+                if (value.length() > 0) {
+
+                    String cap = Character.toUpperCase(value.charAt(0))
+                            + value.substring(1).toLowerCase();
+
+                    if (!cap.equals(value)) {
+                        current.setText(cap);
+                        current.setSelection(cap.length());
+                    }
+                }
+            }
+
+            if (!fullNameManuallyEdited) {
+
+                String f = etFName.getText().toString().trim();
+                String m = etMName.getText().toString().trim();
+                String l = etLName.getText().toString().trim();
+
+                String full = f;
+
+                if (!m.isEmpty())
+                    full += " " + m;
+
+                if (!l.isEmpty())
+                    full += " " + l;
+
+                etFullName.removeTextChangedListener(fullNameWatcher);
+                etFullName.setText(full.trim());
+                etFullName.addTextChangedListener(fullNameWatcher);
+            }
+
+            isUpdating = false;
+        }
+    };
 
     // Detects manual edits to Full Name field
     private final TextWatcher fullNameWatcher = new TextWatcher() {
@@ -234,7 +298,7 @@ public class NewAdmissionActivity extends AppCompatActivity {
         request.emailID     = "";
         request.address     = etAddress.getText().toString().trim();
         request.school_name = etSchool.getText().toString().trim();
-        request.dob         = cbDob.isChecked() ? etDob.getText().toString() : "";
+        request.dob         = cbDob.isChecked() ? etDob.getText().toString() : null;
         request.gender      = spGender.getSelectedItem().toString();
         request.userID      = Integer.parseInt(userId);
         request.instituteID = Integer.parseInt(instituteId);

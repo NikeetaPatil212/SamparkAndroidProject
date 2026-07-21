@@ -17,17 +17,23 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.transition.AutoTransition;
+import androidx.transition.TransitionManager;
 
 import com.example.androidproject.adapters.KpiCard;
 import com.example.androidproject.adapters.KpiCardAdapter;
+import com.example.androidproject.adapters.RecentEntryAdapter;
 import com.example.androidproject.model.dashboard.AdmissionLineTrendView;
 import com.example.androidproject.model.dashboard.DashboardCardsResponse;
 import com.example.androidproject.model.dashboard.DashboardChartsResponse;
+import com.example.androidproject.model.dashboard.DashboardGridsResponse;
 import com.example.androidproject.model.dashboard.DashboardRequest;
 import com.example.androidproject.model.dashboard.FeeDonutChartView;
 import com.example.androidproject.model.dashboard.InquiryBarTrendView;
+import com.example.androidproject.model.dashboard.RecentEntry;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 
@@ -57,6 +63,9 @@ public class DashboardContentFragment extends Fragment {
     private AdmissionLineTrendView admissionLineTrendView;
     private FrameLayout            loaderLayout;
 
+    // ── NEW: Collapsible Recent Activity cards ────────────
+    private View cardRecentInquiries, cardRecentAdmissions, cardRecentFees;
+
     Toolbar toolbar;
     private int pendingCalls = 0;
 
@@ -68,6 +77,8 @@ public class DashboardContentFragment extends Fragment {
     // 8 cards → 2 rows × 4 columns; each "page" shows 2 cards (1 col of 2 rows)
     // so 4 pages total. Adjust CARDS_PER_PAGE if you change span/orientation.
     private static final int PAGE_COUNT = 3;
+
+
 
     @Nullable
     @Override
@@ -83,13 +94,15 @@ public class DashboardContentFragment extends Fragment {
         initViews(view);
         setupKpiCarousel();
         setupGreeting();
+        setupRecentActivityCards();   // ← NEW
         loadDashboard();
+        loadRecentActivity();         // ← NEW
     }
 
     // ── Init ─────────────────────────────────────────────
     private void initViews(View view) {
         tvGreeting       = view.findViewById(R.id.tvGreeting);
-     //   btnNotifications = view.findViewById(R.id.btnNotifications);
+        //   btnNotifications = view.findViewById(R.id.btnNotifications);
         rvKpiCards       = view.findViewById(R.id.rvKpiCards);
         dotsIndicator    = view.findViewById(R.id.dotsIndicator);
 
@@ -98,71 +111,69 @@ public class DashboardContentFragment extends Fragment {
         admissionLineTrendView = view.findViewById(R.id.admissionLineTrendView);
         loaderLayout           = view.findViewById(R.id.loaderLayout);
 
-
+        // ── NEW: Recent Activity collapsible cards ──
+        cardRecentInquiries  = view.findViewById(R.id.cardRecentInquiries);
+        cardRecentAdmissions = view.findViewById(R.id.cardRecentAdmissions);
+        cardRecentFees       = view.findViewById(R.id.cardRecentFees);
     }
 
     // ── KPI Carousel ─────────────────────────────────────
+    // ── Paste this into DashboardContentFragment, replacing setupKpiCarousel() ──
+
     private void setupKpiCarousel() {
-        // Card order shown when user swipes L → R
         List<KpiCard> cards = new ArrayList<>(Arrays.asList(
-                new KpiCard(KpiCard.Type.TOTAL_INQUIRIES,   "📄", "Total Inquiries",
-                        "All inquiries",     Color.parseColor("#1565C0"), Color.parseColor("#1565C0")),
-                new KpiCard(KpiCard.Type.PENDING_INQUIRIES, "⏳", "Pending",
-                        "Awaiting response", Color.parseColor("#F57C00"), Color.parseColor("#F57C00")),
-                new KpiCard(KpiCard.Type.TOTAL_ADMISSIONS,  "🎓", "Admissions",
-                        "Enrolled",          Color.parseColor("#2E7D32"), Color.parseColor("#2E7D32")),
-                new KpiCard(KpiCard.Type.INQUIRY_ABORTED,   "✕",  "Aborted",
-                        "Dropped inquiries", Color.parseColor("#E53935"), Color.parseColor("#E53935")),
-                new KpiCard(KpiCard.Type.FEE_COLLECTED,     "₹",  "Fee Collected",
-                        "This period",       Color.parseColor("#2E7D32"), Color.parseColor("#2E7D32")),
-                new KpiCard(KpiCard.Type.REFUNDED,          "↩",  "Refunded",
-                        "Total refunds",     Color.parseColor("#E53935"), Color.parseColor("#E53935")),
-                new KpiCard(KpiCard.Type.NON_REFUNDED,      "🔒", "Non-Refunded",
-                        "Locked in",         Color.parseColor("#1565C0"), Color.parseColor("#1565C0")),
-                new KpiCard(KpiCard.Type.EXPENSES,          "📉", "Expenses",
-                        "Operational",       Color.parseColor("#FB8C00"), Color.parseColor("#FB8C00"))
+                new KpiCard(KpiCard.Type.TOTAL_INQUIRIES,   "📄", "Total Inquiries",   "All inquiries received",     0, 0),
+                new KpiCard(KpiCard.Type.PENDING_INQUIRIES, "⏳", "Pending Inquiries", "Awaiting follow-up",         0, 0),
+                new KpiCard(KpiCard.Type.TOTAL_ADMISSIONS,  "🎓", "Total Admissions",  "Students enrolled",          0, 0),
+                new KpiCard(KpiCard.Type.INQUIRY_ABORTED,   "✕",  "Aborted",           "Dropped inquiries",          0, 0),
+                new KpiCard(KpiCard.Type.FEE_COLLECTED,     "₹",  "Fee Collected",     "Total collected this period",0, 0),
+                new KpiCard(KpiCard.Type.REFUNDED,          "↩",  "Refunded",          "Total refund amount",        0, 0),
+                new KpiCard(KpiCard.Type.NON_REFUNDED,      "🔒", "Non-Refunded",      "Secured revenue",            0, 0),
+                new KpiCard(KpiCard.Type.EXPENSES,          "📉", "Expenses",          "Operational costs",          0, 0)
         ));
 
-        kpiAdapter = new KpiCardAdapter(cards, type -> {
-            // TODO: navigate to detail screen based on type
-            Toast.makeText(requireContext(), type.name(), Toast.LENGTH_SHORT).show();
-        });
+        kpiAdapter = new KpiCardAdapter(cards, type ->
+                Toast.makeText(requireContext(), type.name(), Toast.LENGTH_SHORT).show());
 
-        // 2 rows, horizontal scroll
-        GridLayoutManager glm = new GridLayoutManager(
-                getContext(), 2, GridLayoutManager.HORIZONTAL, false);
-        rvKpiCards.setLayoutManager(glm);
+        // ✅ KEY: horizontal LinearLayoutManager + PagerSnapHelper = 1 card per swipe
+        LinearLayoutManager llm = new LinearLayoutManager(
+                getContext(), LinearLayoutManager.HORIZONTAL, false);
+        rvKpiCards.setLayoutManager(llm);
+
+        // ✅ Each card uses match_parent width in its XML (margin 16dp each side)
+        // so exactly ONE card is visible at a time
         rvKpiCards.setAdapter(kpiAdapter);
+        rvKpiCards.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
-        // Snap so cards land nicely
+        // Snap: one full card per swipe
         new PagerSnapHelper().attachToRecyclerView(rvKpiCards);
 
-        buildDots();
+        // Build dots
+        buildDots(cards.size());
 
+        // Update dots as user scrolls
         rvKpiCards.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView r, int dx, int dy) {
-                int offset = r.computeHorizontalScrollOffset();
-                int range  = r.computeHorizontalScrollRange()
-                        - r.computeHorizontalScrollExtent();
-                if (range <= 0) return;
-                float ratio = (float) offset / range;      // 0.0 → 1.0
-                int page = Math.round(ratio * (PAGE_COUNT - 1));
-                page = Math.max(0, Math.min(page, PAGE_COUNT - 1));
-                updateDots(page);
+                // Find the currently fully visible item
+                int first = llm.findFirstCompletelyVisibleItemPosition();
+                if (first >= 0) updateDots(first);
             }
         });
     }
 
-    private void buildDots() {
+    private void buildDots(int count) {
         dotsIndicator.removeAllViews();
-        dots = new ImageView[PAGE_COUNT];
-        int size = (int) (8 * getResources().getDisplayMetrics().density);
-        int margin = (int) (5 * getResources().getDisplayMetrics().density);
-        for (int i = 0; i < PAGE_COUNT; i++) {
+        dots = new ImageView[count];
+        float density = getResources().getDisplayMetrics().density;
+        int size   = (int) (8  * density);
+        int margin = (int) (5  * density);
+
+        for (int i = 0; i < count; i++) {
             ImageView d = new ImageView(getContext());
             d.setImageResource(i == 0 ? R.drawable.dot_active : R.drawable.dot_inactive);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+            LinearLayout.LayoutParams lp =
+                    new LinearLayout.LayoutParams(size, size);
             lp.setMargins(margin, 0, margin, 0);
             dotsIndicator.addView(d, lp);
             dots[i] = d;
@@ -172,11 +183,12 @@ public class DashboardContentFragment extends Fragment {
     private void updateDots(int activePage) {
         if (dots == null) return;
         for (int i = 0; i < dots.length; i++) {
-            dots[i].setImageResource(i == activePage
-                    ? R.drawable.dot_active
-                    : R.drawable.dot_inactive);
+            dots[i].setImageResource(
+                    i == activePage ? R.drawable.dot_active : R.drawable.dot_inactive);
         }
     }
+
+
 
     // ── Greeting ─────────────────────────────────────────
     private void setupGreeting() {
@@ -198,6 +210,107 @@ public class DashboardContentFragment extends Fragment {
         if (h < 12) return "Good Morning";
         if (h < 17) return "Good Afternoon";
         return "Good Evening";
+    }
+
+    // ── NEW: Recent Activity — collapsible cards setup ────
+    private void setupRecentActivityCards() {
+        setupCollapsibleCard(cardRecentInquiries,  "📋", "Recent Inquiries");
+        setupCollapsibleCard(cardRecentAdmissions, "🎓", "Recent Admissions");
+        setupCollapsibleCard(cardRecentFees,       "💰", "Recent Fees Collected");
+    }
+
+    private void setupCollapsibleCard(View cardView, String icon, String title) {
+        if (cardView == null) return;
+
+        TextView tvIcon  = cardView.findViewById(R.id.tvCardIcon);
+        TextView tvTitle = cardView.findViewById(R.id.tvCardTitle);
+        if (tvIcon != null)  tvIcon.setText(icon);
+        if (tvTitle != null) tvTitle.setText(title);
+
+        View header          = cardView.findViewById(R.id.headerRow);
+        LinearLayout content  = cardView.findViewById(R.id.contentContainer);
+        ImageView chevron     = cardView.findViewById(R.id.ivChevron);
+
+        if (header != null) {
+            header.setOnClickListener(v -> toggleCollapsibleCard(cardView, content, chevron));
+        }
+    }
+
+    private void toggleCollapsibleCard(View cardView, LinearLayout content, ImageView chevron) {
+        if (content == null) return;
+
+        ViewGroup parent = (ViewGroup) cardView.getParent();
+        if (parent != null) {
+            TransitionManager.beginDelayedTransition(parent, new AutoTransition());
+        }
+
+        boolean expanding = content.getVisibility() != View.VISIBLE;
+        content.setVisibility(expanding ? View.VISIBLE : View.GONE);
+        if (chevron != null) {
+            chevron.animate().rotation(expanding ? 180f : 0f).setDuration(200).start();
+        }
+    }
+
+    // ── NEW: Recent Activity — fetch from DashboardGrids API ──
+    private void loadRecentActivity() {
+        if (getContext() == null) return;
+
+        String userId      = PrefManager.getInstance(requireContext()).getUserId();
+        String instituteId = PrefManager.getInstance(requireContext()).getInstituteId();
+
+        DashboardRequest request = new DashboardRequest(
+                Integer.parseInt(userId), Integer.parseInt(instituteId));
+
+        RetrofitClient.getApiService().getDashboardGrids(request)
+                .enqueue(new retrofit2.Callback<DashboardGridsResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<DashboardGridsResponse> call,
+                                           retrofit2.Response<DashboardGridsResponse> response) {
+                        if (!isAdded()) return;
+                        if (response.isSuccessful() && response.body() != null
+                                && response.body().isSuccess()) {
+                            bindRecentActivity(response.body());
+                        } else {
+                            toast(response.body() != null
+                                    ? response.body().getMessage()
+                                    : "Failed to load recent activity");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<DashboardGridsResponse> call, Throwable t) {
+                        if (isAdded()) toast("Network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    private void bindRecentActivity(DashboardGridsResponse body) {
+        bindCollapsibleCardData(cardRecentInquiries,  body.getRecentInquiries(),  false);
+        bindCollapsibleCardData(cardRecentAdmissions, body.getRecentAdmissions(), false);
+        bindCollapsibleCardData(cardRecentFees,       body.getRecentFees(),       true);
+    }
+
+    private void bindCollapsibleCardData(View cardView, List<RecentEntry> items, boolean showAmount) {
+        if (cardView == null) return;
+
+        RecyclerView rv   = cardView.findViewById(R.id.rvCardItems);
+        TextView tvCount  = cardView.findViewById(R.id.tvCardCount);
+        TextView tvEmpty  = cardView.findViewById(R.id.tvEmptyState);
+
+        List<RecentEntry> safeItems = items == null ? Collections.emptyList() : items;
+        if (tvCount != null) tvCount.setText(String.valueOf(safeItems.size()));
+
+        if (safeItems.isEmpty()) {
+            if (rv != null)      rv.setVisibility(View.GONE);
+            if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
+        } else {
+            if (tvEmpty != null) tvEmpty.setVisibility(View.GONE);
+            if (rv != null) {
+                rv.setVisibility(View.VISIBLE);
+                rv.setLayoutManager(new LinearLayoutManager(getContext()));
+                rv.setAdapter(new RecentEntryAdapter(safeItems, showAmount));
+            }
+        }
     }
 
     // ── Load ─────────────────────────────────────────────

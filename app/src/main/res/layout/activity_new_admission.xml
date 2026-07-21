@@ -208,6 +208,11 @@
                             android:textColor="#1A1A1A"
                             android:textColorHint="#AAAAAA"
                             android:textSize="14sp"
+                            android:clickable="false"
+                            android:cursorVisible="false"
+                            android:longClickable="false"
+                            android:textIsSelectable="false"
+                            android:enabled="false"
                             android:maxLines="1" />
                     </LinearLayout>
                 </LinearLayout>

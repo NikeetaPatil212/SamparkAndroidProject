@@ -41,7 +41,7 @@ public class FeeDonutChartView extends LinearLayout {
         setGravity(Gravity.CENTER_VERTICAL);
 
         FrameLayout donutFrame = new FrameLayout(getContext());
-        addView(donutFrame, new LayoutParams(0, dp(220), 1.1f));
+        addView(donutFrame, new LayoutParams(0, dp(150), 1.1f));
 
         donutCanvasView = new DonutCanvasView(getContext());
         donutFrame.addView(donutCanvasView, new FrameLayout.LayoutParams(
@@ -57,13 +57,13 @@ public class FeeDonutChartView extends LinearLayout {
 
         tvCenterTitle = new TextView(getContext());
         tvCenterTitle.setTextColor(Color.parseColor("#757575"));
-        tvCenterTitle.setTextSize(13f);
+        tvCenterTitle.setTextSize(11f);
         tvCenterTitle.setGravity(Gravity.CENTER);
         centerLabel.addView(tvCenterTitle);
 
         tvCenterAmount = new TextView(getContext());
         tvCenterAmount.setTextColor(Color.parseColor("#1A1A1A"));
-        tvCenterAmount.setTextSize(18f);
+        tvCenterAmount.setTextSize(15f);
         tvCenterAmount.setTypeface(null, android.graphics.Typeface.BOLD);
         tvCenterAmount.setGravity(Gravity.CENTER);
         centerLabel.addView(tvCenterAmount);
@@ -98,7 +98,7 @@ public class FeeDonutChartView extends LinearLayout {
             row.setGravity(Gravity.CENTER_VERTICAL);
             LayoutParams rowParams = new LayoutParams(
                     LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-            rowParams.bottomMargin = dp(10);
+            rowParams.bottomMargin = dp(6);
             row.setLayoutParams(rowParams);
 
             View dot = new View(getContext());

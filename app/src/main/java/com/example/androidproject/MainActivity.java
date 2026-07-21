@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -42,6 +45,8 @@ import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int SMS_PERMISSION_CODE = 101;
     FrameLayout loaderLayout;
     TextView tvInstituteHelper;
+    private CheckBox cbRememberMe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         btnLogin    = findViewById(R.id.btnLogin);
         loaderLayout= findViewById(R.id.loaderLayout);
         tvInstituteHelper = findViewById(R.id.tvInstituteHelper);
+        cbRememberMe = findViewById(R.id.cbRememberMe);
 
         apiService = RetrofitClient.getApiService();
 
@@ -127,10 +134,50 @@ public class MainActivity extends AppCompatActivity {
             etInstitute.showDropDown();
         });
 
+
+        PrefManager pref = PrefManager.getInstance(this);
+
+        etPhoneNo.setText(pref.getLastPhone());
+        etUsername.setText(pref.getLastUsername());
+
+        String savedInstitute = pref.getLastInstituteName();
+
+        if (!savedInstitute.isEmpty()) {
+            etInstitute.setText(savedInstitute, false);
+        }
+
+        if (pref.isRememberMe()) {
+
+            cbRememberMe.setChecked(true);
+            etPassword.setText(pref.getPassword());
+
+        } else {
+
+            cbRememberMe.setChecked(false);
+
+            etPassword.setText("");
+        }
+
+
         // LOGIN BUTTON — unchanged
         btnLogin.setOnClickListener(v -> {
             hideKeyboard();
             validateInputs();
+
+            /*String phone = "919730933239"; // Include country code without '+'
+            String message = "Hello, this is a prefilled message!";
+            String url = null;
+            try {
+                url = "https://api.whatsapp.com/send?phone=" + phone + "&text=" + URLEncoder.encode(message, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            intent.setPackage("com.whatsapp"); // Force open in WhatsApp
+            startActivity(intent);
+*/
         });
     }
 
@@ -226,24 +273,46 @@ public class MainActivity extends AppCompatActivity {
         if (list == null) list = new ArrayList<>();
 
         ArrayAdapter<InstituteModel> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, list);
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                list);
 
         etInstitute.setAdapter(adapter);
         etInstitute.setThreshold(1);
-        etInstitute.setText("", false);
+
+        // Restore previously selected institute
+        String savedInstitute =
+                PrefManager.getInstance(this).getLastInstituteName();
+
+        if (!savedInstitute.isEmpty()) {
+            etInstitute.setText(savedInstitute, false);
+        } else {
+            etInstitute.setText("", false);
+        }
 
         etInstitute.setOnClickListener(v -> {
-            if (!adapter.isEmpty()) etInstitute.showDropDown();
+            if (!adapter.isEmpty()) {
+                etInstitute.showDropDown();
+            }
         });
 
         etInstitute.setOnItemClickListener((parent, view, position, id) -> {
+
             InstituteModel selectedInstitute = adapter.getItem(position);
+
             if (selectedInstitute != null) {
+
                 etInstitute.setText(selectedInstitute.getName(), false);
-                PrefManager pref = PrefManager.getInstance(this);
+
+                PrefManager pref = PrefManager.getInstance(MainActivity.this);
+
                 pref.saveInstituteId(selectedInstitute.getId());
                 pref.saveInstituteName(selectedInstitute.getName());
-                Log.d("SAVE_TEST", "InstituteId = "   + pref.getInstituteId());
+
+                // Save for Remember Me
+                pref.saveLastInstituteName(selectedInstitute.getName());
+
+                Log.d("SAVE_TEST", "InstituteId = " + pref.getInstituteId());
                 Log.d("SAVE_TEST", "InstituteName = " + pref.getInstituteName());
             }
         });
@@ -302,6 +371,25 @@ public class MainActivity extends AppCompatActivity {
                     pref.saveOperatorId(user.getOperatorID());
                     pref.saveUserName(user.getUserName());
 
+                 //   PrefManager pref = PrefManager.getInstance(MainActivity.this);
+
+                    pref.saveLastPhone(etPhoneNo.getText().toString().trim());
+                    pref.saveLastUsername(etUsername.getText().toString().trim());
+                    pref.saveLastInstituteName(etInstitute.getText().toString().trim());
+
+
+                    if (cbRememberMe.isChecked()) {
+
+                        pref.setRememberMe(true);
+
+                        pref.savePassword(etPassword.getText().toString().trim());
+
+                    } else {
+
+                        pref.setRememberMe(false);
+                        pref.clearPassword();
+                    }
+
                     Toast.makeText(MainActivity.this,
                             loginResponse.getMessage(), Toast.LENGTH_SHORT).show();
 
@@ -323,32 +411,6 @@ public class MainActivity extends AppCompatActivity {
                                     Log.w("Login", "Template cache failed: " + error);
                                 }
                             });
-
-                    // 2. Fetch institute profile
-                  /*  apiService.getInstituteProfile(instituteRequest)
-                            .enqueue(new Callback<InstituteProfileResponse>() {
-                                @Override
-                                public void onResponse(Call<InstituteProfileResponse> call,
-                                                       Response<InstituteProfileResponse> response) {
-                                    if (response.isSuccessful() && response.body() != null
-                                            && response.body().isSuccess) {
-                                        InstituteProfileResponse.InstituteDetails d =
-                                                response.body().instituteDetails;
-                                        PrefManager.getInstance(MainActivity.this).saveInstituteProfile(
-                                                d.instituteName, d.mobile, d.alternate,
-                                                d.email, d.address1, d.address2, d.ownerName);
-                                        Log.d("Login", "✅ Institute profile saved: " + d.instituteName);
-
-                                        Log.d("OWNER_DEBUG", "ownerName saved in pref = '" +
-                                                PrefManager.getInstance(MainActivity.this).getOwnerName() + "'");
-
-                                    }
-                                }
-                                @Override
-                                public void onFailure(Call<InstituteProfileResponse> call, Throwable t) {
-                                    Log.w("Login", "Institute profile failed: " + t.getMessage());
-                                }
-                            });*/
 
                     apiService.getInstituteProfile(instituteRequest)
                             .enqueue(new Callback<InstituteProfileResponse>() {

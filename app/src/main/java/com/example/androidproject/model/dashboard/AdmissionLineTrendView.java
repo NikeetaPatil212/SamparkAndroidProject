@@ -55,7 +55,7 @@ public class AdmissionLineTrendView extends View {
     private void init() {
         linePaint.setColor(LINE_COLOR);
         linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setStrokeWidth(dp(3));
+        linePaint.setStrokeWidth(dp(2));
         linePaint.setStrokeCap(Paint.Cap.ROUND);
         linePaint.setStrokeJoin(Paint.Join.ROUND);
 
@@ -69,14 +69,14 @@ public class AdmissionLineTrendView extends View {
 
         gridPaint.setColor(GRID_COLOR);
         gridPaint.setStrokeWidth(dp(1));
-        gridPaint.setPathEffect(new android.graphics.DashPathEffect(new float[]{dp(4), dp(4)}, 0));
+        gridPaint.setPathEffect(new android.graphics.DashPathEffect(new float[]{dp(3), dp(3)}, 0));
 
         axisLabelPaint.setColor(Color.parseColor("#9E9E9E"));
-        axisLabelPaint.setTextSize(dp(11));
+        axisLabelPaint.setTextSize(dp(9));
         axisLabelPaint.setTextAlign(Paint.Align.RIGHT);
 
         monthLabelPaint.setColor(Color.parseColor("#616161"));
-        monthLabelPaint.setTextSize(dp(12));
+        monthLabelPaint.setTextSize(dp(10));
     }
 
     public void setData(List<Entry> entries) {
@@ -92,7 +92,7 @@ public class AdmissionLineTrendView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = (int) dp(220);
+        int height = (int) dp(200);
         setMeasuredDimension(width, height);
     }
 
@@ -101,10 +101,10 @@ public class AdmissionLineTrendView extends View {
         super.onDraw(canvas);
         if (entries.isEmpty()) return;
 
-        float paddingLeft = dp(28);
-        float paddingRight = dp(12);
-        float paddingTop = dp(16);
-        float paddingBottom = dp(28);
+        float paddingLeft = dp(24);
+        float paddingRight = dp(8);
+        float paddingTop = dp(12);
+        float paddingBottom = dp(22);
 
         float chartLeft = paddingLeft;
         float chartRight = getWidth() - paddingRight;

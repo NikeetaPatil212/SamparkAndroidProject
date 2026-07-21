@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base gradient: very dark top → medium green → dark teal bottom -->
+    <item>
+        <shape>
+            <gradient
+                android:type="linear"
+                android:angle="180"
+                android:startColor="#0D2B10"
+                android:centerColor="#1B5E20"
+                android:endColor="#1A3C34"
+                android:centerX="0.5" />
+        </shape>
+    </item>
+
+    <!-- Subtle diagonal shimmer -->
+    <item>
+        <shape>
+            <gradient
+                android:type="linear"
+                android:angle="45"
+                android:startColor="#00FFFFFF"
+                android:centerColor="#12FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:centerX="0.35" />
+        </shape>
+    </item>
+
+</layer-list>

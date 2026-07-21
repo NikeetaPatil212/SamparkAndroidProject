@@ -420,7 +420,7 @@ public class AdmissionActivity extends AppCompatActivity {
             selectedTimingName = "";
 
             // Reset fee fields
-            etAdmissionDate.setText("");
+        //    etAdmissionDate.setText("");
             etTotalFee.setText("");
             etPaidFee.setText("");
             etRemainingFee.setText("");

@@ -1,5 +1,6 @@
 package com.example.androidproject;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
@@ -29,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.adapters.DrawerAdapter;
 import com.example.androidproject.utils.NavMenuItem;
+import com.example.androidproject.utils.PrefManager;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -50,6 +52,11 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+        // Make toolbar transparent so fragment header shows through
+
+
+// Als
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
@@ -83,7 +90,17 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+   //     toolbar.setBackgroundColor(Color.TRANSPARENT);
 
+
+      /*  getWindow().setStatusBarColor(Color.TRANSPARENT);*/
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(Color.parseColor("#0D2B10"));
+        }
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(DashboardActivity.this);
@@ -171,7 +188,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             item.setTitle(isInquiryExpanded ? "Inquiry  ▲" : "Inquiry  ▼");
 
             styleSubItem(menu.findItem(R.id.nav_add_inquiry), "Add Inquiry");
-            styleSubItem(menu.findItem(R.id.nav_get_inquiry), "Get Inquiry");
+            styleSubItem(menu.findItem(R.id.nav_get_inquiry), "Manage Inquiry");
             styleSubItem(menu.findItem(R.id.nav_batch),       "Get Batch");
             styleSubItem(menu.findItem(R.id.nav_summary_report),       "Summary Report");
             styleSubItem(menu.findItem(R.id.nav_detailed_report),       "Detailed Report");
@@ -419,18 +436,41 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                 .commit();
         }
 
+        if (id == R.id.nav_logout) {
+            logout();
+        }
+
         if (id == R.id.nav_bulk) {
         } else if (id == R.id.nav_templates) {
         } else if (id == R.id.nav_institute) {
         } else if (id == R.id.nav_data) {
         } else if (id == R.id.nav_settings) {
-        } else if (id == R.id.nav_logout) {
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
+    private void logout() {
+
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+
+                    PrefManager.getInstance(this).clearSession();
+
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
     // ── Sub-item: indented + smaller + grey — clearly different from main items
     private void styleSubItem(MenuItem menuItem, String label) {
         SpannableString s = new SpannableString("        ⤷  " + label);

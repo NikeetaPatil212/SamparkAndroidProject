@@ -53,6 +53,8 @@ import com.example.androidproject.model.course.CourseRequest;
 import com.example.androidproject.model.course.CourseResponse;
 import com.example.androidproject.model.dashboard.DashboardCardsResponse;
 import com.example.androidproject.model.dashboard.DashboardChartsResponse;
+import com.example.androidproject.model.dashboard.DashboardGridsRequest;
+import com.example.androidproject.model.dashboard.DashboardGridsResponse;
 import com.example.androidproject.model.dashboard.DashboardRequest;
 import com.example.androidproject.model.notification.NotificationStudentRequest;
 import com.example.androidproject.model.notification.NotificationStudentResponse;
@@ -272,4 +274,7 @@ public interface ApiService {
 
     @POST("DashboardCharts")
     Call<DashboardChartsResponse> getDashboardCharts(@Body DashboardRequest request);
+
+    @POST("DashboardGrids")
+    Call<DashboardGridsResponse> getDashboardGrids(@Body DashboardRequest request);
 }
