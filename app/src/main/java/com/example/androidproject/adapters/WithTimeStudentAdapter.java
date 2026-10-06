@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -186,6 +187,7 @@ public class WithTimeStudentAdapter
         TextView                     tvAvailable   = view.findViewById(R.id.tvAvailable);
         MaterialButton               btnAllot      = view.findViewById(R.id.btnAllotTiming);
         MaterialButton               btnClose      = view.findViewById(R.id.btnClose);
+        ImageView ivBatchTimingDropdown = view.findViewById(R.id.ivBatchTimingDropdown);
 
         tvStudentName.setText("👤  " + item.getStudentName()
                 + "\n⏰ Current: " + item.getDescription());
@@ -199,11 +201,21 @@ public class WithTimeStudentAdapter
             labels.add(t.dropdownLabel());
         }
 
+
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                 context, android.R.layout.simple_dropdown_item_1line, labels);
+
         spBatchTiming.setThreshold(0);
         spBatchTiming.setAdapter(spinnerAdapter);
+
+// Click listener for text view
         spBatchTiming.setOnClickListener(v -> spBatchTiming.showDropDown());
+
+// Click listener for dropdown icon
+        ivBatchTimingDropdown.setOnClickListener(v -> {
+            spBatchTiming.requestFocus();
+            spBatchTiming.showDropDown();
+        });
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(view)

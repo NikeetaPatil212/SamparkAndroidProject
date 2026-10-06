@@ -14,12 +14,14 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -320,12 +322,24 @@ public class InquiryActivity extends AppCompatActivity {
 
     // ── Gender Dropdown ───────────────────────────────────────────
     private void setupGenderDropdown() {
+        ImageView ivGenderDropdown = findViewById(R.id.ivGenderDropdown);
+
         String[] genderList = {"Male", "Female", "Other"};
         ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_dropdown_item_1line, genderList);
+
         etGender.setThreshold(0);
         etGender.setAdapter(genderAdapter);
+
+        // Click listener for text view
         etGender.setOnClickListener(v -> etGender.showDropDown());
+
+        // Click listener for dropdown icon
+        ivGenderDropdown.setOnClickListener(v -> {
+            etGender.requestFocus();
+            etGender.showDropDown();
+        });
+
         etGender.setOnItemClickListener((parent, view, position, id) -> {
             etGender.clearFocus();
             etGender.setError(null);
@@ -339,10 +353,21 @@ public class InquiryActivity extends AppCompatActivity {
     }*/
 
     private void setupInquiryAbout() {
-        // Handle both click and touch to ensure single tap works
-        etInquiryAbout.setOnClickListener(v -> showCourseSelectionDialog());
+        AutoCompleteTextView etInquiryAbout = findViewById(R.id.etInquiryAbout);
+        ImageView ivInquiryDropdown = findViewById(R.id.ivInquiryDropdown);
+
+        // Single click listener shared by both views
+        View.OnClickListener openDialogListener = v -> showCourseSelectionDialog();
+
+        // Attach listener to both text field and arrow icon
+        etInquiryAbout.setOnClickListener(openDialogListener);
+        ivInquiryDropdown.setOnClickListener(openDialogListener);
+
+        // Optional touch listener if required for focus/touch overrides
         etInquiryAbout.setOnTouchListener((v, event) -> {
-            showCourseSelectionDialog();
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                showCourseSelectionDialog();
+            }
             return true;
         });
     }
@@ -350,9 +375,14 @@ public class InquiryActivity extends AppCompatActivity {
     // ── All Date Pickers ──────────────────────────────────────────
     private void setupDatePickers() {
 
-        etReminderDate.setOnClickListener(v -> {
+        // --- 1. Reminder Date Picker ---
+        EditText etReminderDate = findViewById(R.id.etReminderDate);
+        ImageView ivReminderDateCalendar = findViewById(R.id.ivReminderDateCalendar);
+
+        Runnable openReminderDatePickerAction = () -> {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_MONTH, 1);
+
             DatePickerDialog dialog = new DatePickerDialog(this,
                     (view, year, month, day) -> {
                         Calendar sel = Calendar.getInstance();
@@ -366,9 +396,20 @@ public class InquiryActivity extends AppCompatActivity {
                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
             dialog.getDatePicker().setMinDate(cal.getTimeInMillis());
             dialog.show();
-        });
+        };
 
-        etInquiryDate.setOnClickListener(v -> {
+        // Attach click listeners only
+        etReminderDate.setOnClickListener(v -> openReminderDatePickerAction.run());
+
+        if (ivReminderDateCalendar != null) {
+            ivReminderDateCalendar.setOnClickListener(v -> openReminderDatePickerAction.run());
+        }
+
+        // --- 2. Inquiry Date Picker ---
+        EditText etInquiryDate = findViewById(R.id.etInquiryDate);
+        ImageView ivInquiryDateCalendar = findViewById(R.id.ivInquiryDateCalendar);
+
+        Runnable openDatePickerAction = () -> {
             Calendar cal = Calendar.getInstance();
             new DatePickerDialog(this,
                     (view, year, month, day) -> {
@@ -381,7 +422,15 @@ public class InquiryActivity extends AppCompatActivity {
                         etInquiryDate.setError(null);
                     },
                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
-        });
+        };
+
+        // Attach click listeners only
+        etInquiryDate.setOnClickListener(v -> openDatePickerAction.run());
+
+        if (ivInquiryDateCalendar != null) {
+            ivInquiryDateCalendar.setOnClickListener(v -> openDatePickerAction.run());
+        }
+
 
         etBirthDate.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();

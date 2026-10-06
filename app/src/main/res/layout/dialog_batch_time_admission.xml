@@ -89,13 +89,20 @@
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp"
                 android:inputType="none"
-                android:cursorVisible="false" />
+                android:cursorVisible="false"
+                android:focusable="true"
+                android:clickable="true" />
 
             <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:id="@+id/ivBatchTimingDropdown"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:padding="12dp"
                 android:src="@drawable/outline_arrow_drop_down_24"
-                android:tint="#2E7D32" />
+                android:tint="#2E7D32"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Select batch timing" />
         </LinearLayout>
 
 

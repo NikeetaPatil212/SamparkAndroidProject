@@ -1,5 +1,7 @@
 package com.example.androidproject.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class AdmissionDetails {
     private int adm_id;
     private String admDate;
@@ -11,8 +13,23 @@ public class AdmissionDetails {
     private String status;
     private String scheme;
 
-    // Getter Setter
+    // Checks all potential backend image key variations automatically
+    @SerializedName(value = "imgurl", alternate = {
+            "profile_image",
+            "profileImage",
+            "student_image",
+            "studentImage",
+            "image"
+    })
+    private String profileImage;
 
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 
     public int getAdm_id() {
         return adm_id;

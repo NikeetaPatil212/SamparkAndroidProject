@@ -214,12 +214,18 @@ public class AdmissionActivity extends AppCompatActivity {
 
         // ── Batch Timing (keep as dialog-based AutoComplete) ──────────────────
         spBatchTiming = findViewById(R.id.spBatchTiming);
+        ImageView ivBatchTimingDropdown = findViewById(R.id.ivBatchTimingDropdown);
+
         spBatchTiming.setInputType(InputType.TYPE_NULL);
         spBatchTiming.setKeyListener(null);
         spBatchTiming.setFocusable(false);
         spBatchTiming.setClickable(true);
         spBatchTiming.setCursorVisible(false);
+
+// Click listeners for both text view and arrow icon
         spBatchTiming.setOnClickListener(v -> fetchTimingsAndShowDialog());
+        ivBatchTimingDropdown.setOnClickListener(v -> fetchTimingsAndShowDialog());
+
         spBatchTiming.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) fetchTimingsAndShowDialog();
         });
@@ -276,23 +282,50 @@ public class AdmissionActivity extends AppCompatActivity {
             dialog.show();
         });
 
-        // ── Reminder date default = today + 10 days ───────────────────────────
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, 10);
+        TextInputEditText etReminderDate = findViewById(R.id.etReminderDate);
+        ImageView ivReminderDateCalendar = findViewById(R.id.ivReminderDateCalendar);
+
+// Disable keyboard & focus interaction so single clicks trigger immediately
+        etReminderDate.setFocusable(false);
+        etReminderDate.setClickable(true);
+        etReminderDate.setFocusableInTouchMode(false);
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        etReminderDate.setText(sdf.format(calendar.getTime()));
-        etReminderDate.setOnClickListener(v -> {
-            Calendar now = Calendar.getInstance();
-            new DatePickerDialog(this,
+
+// ── Auto-set default date to +15 days from today ──────────────────
+        Calendar defaultCal = Calendar.getInstance();
+        defaultCal.add(Calendar.DAY_OF_YEAR, 15);
+        etReminderDate.setText(sdf.format(defaultCal.getTime()));
+
+// Centralized helper to open the DatePickerDialog
+        Runnable openReminderDatePickerAction = () -> {
+            Calendar currentCal = Calendar.getInstance();
+            try {
+                String currentText = etReminderDate.getText() != null ? etReminderDate.getText().toString().trim() : "";
+                if (!currentText.isEmpty()) {
+                    currentCal.setTime(sdf.parse(currentText));
+                }
+            } catch (Exception ignored) {}
+
+            DatePickerDialog dialog = new DatePickerDialog(this,
                     (view, year, month, day) -> {
                         Calendar sel = Calendar.getInstance();
                         sel.set(year, month, day);
                         etReminderDate.setText(sdf.format(sel.getTime()));
                     },
-                    now.get(Calendar.YEAR),
-                    now.get(Calendar.MONTH),
-                    now.get(Calendar.DAY_OF_MONTH)).show();
-        });
+                    currentCal.get(Calendar.YEAR),
+                    currentCal.get(Calendar.MONTH),
+                    currentCal.get(Calendar.DAY_OF_MONTH));
+            dialog.show();
+        };
+
+// Click listener for the TextInputEditText
+        etReminderDate.setOnClickListener(v -> openReminderDatePickerAction.run());
+
+// Click listener for the calendar ImageView
+        if (ivReminderDateCalendar != null) {
+            ivReminderDateCalendar.setOnClickListener(v -> openReminderDatePickerAction.run());
+        }
 
         // ── Add Course button ─────────────────────────────────────────────────
         btnAdd.setOnClickListener(v -> {
@@ -632,19 +665,48 @@ public class AdmissionActivity extends AppCompatActivity {
                 .inflate(R.layout.dialog_batch_time_admission, null);
 
         MaterialAutoCompleteTextView spDialogTiming = view.findViewById(R.id.spBatchTiming);
+        ImageView ivBatchTimingDropdown = view.findViewById(R.id.ivBatchTimingDropdown);
         MaterialButton btnAllot = view.findViewById(R.id.btnAllotTiming);
         MaterialButton btnClose = view.findViewById(R.id.btnClose);
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
 
         List<String> labels = new ArrayList<>();
-        for (BatchTimingResponse.BatchTimingItem item : timings) labels.add(item.dropdownLabel());
+        for (BatchTimingResponse.BatchTimingItem item : timings) {
+            labels.add(item.dropdownLabel());
+        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_dropdown_item_1line, labels);
+
         spDialogTiming.setThreshold(0);
         spDialogTiming.setAdapter(adapter);
-        spDialogTiming.setOnClickListener(v -> spDialogTiming.showDropDown());
+
+// Centralized helper to show dropdown menu reliably and reset filters
+        Runnable openDropdownAction = () -> {
+            spDialogTiming.requestFocus();
+            if (spDialogTiming.getAdapter() != null) {
+                spDialogTiming.setText(spDialogTiming.getText(), false);
+            }
+            spDialogTiming.showDropDown();
+        };
+
+// Click listener for the AutoCompleteTextView
+        spDialogTiming.setOnClickListener(v -> openDropdownAction.run());
+
+// Click and touch listeners for the dropdown ImageView
+        if (ivBatchTimingDropdown != null) {
+            ivBatchTimingDropdown.setOnClickListener(v -> openDropdownAction.run());
+
+            ivBatchTimingDropdown.setOnTouchListener((v, event) -> {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    openDropdownAction.run();
+                    v.performClick();
+                    return true;
+                }
+                return false;
+            });
+        }
 
         final BatchTimingResponse.BatchTimingItem[] selected = {null};
 
@@ -1025,21 +1087,50 @@ public class AdmissionActivity extends AppCompatActivity {
     }
 
     private void setupDatePicker() {
-        etAdmissionDate.setOnClickListener(v -> {
-            Calendar calendar = Calendar.getInstance();
+        ImageView ivAdmissionDateCalendar = findViewById(R.id.ivAdmissionDateCalendar);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+
+        // ── Disable focus & keyboard interaction ────────────────────────────
+        etAdmissionDate.setFocusable(false);
+        etAdmissionDate.setClickable(true);
+        etAdmissionDate.setFocusableInTouchMode(false);
+
+        // ── Set default date to TODAY ───────────────────────────────────────
+        Calendar calendar = Calendar.getInstance();
+        etAdmissionDate.setText(dateFormat.format(calendar.getTime()));
+
+        // Centralized helper to open the DatePickerDialog with maximum date restriction
+        Runnable openAdmissionDatePickerAction = () -> {
+            Calendar currentCal = Calendar.getInstance();
+            try {
+                String currentText = etAdmissionDate.getText() != null ? etAdmissionDate.getText().toString().trim() : "";
+                if (!currentText.isEmpty()) {
+                    currentCal.setTime(dateFormat.parse(currentText));
+                }
+            } catch (Exception ignored) {}
+
             DatePickerDialog dialog = new DatePickerDialog(this,
                     (view, year, month, day) -> {
                         Calendar selected = Calendar.getInstance();
                         selected.set(year, month, day);
-                        etAdmissionDate.setText(new SimpleDateFormat("yyyy/MM/dd",
-                                Locale.getDefault()).format(selected.getTime()));
+                        etAdmissionDate.setText(dateFormat.format(selected.getTime()));
                     },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH));
+                    currentCal.get(Calendar.YEAR),
+                    currentCal.get(Calendar.MONTH),
+                    currentCal.get(Calendar.DAY_OF_MONTH));
+
             dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
             dialog.show();
-        });
+        };
+
+        // Click listener for the EditText
+        etAdmissionDate.setOnClickListener(v -> openAdmissionDatePickerAction.run());
+
+        // Single Click listener for the calendar ImageView (removed touch listener)
+        if (ivAdmissionDateCalendar != null) {
+            ivAdmissionDateCalendar.setOnClickListener(v -> openAdmissionDatePickerAction.run());
+        }
     }
 
     private void setupFeeCalculation() {

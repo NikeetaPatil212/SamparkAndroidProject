@@ -16,6 +16,9 @@ import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.androidproject.model.AddReceiptRequest;
 import com.example.androidproject.model.AddReceiptResponse;
@@ -78,6 +81,24 @@ public class FeeReceiptActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fee_receipt2);
 
+        View rootView = findViewById(R.id.rootView);
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+            Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            int bottomPadding = Math.max(imeInsets.bottom, systemBars.bottom);
+
+            v.setPadding(
+                    systemBars.left,
+                    systemBars.top,
+                    systemBars.right,
+                    bottomPadding
+            );
+
+            return insets;
+        });
+
         initViews();
         setTodayDate();
         getIntentData();
@@ -138,6 +159,8 @@ public class FeeReceiptActivity extends AppCompatActivity {
 
         btnSubmit.setOnClickListener(v -> submitFeeReceipt());
         btnCancel.setOnClickListener(v -> resetForm());
+
+
 
         // Live remaining fee update as user types amount
         etAmountReceived.addTextChangedListener(new TextWatcher() {
@@ -625,10 +648,30 @@ public class FeeReceiptActivity extends AppCompatActivity {
     }
 
     // ── Helpers ───────────────────────────────────────────────────
-    private void resetForm() {
+ /*   private void resetForm() {
         etAmountReceived.setText("");
         layoutResult.setVisibility(View.GONE);
         tvReceiptNo.setVisibility(View.GONE);
+    }*/
+
+    private void resetForm() {
+        // 1. Clear input field
+        etAmountReceived.setText("");
+
+        // 2. Clear output text fields instead of hiding the container
+        if (tvReceiptNo != null) {
+            tvReceiptNo.setText("");
+        }
+
+        // 3. Clear other result text views if applicable
+        // tvTotalAmount.setText("");
+        // tvBalanceAmount.setText("");
+
+        // 4. Hide ONLY the result container IF it is meant to show post-calculation only
+     //   layoutResult.setVisibility(View.GONE);
+
+        // 5. Request focus back to the primary input field
+        etAmountReceived.requestFocus();
     }
 
     private void showLoading(boolean show) {

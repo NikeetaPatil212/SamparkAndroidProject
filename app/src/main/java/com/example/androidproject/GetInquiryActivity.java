@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,8 +82,29 @@ public class GetInquiryActivity extends AppCompatActivity {
         // ── Date pickers ───────────────────────────────────────────────────────
         // ✅ FIX: After picking either date, API is called immediately.
         // No need to press "View Report" after changing dates — it refreshes automatically.
+      /*  etFromDate.setOnClickListener(v -> openDatePicker(etFromDate, true));
+        etToDate.setOnClickListener(v -> openDatePicker(etToDate, false));*/
+
+        EditText etFromDate = findViewById(R.id.etFromDate);
+        ImageView ivFromDateCalendar = findViewById(R.id.ivFromDateCalendar);
+
+        EditText etToDate = findViewById(R.id.etToDate);
+        ImageView ivToDateCalendar = findViewById(R.id.ivToDateCalendar);
+
+// --- From Date Listeners ---
         etFromDate.setOnClickListener(v -> openDatePicker(etFromDate, true));
+
+        if (ivFromDateCalendar != null) {
+            ivFromDateCalendar.setOnClickListener(v -> openDatePicker(etFromDate, true));
+        }
+
+// --- To Date Listeners ---
         etToDate.setOnClickListener(v -> openDatePicker(etToDate, false));
+
+        if (ivToDateCalendar != null) {
+            ivToDateCalendar.setOnClickListener(v -> openDatePicker(etToDate, false));
+        }
+
 
         // ── "View Report" button — always visible, re-fetches with current dates ─
         btnSearch.setOnClickListener(v -> callInquiryApi());
@@ -157,23 +179,29 @@ public class GetInquiryActivity extends AppCompatActivity {
     // ── Date picker: picks date, updates API strings, triggers API call ────────
     private void openDatePicker(EditText editText, boolean isFromDate) {
         Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat uiFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
 
-        new DatePickerDialog(
+        // Re-parse existing text so dialog highlights currently selected date
+        try {
+            String text = editText.getText() != null ? editText.getText().toString().trim() : "";
+            if (!text.isEmpty()) {
+                calendar.setTime(uiFormat.parse(text));
+            }
+        } catch (Exception ignored) {}
+
+        DatePickerDialog dialog = new DatePickerDialog(
                 this,
                 (view, year, month, dayOfMonth) -> {
                     Calendar selected = Calendar.getInstance();
                     selected.set(year, month, dayOfMonth);
 
-                    // UI format
-                    SimpleDateFormat uiFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
                     editText.setText(uiFormat.format(selected.getTime()));
 
-                    // API format (FIXED)
                     SimpleDateFormat apiFormat = new SimpleDateFormat(
                             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                             Locale.getDefault()
                     );
-                    apiFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // 🔥 IMPORTANT
+                    apiFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
                     if (isFromDate) {
                         selected.set(Calendar.HOUR_OF_DAY, 0);
@@ -199,7 +227,9 @@ public class GetInquiryActivity extends AppCompatActivity {
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
-        ).show();
+        );
+
+        dialog.show();
     }
 
     // ── API call with current fromDateForApi / toDateForApi ────────────────────

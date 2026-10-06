@@ -17,6 +17,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.androidproject.model.AddStudentRequest;
 import com.example.androidproject.model.InquiryResponse;
@@ -50,6 +53,26 @@ public class NewAdmissionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_admission);
+
+        View rootLayout = findViewById(R.id.rootLayout);
+
+        // Handle keyboard insets dynamically
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+            Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            // Determine bottom padding: pick keyboard height if active, else system nav bar height
+            int bottomPadding = Math.max(imeInsets.bottom, systemBars.bottom);
+
+            v.setPadding(
+                    systemBars.left,
+                    systemBars.top,
+                    systemBars.right,
+                    bottomPadding
+            );
+
+            return insets;
+        });
 
         initViews();
         setupGenderSpinner();

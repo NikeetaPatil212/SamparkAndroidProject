@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AndroidProject</string>
+    <string name="app_name">IMPro</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
     <!-- Strings used for fragments for navigation -->

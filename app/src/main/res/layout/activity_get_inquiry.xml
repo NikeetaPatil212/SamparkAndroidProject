@@ -139,16 +139,20 @@
                                         android:background="@null"
                                         android:hint="From"
                                         android:focusable="false"
+                                        android:clickable="true"
                                         android:textColor="#1A1A1A"
                                         android:textColorHint="#AAAAAA"
                                         android:textSize="13sp"
                                         android:maxLines="1" />
 
                                     <ImageView
+                                        android:id="@+id/ivFromDateCalendar"
                                         android:layout_width="18dp"
                                         android:layout_height="18dp"
                                         android:src="@drawable/baseline_calendar_today_24"
-                                        android:tint="#2E7D32" />
+                                        app:tint="#2E7D32"
+                                        android:clickable="true"
+                                        android:focusable="true" />
                                 </LinearLayout>
                             </LinearLayout>
 
@@ -185,16 +189,21 @@
                                         android:background="@null"
                                         android:hint="To"
                                         android:focusable="false"
+                                        android:clickable="true"
                                         android:textColor="#1A1A1A"
                                         android:textColorHint="#AAAAAA"
                                         android:textSize="13sp"
                                         android:maxLines="1" />
 
                                     <ImageView
+                                        android:id="@+id/ivToDateCalendar"
                                         android:layout_width="18dp"
                                         android:layout_height="18dp"
                                         android:src="@drawable/baseline_calendar_today_24"
-                                        android:tint="#2E7D32" />
+                                        app:tint="#2E7D32"
+                                        android:clickable="true"
+                                        android:focusable="true" />
+
                                 </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>

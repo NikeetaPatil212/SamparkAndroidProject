@@ -10,6 +10,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -165,17 +166,28 @@ public class BatchActivity extends AppCompatActivity {
                     names.add(e.courseName);
                 }
 
+                ImageView ivCourseDropdown = findViewById(R.id.ivCourseDropdown);
+
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
                         this,
                         android.R.layout.simple_dropdown_item_1line,
                         names);
+
                 spCourse.setThreshold(0);
                 spCourse.setAdapter(adapter);
+
+// Click listener for text view
                 spCourse.setOnClickListener(v -> spCourse.showDropDown());
 
+// Click listener for dropdown icon
+                ivCourseDropdown.setOnClickListener(v -> {
+                    spCourse.requestFocus();
+                    spCourse.showDropDown();
+                });
+
                 spCourse.setOnItemClickListener((parent, view, pos, id) -> {
-                    CourseItem sel  = courseItems.get(pos);
-                    selectedCourseId   = sel.courseID;
+                    CourseItem sel = courseItems.get(pos);
+                    selectedCourseId = sel.courseID;
                     selectedCourseName = sel.courseName;
                     spCourse.dismissDropDown();
                     loadBatchesForCourse(selectedCourseId);

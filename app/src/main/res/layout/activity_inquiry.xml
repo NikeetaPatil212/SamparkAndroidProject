@@ -517,8 +517,11 @@
                                 android:cursorVisible="false" />
 
                             <ImageView
+                                android:id="@+id/ivGenderDropdown"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:clickable="true"
+                                android:focusable="true"
                                 android:src="@drawable/outline_arrow_drop_down_24"
                                 android:tint="#2E7D32" />
                         </LinearLayout>
@@ -618,13 +621,14 @@
                                 android:textSize="14sp"
                                 android:maxLines="1"
                                 android:inputType="none"
-                                android:focusable="false"
-                                android:focusableInTouchMode="false"
                                 android:cursorVisible="false" />
 
                             <ImageView
+                                android:id="@+id/ivInquiryDropdown"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:clickable="true"
+                                android:focusable="true"
                                 android:src="@drawable/outline_arrow_drop_down_24"
                                 android:tint="#2E7D32" />
 
@@ -672,10 +676,13 @@
                                 android:maxLines="1" />
 
                             <ImageView
+                                android:id="@+id/ivInquiryDateCalendar"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:src="@drawable/baseline_calendar_today_24"
-                                android:tint="#2E7D32" />
+                                app:tint="#2E7D32"
+                                android:clickable="true"
+                                android:focusable="true" />
                         </LinearLayout>
 
                         <!-- School Name -->
@@ -808,10 +815,13 @@
                                 android:maxLines="1" />
 
                             <ImageView
+                                android:id="@+id/ivReminderDateCalendar"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:src="@drawable/baseline_calendar_today_24"
-                                android:tint="#2E7D32" />
+                                app:tint="#2E7D32"
+                                android:clickable="true"
+                                android:focusable="true" />
                         </LinearLayout>
 
                         <!-- Feedback -->

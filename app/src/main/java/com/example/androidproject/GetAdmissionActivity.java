@@ -24,13 +24,13 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.androidproject.adapters.AdmissionAdapter;
 import com.example.androidproject.model.AdmissionDetails;
 import com.example.androidproject.model.CancelAdmissionRequest;
 import com.example.androidproject.model.CancelAdmissionResponse;
 import com.example.androidproject.model.GetAdmissionRequest;
 import com.example.androidproject.model.GetAdmissionResponse;
-import com.example.androidproject.utils.ApiService;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.gson.Gson;
@@ -65,8 +65,6 @@ public class GetAdmissionActivity extends AppCompatActivity {
     private String fromDateApi = "2025-01-10T00:00:00.000Z";
     private String toDateApi   = getTodayIso();
 
-
-
     private final SimpleDateFormat isoFmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
 
     @Override
@@ -92,8 +90,6 @@ public class GetAdmissionActivity extends AppCompatActivity {
         layoutLoading  = findViewById(R.id.layoutLoading);
         layoutEmpty    = findViewById(R.id.layoutEmpty);
         layoutTable    = findViewById(R.id.layoutTable);
-
-
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(
@@ -173,7 +169,6 @@ public class GetAdmissionActivity extends AppCompatActivity {
 
         String userId      = PrefManager.getInstance(this).getUserId();
         String instituteId = PrefManager.getInstance(this).getInstituteId();
-        String operatorId  = PrefManager.getInstance(this).getOperatorId();
 
         GetAdmissionRequest request = new GetAdmissionRequest();
         request.setUserID(Integer.parseInt(userId));
@@ -252,32 +247,42 @@ public class GetAdmissionActivity extends AppCompatActivity {
         ImageView ivStudent = view.findViewById(R.id.ivStudent);
         TextView tvName = view.findViewById(R.id.tvName);
         TextView tvMobile = view.findViewById(R.id.tvMobile);
-        TextView tvAltMobile = view.findViewById(R.id.tvAltMobile);
-        TextView tvAddress = view.findViewById(R.id.tvAddress);
         LinearLayout tvViewDetails = view.findViewById(R.id.tvViewDetails);
 
 
-// Set data
+// 1. Try fetching from item model (in case GET API returns it)
+        String imageUrl = item.getProfileImage();
+
+// 2. Fall back to local PrefManager if GET API doesn't return the field
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            imageUrl = PrefManager.getInstance(this).getProfileImage();
+        }
+
+        Log.d("GLIDE_DEBUG", "Image URL to render: " + imageUrl);
+
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            Glide.with(this)
+                    .load(imageUrl.trim())
+                    .placeholder(R.drawable.ic_person_foreground)
+                    .error(R.drawable.ic_person_foreground)
+                    .into(ivStudent);
+        } else {
+            ivStudent.setImageResource(R.drawable.ic_person_foreground);
+        }
+
+        // Set data
         tvName.setText(item.getStudent_Name());
         tvMobile.setText("Mobile: " + item.getMobile());
-       /* tvAltMobile.setText("Alt: " + item.getMobile());
-        tvAddress.setText("Address: " + item.getMobile());*/
 
         Log.d("studeidd----", "showPopup: " + item.getStudID());
 
-
         AlertDialog dialog = builder.setView(view).create();
 
-
-        tvViewDetails.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // On ViewDetails TextView click:
-                Intent intent = new Intent(GetAdmissionActivity.this, StudentProfleActivity.class);
-                intent.putExtra("studentId", item.getStudID());
-                intent.putExtra("admissionId",item.getAdm_id());
-                startActivity(intent);
-            }
+        tvViewDetails.setOnClickListener(v -> {
+            Intent intent = new Intent(GetAdmissionActivity.this, StudentProfleActivity.class);
+            intent.putExtra("studentId", item.getStudID());
+            intent.putExtra("admissionId", item.getAdm_id());
+            startActivity(intent);
         });
 
         // Fee Receipt Click
@@ -305,16 +310,14 @@ public class GetAdmissionActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Example: Student Details Activity
         view.findViewById(R.id.tvNewAdmission).setOnClickListener(v -> {
             dialog.dismiss();
 
-            Intent intent = new Intent(GetAdmissionActivity.this, NewAdmissionActivity.class);
+            Intent intent = new Intent(GetAdmissionActivity.this, AdmissionActivity.class);
             intent.putExtra("studentId", item.getStudID());
             intent.putExtra("student_name", item.getStudent_Name());
             startActivity(intent);
         });
-
 
         view.findViewById(R.id.tvEditProfile).setOnClickListener(v -> {
             dialog.dismiss();
@@ -328,7 +331,6 @@ public class GetAdmissionActivity extends AppCompatActivity {
         view.findViewById(R.id.tvDelstyeteProfile).setOnClickListener(v -> {
             dialog.dismiss();
 
-            // ✅ Step 1 — Ask isRefund
             new AlertDialog.Builder(this)
                     .setTitle("Cancel Admission")
                     .setMessage("Do you want to refund the paid amount for "
@@ -357,8 +359,6 @@ public class GetAdmissionActivity extends AppCompatActivity {
     }
 
     private void confirmAndCancelAdmission(AdmissionDetails item, boolean isRefund) {
-
-        // ✅ Step 2 — Final confirmation before calling API
         new AlertDialog.Builder(this)
                 .setTitle("⚠️ Confirm Cancellation")
                 .setMessage("Are you sure you want to cancel the admission of "
@@ -398,8 +398,8 @@ public class GetAdmissionActivity extends AppCompatActivity {
         RetrofitClient.getApiService().cancelAdmission(request)
                 .enqueue(new Callback<CancelAdmissionResponse>() {
                     @Override
-                    public void onResponse(Call<CancelAdmissionResponse> call,
-                                           Response<CancelAdmissionResponse> response) {
+                    public void onResponse(@NonNull Call<CancelAdmissionResponse> call,
+                                           @NonNull Response<CancelAdmissionResponse> response) {
                         Log.d("CANCEL_ADM_RESP", new Gson().toJson(response.body()));
 
                         if (response.isSuccessful()
@@ -410,7 +410,6 @@ public class GetAdmissionActivity extends AppCompatActivity {
                                     "✅ " + response.body().getMessage(),
                                     Toast.LENGTH_SHORT).show();
 
-                            // ✅ Refresh list after cancellation
                             callAdmissionApi();
 
                         } else {
@@ -424,7 +423,7 @@ public class GetAdmissionActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<CancelAdmissionResponse> call, Throwable t) {
+                    public void onFailure(@NonNull Call<CancelAdmissionResponse> call, @NonNull Throwable t) {
                         showEmpty();
                         Log.e("CANCEL_ADM", "onFailure: " + t.getMessage());
                         Toast.makeText(GetAdmissionActivity.this,

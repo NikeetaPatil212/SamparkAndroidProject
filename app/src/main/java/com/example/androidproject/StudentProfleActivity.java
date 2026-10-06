@@ -2,6 +2,7 @@ package com.example.androidproject;
 
 import android.animation.ObjectAnimator;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -13,9 +14,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.androidproject.model.profile.ProfileDetailsRequest;
 import com.example.androidproject.model.profile.ProfileDetailsResponse;
 import com.example.androidproject.utils.PrefManager;
@@ -29,6 +35,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class StudentProfleActivity extends AppCompatActivity {
+
+    // Base URL constant for relative image paths
+    private static final String BASE_URL = "http://160.187.87.113:8081/";
 
     // ── Toolbar ────────────────────────────────────────────────────────────────
     private ImageButton btnBack;
@@ -84,14 +93,14 @@ public class StudentProfleActivity extends AppCompatActivity {
         btnBack      = findViewById(R.id.btnBack);
         loaderLayout = findViewById(R.id.loaderLayout);
 
-        // Admission Summary fields (IDs unchanged)
+        // Admission Summary fields
         tvCourse      = findViewById(R.id.tvCourse);
         tvBatch       = findViewById(R.id.tvBatch);
         tvFee         = findViewById(R.id.tvFee);
         tvOutstanding = findViewById(R.id.tvOutstanding);
         tvDueDate     = findViewById(R.id.tvDueDate);
 
-        // Personal Details fields (IDs unchanged)
+        // Personal Details fields
         ivStudentPhoto = findViewById(R.id.ivStudentPhoto);
         tvFirstName    = findViewById(R.id.tvFirstName);
         tvMiddleName   = findViewById(R.id.tvMiddleName);
@@ -101,10 +110,10 @@ public class StudentProfleActivity extends AppCompatActivity {
         tvAlternate    = findViewById(R.id.tvAlternate);
         tvAddress      = findViewById(R.id.tvAddress);
 
-        // Transaction container (ID unchanged)
+        // Transaction container
         llTransactions = findViewById(R.id.llTransactions);
 
-        // ── NEW: collapsible bodies + arrows ──────────────────────────────────
+        // Collapsible bodies + arrows
         bodyAdmissionSummary = findViewById(R.id.bodyAdmissionSummary);
         bodyPersonalDetails  = findViewById(R.id.bodyPersonalDetails);
         bodyTransactions     = findViewById(R.id.bodyTransactions);
@@ -115,7 +124,6 @@ public class StudentProfleActivity extends AppCompatActivity {
 
         bodyTransactions.setVisibility(View.GONE);
         ivArrowTransactions.setRotation(-90f);
-
     }
 
     private void setupToolbar() {
@@ -144,13 +152,6 @@ public class StudentProfleActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Shows or hides a card body and rotates its arrow icon.
-     *
-     * @param body       The LinearLayout body to show/hide
-     * @param arrow      The ImageView arrow to animate
-     * @param expand     true = show (rotate arrow 0°), false = hide (rotate arrow -90°)
-     */
     private void toggleSection(LinearLayout body, ImageView arrow, boolean expand) {
         if (expand) {
             body.setVisibility(View.VISIBLE);
@@ -158,7 +159,6 @@ public class StudentProfleActivity extends AppCompatActivity {
             body.setVisibility(View.GONE);
         }
 
-        // Smoothly rotate the arrow: 0° = pointing down (expanded), -90° = pointing right (collapsed)
         float fromDeg = expand ? -90f :   0f;
         float toDeg   = expand ?   0f : -90f;
         ObjectAnimator rotateAnim = ObjectAnimator.ofFloat(arrow, "rotation", fromDeg, toDeg);
@@ -212,7 +212,7 @@ public class StudentProfleActivity extends AppCompatActivity {
                 });
     }
 
-    // ── Populate all UI (unchanged logic) ─────────────────────────────────────
+    // ── Populate all UI ────────────────────────────────────────────────────────
     private void populateUI(ProfileDetailsResponse res) {
 
         // ── Admission Summary ──────────────────────────────────────────────────
@@ -241,31 +241,53 @@ public class StudentProfleActivity extends AppCompatActivity {
             tvAlternate.setText(safe(profile.getAlternateNo()));
             tvAddress.setText(safe(profile.getAddress()));
 
-            // Load profile photo with Glide if URL is present
+            // ── Load profile photo ─────────────────────────────────────────────
+            // ── Load profile photo ─────────────────────────────────────────────
             String imgUrl = profile.getImgurl();
-            if (imgUrl != null && !imgUrl.isEmpty()) {
-                Glide.with(this)
+
+            if (imgUrl == null || imgUrl.trim().isEmpty()) {
+                imgUrl = PrefManager.getInstance(this).getProfileImage();
+            }
+
+            if (imgUrl != null && !imgUrl.trim().isEmpty()) {
+                imgUrl = imgUrl.trim();
+
+                if (!imgUrl.startsWith("http://") && !imgUrl.startsWith("https://")) {
+                    imgUrl = BASE_URL + (imgUrl.startsWith("/") ? imgUrl.substring(1) : imgUrl);
+                }
+
+                Log.d("IMAGE_LOADING_DEBUG", "Final Image URL: " + imgUrl);
+
+                // Make sure the view and its container are visible
+                bodyPersonalDetails.setVisibility(View.VISIBLE);
+                ivStudentPhoto.setVisibility(View.VISIBLE);
+
+                Glide.with(getApplicationContext()) // Use Application Context to prevent lifecycle cancels
                         .load(imgUrl)
                         .placeholder(R.drawable.baseline_account_circle_24)
-                        .circleCrop()
-                        .into(ivStudentPhoto);
-            }
-        }
+                        .error(R.drawable.baseline_account_circle_24)
+                        .dontTransform() // Disable transformations temporarily to test
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                        Target<Drawable> target, boolean isFirstResource) {
+                                Log.e("IMAGE_LOADING_DEBUG", "Failed to load image: " + model, e);
+                                return false;
+                            }
 
-        // ── Transactions ───────────────────────────────────────────────────────
-        List<ProfileDetailsResponse.Transaction> transactions = res.getTransactions();
-        llTransactions.removeAllViews();
-        if (transactions != null) {
-            for (int i = 0; i < transactions.size(); i++) {
-                ProfileDetailsResponse.Transaction t = transactions.get(i);
-                addTransactionRow(
-                        String.valueOf(t.getTrno()),
-                        safe(t.getTrType()),
-                        String.valueOf(t.getAdmissionFee()),
-                        String.valueOf(t.getReceipt()),
-                        safe(t.getReceiptNo()),
-                        i % 2 == 0
-                );
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model,
+                                                           Target<Drawable> target, DataSource dataSource,
+                                                           boolean isFirstResource) {
+                                Log.d("IMAGE_LOADING_DEBUG", "Image loaded successfully!");
+                                ivStudentPhoto.post(() -> ivStudentPhoto.invalidate()); // Force UI redraw
+                                return false;
+                            }
+                        })
+                        .into(ivStudentPhoto);
+            } else {
+                Log.d("IMAGE_LOADING_DEBUG", "No image URL available. Showing default placeholder.");
+                ivStudentPhoto.setImageResource(R.drawable.baseline_account_circle_24);
             }
         }
     }
@@ -295,7 +317,6 @@ public class StudentProfleActivity extends AppCompatActivity {
         llTransactions.addView(divider);
     }
 
-    /** Creates a single cell TextView — unchanged from original */
     private TextView makeCell(String text, float weight, String hexColor, boolean alignEnd) {
         TextView tv = new TextView(this);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(

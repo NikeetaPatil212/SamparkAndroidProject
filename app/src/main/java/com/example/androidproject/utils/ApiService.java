@@ -1,7 +1,10 @@
 package com.example.androidproject.utils;
 
+import com.example.androidproject.InstituteDetailsActivity;
 import com.example.androidproject.model.AbortInquiryRequest;
 import com.example.androidproject.model.AbortInquiryResponse;
+import com.example.androidproject.model.AddInstituteRequest;
+import com.example.androidproject.model.AddInstituteResponse;
 import com.example.androidproject.model.AddReceiptRequest;
 import com.example.androidproject.model.AddReceiptResponse;
 import com.example.androidproject.model.AddStudentRequest;
@@ -23,6 +26,7 @@ import com.example.androidproject.model.InquiryListRequest;
 import com.example.androidproject.model.InquiryListResponse;
 import com.example.androidproject.model.InquiryRequest;
 import com.example.androidproject.model.InquiryResponse;
+import com.example.androidproject.model.InstituteListResponse;
 import com.example.androidproject.model.LoginRequest;
 import com.example.androidproject.model.LoginResponse;
 import com.example.androidproject.model.MobileRequest;
@@ -277,4 +281,18 @@ public interface ApiService {
 
     @POST("DashboardGrids")
     Call<DashboardGridsResponse> getDashboardGrids(@Body DashboardRequest request);
+
+    @GET("GetInstituteList")
+    Call<InstituteListResponse> getInstituteList();
+
+    @Multipart
+    @POST("Updalod_Logo")
+    Call<ImageUploadResponse> uploadInstituteLogo(
+            @Part MultipartBody.Part file
+    );
+
+    @POST("Add_Institute")
+    Call<AddInstituteResponse> addInstitute(
+            @Body AddInstituteRequest request
+    );
 }

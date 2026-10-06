@@ -156,7 +156,7 @@ public class EditStudentProfileActivity extends AppCompatActivity {
 
         // DOB cannot be in the future
         dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-        dialog.setTitle("Select Date of Birth");
+     //   dialog.setTitle("Select Date of Birth");
         dialog.show();
     }
 
@@ -384,11 +384,21 @@ public class EditStudentProfileActivity extends AppCompatActivity {
                                            Response<EditProfileResponse> response) {
                         loaderLayout.setVisibility(View.GONE);
 
+                        // Assuming 'imageUrlToSend' is the URL string (e.g. "http://160.187.87.113:8081/uploads/...")
+// that you placed into your request body:
+                        String imageUrlToSend = uploadedImageUrl;
+
                         if (response.isSuccessful() && response.body() != null) {
                             Toast.makeText(EditStudentProfileActivity.this,
                                     response.body().getMessage(),
                                     Toast.LENGTH_SHORT).show();
+
                             if (response.body().isSuccess()) {
+                                // Save the image URL you just uploaded/sent to PrefManager directly
+                                if (imageUrlToSend != null && !imageUrlToSend.isEmpty()) {
+                                    PrefManager.getInstance(EditStudentProfileActivity.this).saveProfileImage(imageUrlToSend);
+                                }
+
                                 finish();
                             }
                         } else {

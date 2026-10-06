@@ -368,8 +368,8 @@
                                 android:id="@+id/ivStudentPhoto"
                                 android:layout_width="64dp"
                                 android:layout_height="64dp"
-                                android:src="@drawable/baseline_account_circle_24"
-                                android:tint="#1565C0"
+                                android:src="@drawable/ic_person_foreground"
+                                android:background="@drawable/bg_avtar_circle"
                                 android:scaleType="centerCrop"
                                 android:layout_marginEnd="12dp" />
 
@@ -397,6 +397,7 @@
                                     android:text="Browse Image"
                                     android:textColor="#1565C0"
                                     android:textSize="11sp"
+                                    android:visibility="gone"
                                     android:layout_marginTop="4dp"
                                     android:textStyle="italic" />
                             </LinearLayout>

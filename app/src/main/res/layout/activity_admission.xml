@@ -153,10 +153,13 @@
                                 android:maxLines="1" />
 
                             <ImageView
+                                android:id="@+id/ivAdmissionDateCalendar"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:src="@drawable/baseline_calendar_today_24"
-                                android:tint="#2E7D32" />
+                                app:tint="#2E7D32"
+                                android:clickable="true"
+                                android:focusable="true" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -352,8 +355,11 @@
                                 android:cursorVisible="false" />
 
                             <ImageView
+                                android:id="@+id/ivBatchTimingDropdown"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:clickable="true"
+                                android:focusable="true"
                                 android:src="@drawable/outline_arrow_drop_down_24"
                                 android:tint="#2E7D32" />
                         </LinearLayout>
@@ -587,22 +593,28 @@
                     android:textSize="13sp"
                     android:textAllCaps="false"
                     android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCamera"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="#2E7D32"
-                    android:text="📷 Camera"
-                    android:textColor="#2E7D32"
-                    android:textSize="13sp"
-                    android:textAllCaps="false"
-                    android:textStyle="bold" />
             </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCamera"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#2E7D32"
+                android:text="📷 Camera"
+                android:textColor="#2E7D32"
+                android:textSize="13sp"
+                android:textAllCaps="false"
+                android:textStyle="bold" />
+        </LinearLayout>
             <!-- Photo info -->
             <TextView
                 android:id="@+id/tvPhotoInfo"
@@ -776,10 +788,13 @@
                                 android:maxLines="1" />
 
                             <ImageView
+                                android:id="@+id/ivReminderDateCalendar"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:src="@drawable/baseline_calendar_today_24"
-                                android:tint="#2E7D32" />
+                                app:tint="#2E7D32"
+                                android:clickable="true"
+                                android:focusable="true" />
                         </LinearLayout>
 
                     </LinearLayout>

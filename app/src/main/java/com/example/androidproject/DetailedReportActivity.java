@@ -11,6 +11,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -28,11 +29,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidproject.adapters.InquiryReportAdapter;
+import com.example.androidproject.model.Course;
 import com.example.androidproject.model.summary.InquiryReportItem;
 import com.example.androidproject.model.summary.InquiryReportRequest;
 import com.example.androidproject.model.summary.InquiryReportResponse;
 import com.example.androidproject.model.template.TemplateEntity;
 import com.example.androidproject.model.template.TemplateRepository;
+import com.example.androidproject.room.CourseBatchRepository;
+import com.example.androidproject.room.CourseEntity;
 import com.example.androidproject.utils.PrefManager;
 import com.example.androidproject.utils.RetrofitClient;
 import com.google.android.material.button.MaterialButton;
@@ -111,6 +115,12 @@ public class DetailedReportActivity extends AppCompatActivity {
             "Reference"
     };
 
+    private List<Course> courseList  = new ArrayList<>();
+    private boolean courseSpinnerReady = false;
+    private boolean batchSpinnerReady  = false;
+    private boolean timingSpinnerReady = false;
+    private int selectedCourseId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,7 +129,7 @@ public class DetailedReportActivity extends AppCompatActivity {
 
         initViews();
         setupBackButton();
-        setupCourseSpinner();
+        fetchCourses();
         setupStatusCheckboxes();
         setupLiveFilters();
         fetchInquiries();
@@ -183,6 +193,49 @@ public class DetailedReportActivity extends AppCompatActivity {
             // wire send message logic here
         });*/
 
+    }
+
+
+    private void fetchCourses() {
+        CourseBatchRepository.getInstance(this).getCourses(courses -> {
+            courseList.clear();
+            for (CourseEntity e : courses) {
+                courseList.add(new Course(e.courseId, e.courseName, "", "", 0, 0));
+            }
+            setupCourseSpinner();
+        });
+    }
+
+    private void setupCourseSpinner() {
+        List<String> names = new ArrayList<>();
+        names.add("Select Course --");
+        for (Course c : courseList) names.add(c.getCouse_Name());
+
+        ArrayAdapter<String> aa = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, names);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spCourse.setAdapter(aa);
+
+        courseSpinnerReady = false;
+
+        spCourse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!courseSpinnerReady) { courseSpinnerReady = true; return; }
+                if (pos == 0) {
+                   /* resetBatch();
+                    resetTiming();
+                    hideStudentList();*/
+                    return;
+                }
+                selectedCourseId = courseList.get(pos - 1).getCouseID();
+              /*  resetBatch();
+                resetTiming();
+                hideStudentList();
+                fetchBatches(selectedCourseId);*/
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
     }
 
     private void exportToPdf() {
@@ -674,14 +727,15 @@ public class DetailedReportActivity extends AppCompatActivity {
     }
 
     // ── Course Spinner ─────────────────────────────────────────────
-    private void setupCourseSpinner() {
+  /*  private void setupCourseSpinner() {
         List<String> courses = new ArrayList<>();
         courses.add("All Courses");
         ArrayAdapter<String> aa = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, courses);
         aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spCourse.setAdapter(aa);
-    }
+    }*/
+
 
     // ── Status checkboxes ──────────────────────────────────────────
     private void setupStatusCheckboxes() {
@@ -791,7 +845,7 @@ public class DetailedReportActivity extends AppCompatActivity {
                             adapter.setData(allInquiries);
                             applyFilters();
                             cardStudentList.setVisibility(View.VISIBLE);
-                            btnSendSMSMessage.setVisibility(View.VISIBLE);
+                            btnSendSMSMessage.setVisibility(View.GONE);
                             btnGeneratePdf.setVisibility(View.VISIBLE);
                             btnSendWhatsappMessage.setVisibility(View.VISIBLE);
                             updateCount();

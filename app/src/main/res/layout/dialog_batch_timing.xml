@@ -92,8 +92,11 @@
                 android:cursorVisible="false" />
 
             <ImageView
+                android:id="@+id/ivBatchTimingDropdown"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/outline_arrow_drop_down_24"
                 android:tint="#2E7D32" />
         </LinearLayout>

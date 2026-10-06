@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -189,12 +190,13 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
         View view = LayoutInflater.from(context)
                 .inflate(R.layout.dialog_batch_timing, null);
 
-        TextView                     tvStudentName = view.findViewById(R.id.tvStudentName);
-        MaterialAutoCompleteTextView spBatchTiming = view.findViewById(R.id.spBatchTiming);
-        TextView                     tvCapacity    = view.findViewById(R.id.tvCapacity);
-        TextView                     tvAvailable   = view.findViewById(R.id.tvAvailable);
-        MaterialButton               btnAllot      = view.findViewById(R.id.btnAllotTiming);
-        MaterialButton               btnClose      = view.findViewById(R.id.btnClose);
+        TextView                     tvStudentName         = view.findViewById(R.id.tvStudentName);
+        MaterialAutoCompleteTextView spBatchTiming         = view.findViewById(R.id.spBatchTiming);
+        ImageView                    ivBatchTimingDropdown = view.findViewById(R.id.ivBatchTimingDropdown);
+        TextView                     tvCapacity            = view.findViewById(R.id.tvCapacity);
+        TextView                     tvAvailable           = view.findViewById(R.id.tvAvailable);
+        MaterialButton               btnAllot              = view.findViewById(R.id.btnAllotTiming);
+        MaterialButton               btnClose              = view.findViewById(R.id.btnClose);
 
         tvStudentName.setText("👤  " + item.getStudentName());
         tvCapacity.setText("—");
@@ -209,7 +211,30 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                 context, android.R.layout.simple_dropdown_item_1line, labels);
         spBatchTiming.setThreshold(0);
         spBatchTiming.setAdapter(spinnerAdapter);
-        spBatchTiming.setOnClickListener(v -> spBatchTiming.showDropDown());
+
+        // Centralized helper to show dropdown menu reliably
+        Runnable openDropdownAction = () -> {
+            spBatchTiming.requestFocus();
+            if (spBatchTiming.getAdapter() != null) {
+                spBatchTiming.setText(spBatchTiming.getText(), false);
+            }
+            spBatchTiming.showDropDown();
+        };
+
+        spBatchTiming.setOnClickListener(v -> openDropdownAction.run());
+
+        if (ivBatchTimingDropdown != null) {
+            ivBatchTimingDropdown.setOnClickListener(v -> openDropdownAction.run());
+
+            ivBatchTimingDropdown.setOnTouchListener((v, event) -> {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    openDropdownAction.run();
+                    v.performClick();
+                    return true;
+                }
+                return false;
+            });
+        }
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(view)
@@ -399,7 +424,6 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
                             @Override
                             public void onError(String error) {
                                 Log.w(TAG, "Batch Allotment template not found: " + error);
-                                // No template → silently skip, allotment already succeeded
                             }
                         });
     }
@@ -414,7 +438,6 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
             }
             SmsManager smsManager = SmsManager.getDefault();
             ArrayList<String> parts = smsManager.divideMessage(message);
-       //     smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
             String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber
                     : phoneNumber.startsWith("91") ? "+" + phoneNumber
                     : "+91" + phoneNumber;
@@ -429,9 +452,6 @@ public class TimingLessStudentAdapter extends RecyclerView.Adapter<TimingLessStu
     private void openWhatsApp(Context context, String phoneNumber, String message) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-          /*  intent.setData(Uri.parse("https://wa.me/" + phoneNumber
-                    + "?text=" + Uri.encode(message)));*/
-
             String formattedNumber = phoneNumber.startsWith("+91") ? phoneNumber.substring(1)
                     : phoneNumber.startsWith("91") ? phoneNumber
                     : "91" + phoneNumber;
